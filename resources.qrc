@@ -14,9 +14,13 @@
         <file alias="film.png">immagini/film_icon.png</file>
         <file alias="articolo.png">immagini/articolo_icon.png</file>
         <file alias="app_icon.png">immagini/app_icon.png</file>
-    </qresource>
-    
-    <qresource prefix="/translations">
-        <!-- Placeholder per eventuali traduzioni future -->
+        <file alias="add_icon.png">immagini/add_icon.png</file>
+        <file alias="edit_icon.png">immagini/edit_icon.png</file>
+        <file alias="delete_icon.png">immagini/delete_icon.png</file>
+        <file alias="search_icon.png">immagini/search_icon.png</file>
+        <file alias="filter_icon.png">immagini/filter_icon.png</file>
+        <file alias="save_icon.png">immagini/save_icon.png</file>
+        <file alias="open_icon.png">immagini/open_icon.png</file>
+        <file alias="new_icon.png">immagini/new_icon.png</file>
     </qresource>
 </RCC>
