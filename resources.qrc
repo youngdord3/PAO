@@ -1,0 +1,22 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/styles">
+        <file>styles/main.css</file>
+        <file>styles/dark_theme.css</file>
+    </qresource>
+    
+    <qresource prefix="/data">
+        <file>data.json</file>
+    </qresource>
+    
+    <qresource prefix="/icons">
+        <file alias="libro.png">immagini/libro_icon.png</file>
+        <file alias="film.png">immagini/film_icon.png</file>
+        <file alias="articolo.png">immagini/articolo_icon.png</file>
+        <file alias="app_icon.png">immagini/app_icon.png</file>
+    </qresource>
+    
+    <qresource prefix="/translations">
+        <!-- Placeholder per eventuali traduzioni future -->
+    </qresource>
+</RCC>

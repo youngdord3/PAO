@@ -7,11 +7,6 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     
-    // Configurazione dell'applicazione
-    app.setApplicationName("Biblioteca Manager");
-    app.setApplicationVersion("1.0");
-    app.setOrganizationName("BibliotecaTeam");
-    
     // Impostazione di uno stile moderno
     app.setStyle(QStyleFactory::create("Fusion"));
     

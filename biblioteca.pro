@@ -1,8 +1,13 @@
+# Configurazione base del progetto Qt
 QT += core widgets
 
+# Standard C++ moderno richiesto per smart pointers e altre funzionalità
 CONFIG += c++17
 
+# Nome dell'eseguibile finale
 TARGET = BibliotecaManager
+
+# Tipo di progetto: applicazione eseguibile
 TEMPLATE = app
 
 # Definizione delle cartelle
@@ -39,3 +44,11 @@ HEADERS += modello_logico/media.h \
 
 # Cartelle delle risorse
 RESOURCES += resources.qrc
+
+# Opzionale: abilitare warning per API Qt deprecate
+# Aiuta a mantenere il codice aggiornato con le versioni più recenti di Qt
+# DEFINES += QT_DEPRECATED_WARNINGS
+
+# Opzionale: disabilitare API Qt precedenti a una certa versione
+# Forza l'uso delle API più moderne e sicure
+# DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
