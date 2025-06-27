@@ -406,11 +406,11 @@ QPixmap MediaCard::getTypeIcon() const
     QString iconPath;
     
     if (type == "Libro") {
-        iconPath = "immagini/libro_icon.png";
+        iconPath = ":/icons/libro.png";
     } else if (type == "Film") {
-        iconPath = "immagini/film_icon.png";
+        iconPath = ":/icons/film.png";
     } else if (type == "Articolo") {
-        iconPath = "immagini/articolo_icon.png";
+        iconPath = ":/icons/articolo.png";
     }
     
     QPixmap pixmap(iconPath);

@@ -1,8 +1,8 @@
 #include "collezione.h"
+#include "json/jsonmanager.h"
 #include "libro.h"
 #include "film.h"
 #include "articolo.h"
-#include "json/jsonmanager.h"
 #include <algorithm>
 #include <QDebug>
 #include <set>
@@ -11,6 +11,8 @@ Collezione::Collezione(QObject* parent)
     : QObject(parent), m_jsonManager(std::make_unique<JsonManager>())
 {
 }
+
+Collezione::~Collezione() = default;
 
 void Collezione::addMedia(std::unique_ptr<Media> media)
 {

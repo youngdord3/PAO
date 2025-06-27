@@ -22,7 +22,7 @@ class Collezione : public QObject
     
 public:
     explicit Collezione(QObject* parent = nullptr);
-    ~Collezione() = default;
+    ~Collezione();
     
     // Gestione dei media
     void addMedia(std::unique_ptr<Media> media);
