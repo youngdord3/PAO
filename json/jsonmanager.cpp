@@ -207,7 +207,7 @@ QString JsonManager::getLastError() const
     return m_lastError;
 }
 
-void JsonManager::clearError()
+void JsonManager::clearError() const
 {
     m_lastError.clear();
 }

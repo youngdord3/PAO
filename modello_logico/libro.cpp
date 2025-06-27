@@ -215,7 +215,8 @@ bool Libro::isValidIsbn(const QString& isbn) const
     QRegularExpression isbn10("^\\d{9}[\\dX]$");
     QRegularExpression isbn13("^\\d{13}$");
     
-    QString cleanIsbn = isbn.remove(QRegularExpression("[\\s-]"));
+    QString cleanIsbn = isbn;
+    cleanIsbn.remove(QRegularExpression("[\\s-]"));
     
     return isbn10.match(cleanIsbn).hasMatch() || isbn13.match(cleanIsbn).hasMatch();
 }

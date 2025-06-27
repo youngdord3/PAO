@@ -46,7 +46,7 @@ public:
     
     // Utility
     QString getLastError() const;
-    void clearError();
+    void clearError() const;
     
     // Backup e recovery
     bool createBackup(const QString& originalFile) const;

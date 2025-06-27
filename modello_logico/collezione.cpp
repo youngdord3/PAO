@@ -5,6 +5,7 @@
 #include "json/jsonmanager.h"
 #include <algorithm>
 #include <QDebug>
+#include <set>
 
 Collezione::Collezione(QObject* parent)
     : QObject(parent), m_jsonManager(std::make_unique<JsonManager>())

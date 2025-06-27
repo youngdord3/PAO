@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "json/jsonmanager.h" 
 #include "mediacard.h"
 #include "mediadialog.h"
 #include "modello_logico/collezione.h"
