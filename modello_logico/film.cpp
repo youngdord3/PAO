@@ -171,25 +171,6 @@ bool Film::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-bool Film::matchesCriteria(const QString& criteria, const QString& value) const
-{
-    if (criteria == "regista") {
-        return m_regista.toLower().contains(value.toLower());
-    } else if (criteria == "attore") {
-        for (const QString& attore : m_attori) {
-            if (attore.toLower().contains(value.toLower())) {
-                return true;
-            }
-        }
-        return false;
-    } else if (criteria == "genere") {
-        return getGenereString().toLower().contains(value.toLower());
-    } else if (criteria == "casa_produzione") {
-        return m_casa_produzione.toLower().contains(value.toLower());
-    }
-    return false;
-}
-
 bool Film::isLongMovie() const
 {
     return m_durata > 150; // Film lunghi sopra le 2.5 ore

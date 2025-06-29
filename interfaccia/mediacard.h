@@ -24,11 +24,7 @@ class MediaCard : public QFrame
 
 public:
     explicit MediaCard(std::unique_ptr<Media> media, QWidget *parent = nullptr);
-    ~MediaCard();
-    
-    // Rimuovi copy constructor e assignment operator
-    MediaCard(const MediaCard&) = delete;
-    MediaCard& operator=(const MediaCard&) = delete;
+    virtual ~MediaCard();
     
     // Accessori
     QString getId() const;

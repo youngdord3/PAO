@@ -132,20 +132,6 @@ bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
-{
-    if (criteria == "autore") {
-        return m_autore.toLower().contains(value.toLower());
-    } else if (criteria == "editore") {
-        return m_editore.toLower().contains(value.toLower());
-    } else if (criteria == "genere") {
-        return getGenereString().toLower().contains(value.toLower());
-    } else if (criteria == "isbn") {
-        return m_isbn.contains(value);
-    }
-    return false;
-}
-
 bool Libro::isLongBook() const
 {
     return m_pagine > 400;

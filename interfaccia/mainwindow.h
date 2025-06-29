@@ -17,6 +17,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QList>
 #include <memory>
 
 class Collezione;
@@ -80,7 +81,6 @@ private slots:
 private:
     // Setup interfaccia
     void setupUI();
-    // RIMOSSA: void setupMenuBar(); - Non più necessaria
     void setupToolBar();
     void setupStatusBar();
     void setupMainArea();
@@ -157,8 +157,8 @@ private:
     QLabel* m_countLabel;
     QProgressBar* m_progressBar;
     
-    // Collezione di card attualmente visualizzate
-    std::vector<MediaCard*> m_mediaCards;
+    // Collezione di card attualmente visualizzate - USA QList invece di std::vector
+    QList<MediaCard*> m_mediaCards;
     
     // Dimensioni e layout
     static const int CARD_WIDTH = 280;

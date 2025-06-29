@@ -210,25 +210,6 @@ bool Articolo::matchesCriteria(const QString& criteria, const QString& value) co
     return false;
 }
 
-bool Articolo::matchesCriteria(const QString& criteria, const QString& value) const
-{
-    if (criteria == "autore") {
-        for (const QString& autore : m_autori) {
-            if (autore.toLower().contains(value.toLower())) {
-                return true;
-            }
-        }
-        return false;
-    } else if (criteria == "rivista") {
-        return m_rivista.toLower().contains(value.toLower());
-    } else if (criteria == "categoria") {
-        return getCategoriaString().toLower().contains(value.toLower());
-    } else if (criteria == "doi") {
-        return m_doi.contains(value);
-    }
-    return false;
-}
-
 bool Articolo::isPeerReviewed() const
 {
     return m_tipo_rivista == Accademica || m_tipo_rivista == Specialistica;
@@ -408,6 +389,6 @@ int Articolo::calculatePageCount() const
     
     // Se è solo un numero, assume 1 pagina
     bool ok;
-    int singlePage = m_pagine.toInt(&ok);
+    m_pagine.toInt(&ok);
     return ok ? 1 : 10; // Default per stime
 }

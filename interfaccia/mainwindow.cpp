@@ -411,7 +411,7 @@ void MainWindow::updateLayout()
     m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
 }
 
-// CORREZIONE: Funzione di ricerca migliorata
+// CORREZIONE: Funzione di ricerca migliorata e corretta
 void MainWindow::refreshMediaCards()
 {
     clearMediaCards();
@@ -444,21 +444,23 @@ void MainWindow::refreshMediaCards()
             media = filteredMedia;
         }
         
-        // Crea le card
+        // Crea le card - CORREZIONE: gestione semplificata della memoria
         for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
                     // Crea MediaCard direttamente con il clone del media
-                    auto clonedMedia = mediaPtr->clone();
+                    std::unique_ptr<Media> clonedMedia = mediaPtr->clone();
                     if (clonedMedia) {
                         MediaCard* cardPtr = new MediaCard(std::move(clonedMedia), m_mediaContainer);
-                        m_mediaCards.push_back(cardPtr);
-                        
-                        // Connessioni per selezione
-                        connect(cardPtr, &MediaCard::selezionato,
-                                this, &MainWindow::onCardSelezionata);
-                        connect(cardPtr, &MediaCard::doppioClick,
-                                this, &MainWindow::onCardDoubleClic);
+                        if (cardPtr) {
+                            m_mediaCards.push_back(cardPtr);
+                            
+                            // Connessioni per selezione
+                            connect(cardPtr, &MediaCard::selezionato,
+                                    this, &MainWindow::onCardSelezionata);
+                            connect(cardPtr, &MediaCard::doppioClick,
+                                    this, &MainWindow::onCardDoubleClic);
+                        }
                     }
                 } catch (const std::exception& e) {
                     qWarning() << "Errore nella creazione MediaCard:" << e.what();
