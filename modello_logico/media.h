@@ -6,6 +6,7 @@
 #include <QDate>
 #include <memory>
 
+// Forward declarations per evitare dipendenze circolari
 class QWidget;
 class MediaCard;
 
@@ -21,7 +22,7 @@ public:
     Media(const QString& titolo, int anno, const QString& descrizione);
     virtual ~Media() = default;
     
-    // Rimuovi copy constructor e assignment operator
+    // Rimuovi copy constructor e assignment operator per evitare problemi con unique_ptr
     Media(const Media&) = delete;
     Media& operator=(const Media&) = delete;
     

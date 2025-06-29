@@ -400,10 +400,10 @@ void MainWindow::updateLayout()
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    // Riorganizza le card - CORREZIONE: usa size() per QVector
-    for (int i = 0; i < m_mediaCards.size(); ++i) {
-        int row = i / columns;
-        int col = i % columns;
+    // CORREZIONE: usa size_t per evitare warning di conversione
+    for (size_t i = 0; i < m_mediaCards.size(); ++i) {
+        int row = static_cast<int>(i) / columns;
+        int col = static_cast<int>(i) % columns;
         m_mediaLayout->addWidget(m_mediaCards[i], row, col);
     }
     
@@ -411,7 +411,6 @@ void MainWindow::updateLayout()
     m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
 }
 
-// CORREZIONE: Funzione di ricerca migliorata e corretta
 void MainWindow::refreshMediaCards()
 {
     clearMediaCards();
@@ -444,7 +443,7 @@ void MainWindow::refreshMediaCards()
             media = filteredMedia;
         }
         
-        // Crea le card - CORREZIONE: usa append() per QVector
+        // CORREZIONE: usa push_back() invece di append() per std::vector
         for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
@@ -452,7 +451,7 @@ void MainWindow::refreshMediaCards()
                     std::unique_ptr<MediaCard> card = mediaPtr->createCard(m_mediaContainer);
                     if (card) {
                         MediaCard* cardPtr = card.release();
-                        m_mediaCards.append(cardPtr); // CORREZIONE: usa append invece di push_back
+                        m_mediaCards.push_back(cardPtr); // CORREZIONE: push_back per std::vector
                         
                         // Connessioni per selezione
                         connect(cardPtr, &MediaCard::selezionato,
@@ -476,9 +475,12 @@ void MainWindow::refreshMediaCards()
 
 void MainWindow::clearMediaCards()
 {
+
     for (MediaCard* card : m_mediaCards) {
-        m_mediaLayout->removeWidget(card);
-        card->deleteLater();
+        if (card) {
+            m_mediaLayout->removeWidget(card);
+            card->deleteLater(); // Qt gestirà la cancellazione del widget
+        }
     }
     m_mediaCards.clear();
     

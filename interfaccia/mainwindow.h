@@ -17,7 +17,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <QCheckBox>
-#include <QVector>
+#include <vector>  // AGGIUNTO: per std::vector
 #include <memory>
 
 class Collezione;
@@ -157,8 +157,8 @@ private:
     QLabel* m_countLabel;
     QProgressBar* m_progressBar;
     
-    // Collezione di card attualmente visualizzate - USA QVector che è compatibile con std
-    QVector<MediaCard*> m_mediaCards;
+    // CORREZIONE: Usa std::vector invece di QVector per evitare problemi di compilazione
+    std::vector<MediaCard*> m_mediaCards;
     
     // Dimensioni e layout
     static const int CARD_WIDTH = 280;
