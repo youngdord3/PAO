@@ -400,8 +400,8 @@ void MainWindow::updateLayout()
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    // Riorganizza le card
-    for (int i = 0; i < static_cast<int>(m_mediaCards.size()); ++i) {
+    // Riorganizza le card - CORREZIONE: usa size() per QVector
+    for (int i = 0; i < m_mediaCards.size(); ++i) {
         int row = i / columns;
         int col = i % columns;
         m_mediaLayout->addWidget(m_mediaCards[i], row, col);
@@ -444,23 +444,21 @@ void MainWindow::refreshMediaCards()
             media = filteredMedia;
         }
         
-        // Crea le card - CORREZIONE: gestione semplificata della memoria
+        // Crea le card - CORREZIONE: usa append() per QVector
         for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
-                    // Crea MediaCard direttamente con il clone del media
-                    std::unique_ptr<Media> clonedMedia = mediaPtr->clone();
-                    if (clonedMedia) {
-                        MediaCard* cardPtr = new MediaCard(std::move(clonedMedia), m_mediaContainer);
-                        if (cardPtr) {
-                            m_mediaCards.push_back(cardPtr);
-                            
-                            // Connessioni per selezione
-                            connect(cardPtr, &MediaCard::selezionato,
-                                    this, &MainWindow::onCardSelezionata);
-                            connect(cardPtr, &MediaCard::doppioClick,
-                                    this, &MainWindow::onCardDoubleClic);
-                        }
+                    // Crea MediaCard direttamente usando createCard()
+                    std::unique_ptr<MediaCard> card = mediaPtr->createCard(m_mediaContainer);
+                    if (card) {
+                        MediaCard* cardPtr = card.release();
+                        m_mediaCards.append(cardPtr); // CORREZIONE: usa append invece di push_back
+                        
+                        // Connessioni per selezione
+                        connect(cardPtr, &MediaCard::selezionato,
+                                this, &MainWindow::onCardSelezionata);
+                        connect(cardPtr, &MediaCard::doppioClick,
+                                this, &MainWindow::onCardDoubleClic);
                     }
                 } catch (const std::exception& e) {
                     qWarning() << "Errore nella creazione MediaCard:" << e.what();

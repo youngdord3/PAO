@@ -1,4 +1,5 @@
 #include "libro.h"
+#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QRegularExpression>
 
@@ -130,6 +131,11 @@ bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
         return m_isbn.contains(value);
     }
     return false;
+}
+
+std::unique_ptr<MediaCard> Libro::createCard(QWidget* parent) const
+{
+    return std::make_unique<MediaCard>(clone(), parent);
 }
 
 bool Libro::isLongBook() const

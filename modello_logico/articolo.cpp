@@ -1,4 +1,5 @@
 #include "articolo.h"
+#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QRegularExpression>
@@ -208,6 +209,11 @@ bool Articolo::matchesCriteria(const QString& criteria, const QString& value) co
         return m_doi.contains(value);
     }
     return false;
+}
+
+std::unique_ptr<MediaCard> Articolo::createCard(QWidget* parent) const
+{
+    return std::make_unique<MediaCard>(clone(), parent);
 }
 
 bool Articolo::isPeerReviewed() const

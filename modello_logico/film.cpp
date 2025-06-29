@@ -1,4 +1,5 @@
 #include "film.h"
+#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QJsonArray>
 
@@ -169,6 +170,11 @@ bool Film::matchesCriteria(const QString& criteria, const QString& value) const
         return m_casa_produzione.toLower().contains(value.toLower());
     }
     return false;
+}
+
+std::unique_ptr<MediaCard> Film::createCard(QWidget* parent) const
+{
+    return std::make_unique<MediaCard>(clone(), parent);
 }
 
 bool Film::isLongMovie() const

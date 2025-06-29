@@ -5,6 +5,9 @@
 #include <QDate>
 #include <QStringList>
 
+class MediaCard;
+class QWidget;
+
 /**
  * @brief Classe per rappresentare un articolo di rivista nella collezione
  * 
@@ -77,6 +80,7 @@ public:
     QString getDisplayInfo() const override;
     QString getTypeDisplayName() const override;
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
+    std::unique_ptr<MediaCard> createCard(QWidget* parent = nullptr) const override;
     
     // Metodi specifici per articolo
     bool isPeerReviewed() const;
