@@ -7,7 +7,6 @@
 #include <memory>
 
 class QWidget;
-class MediaCard;
 
 /**
  * @brief Classe base astratta per tutti i tipi di media
@@ -20,6 +19,10 @@ class Media
 public:
     Media(const QString& titolo, int anno, const QString& descrizione);
     virtual ~Media() = default;
+    
+    // Rimuovi copy constructor e assignment operator
+    Media(const Media&) = delete;
+    Media& operator=(const Media&) = delete;
     
     // Metodi accessori comuni
     QString getTitolo() const;
@@ -44,9 +47,6 @@ public:
     // Metodi per la ricerca e filtri
     virtual bool matchesFilter(const QString& searchText) const;
     virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
-    
-    // Factory method per la creazione di card specifiche
-    virtual std::unique_ptr<MediaCard> createCard(QWidget* parent = nullptr) const = 0;
 
 protected:
     // Template method steps - da implementare nelle classi derivate

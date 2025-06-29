@@ -26,6 +26,10 @@ public:
     explicit MediaCard(std::unique_ptr<Media> media, QWidget *parent = nullptr);
     ~MediaCard();
     
+    // Rimuovi copy constructor e assignment operator
+    MediaCard(const MediaCard&) = delete;
+    MediaCard& operator=(const MediaCard&) = delete;
+    
     // Accessori
     QString getId() const;
     Media* getMedia() const;
@@ -79,7 +83,7 @@ private:
     bool m_selected;
     bool m_hovered;
     
-    // Widgets UI
+    // Widgets UI - inizializzati a nullptr automaticamente
     QVBoxLayout* m_mainLayout;
     QHBoxLayout* m_headerLayout;
     QVBoxLayout* m_contentLayout;

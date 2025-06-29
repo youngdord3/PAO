@@ -10,11 +10,8 @@ int main(int argc, char *argv[])
     // Impostazione di uno stile moderno
     app.setStyle(QStyleFactory::create("Fusion"));
     
-    // Creazione delle cartelle necessarie se non esistono
-    QDir dir;
-    if (!dir.exists("immagini")) {
-        dir.mkdir("immagini");
-    }
+    // RIMOSSA: Creazione automatica della cartella immagini
+    // Le immagini sono ora gestite come risorse nei file .qrc
     
     // Creazione e visualizzazione della finestra principale
     MainWindow window;

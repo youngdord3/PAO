@@ -1,5 +1,4 @@
 #include "libro.h"
-#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QRegularExpression>
 
@@ -133,11 +132,6 @@ bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-std::unique_ptr<MediaCard> Libro::createCard(QWidget* parent) const
-{
-    return std::make_unique<MediaCard>(clone(), parent);
-}
-
 bool Libro::isLongBook() const
 {
     return m_pagine > 400;
@@ -198,7 +192,7 @@ bool Libro::validateSpecificFields() const
 {
     return !m_autore.isEmpty() && 
            m_pagine > 0 && 
-           isValidIsbn(m_isbn);
+           (m_isbn.isEmpty() || isValidIsbn(m_isbn));
 }
 
 QString Libro::getSearchableText() const
@@ -209,7 +203,7 @@ QString Libro::getSearchableText() const
 
 bool Libro::isValidIsbn(const QString& isbn) const
 {
-    if (isbn.isEmpty()) return false;
+    if (isbn.isEmpty()) return true; // ISBN opzionale
     
     // Regex per ISBN-10 o ISBN-13
     QRegularExpression isbn10("^\\d{9}[\\dX]$");

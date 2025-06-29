@@ -55,10 +55,20 @@ MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
     , m_selected(false)
     , m_hovered(false)
 {
+    if (!m_media) {
+        qWarning() << "MediaCard creata con media nullo!";
+        return;
+    }
+    
     setFixedSize(CARD_WIDTH, CARD_HEIGHT);
     setFrameStyle(QFrame::StyledPanel);
-    setupUI();
-    updateStyleSheet();
+    
+    try {
+        setupUI();
+        updateStyleSheet();
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nella creazione MediaCard:" << e.what();
+    }
 }
 
 MediaCard::~MediaCard() = default;
@@ -91,17 +101,33 @@ void MediaCard::updateContent()
 {
     if (!m_media) return;
     
-    // Aggiorna i contenuti delle label
-    m_titleLabel->setText(truncateText(m_media->getTitolo(), 25));
-    m_yearLabel->setText(QString::number(m_media->getAnno()));
-    m_descriptionLabel->setText(truncateText(m_media->getDescrizione(), 80));
-    m_typeLabel->setText(m_media->getTypeDisplayName());
-    m_infoLabel->setText(formatDisplayInfo());
-    
-    // Aggiorna l'icona del tipo
-    m_imageLabel->setPixmap(getTypeIcon());
-    
-    setupTypeSpecificContent();
+    try {
+        // Aggiorna i contenuti delle label con controlli di sicurezza
+        if (m_titleLabel) {
+            m_titleLabel->setText(truncateText(m_media->getTitolo(), 25));
+        }
+        if (m_yearLabel) {
+            m_yearLabel->setText(QString::number(m_media->getAnno()));
+        }
+        if (m_descriptionLabel) {
+            m_descriptionLabel->setText(truncateText(m_media->getDescrizione(), 80));
+        }
+        if (m_typeLabel) {
+            m_typeLabel->setText(m_media->getTypeDisplayName());
+        }
+        if (m_infoLabel) {
+            m_infoLabel->setText(formatDisplayInfo());
+        }
+        
+        // Aggiorna l'icona del tipo
+        if (m_imageLabel) {
+            m_imageLabel->setPixmap(getTypeIcon());
+        }
+        
+        setupTypeSpecificContent();
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nell'aggiornamento contenuto MediaCard:" << e.what();
+    }
 }
 
 void MediaCard::mousePressEvent(QMouseEvent *event)
@@ -186,216 +212,275 @@ void MediaCard::setupUI()
 {
     if (!m_media) return;
     
-    setupLayout();
-    
-    // Configurazione delle label
-    m_typeLabel = new QLabel(m_media->getTypeDisplayName());
-    m_typeLabel->setStyleSheet("font-weight: bold; font-size: 10px; color: #666;");
-    
-    m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25));
-    m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
-    m_titleLabel->setWordWrap(true);
-    
-    m_yearLabel = new QLabel(QString::number(m_media->getAnno()));
-    m_yearLabel->setStyleSheet("font-size: 12px; color: #666;");
-    
-    m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80));
-    m_descriptionLabel->setStyleSheet("font-size: 11px; color: #555;");
-    m_descriptionLabel->setWordWrap(true);
-    
-    m_imageLabel = new QLabel();
-    m_imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
-    m_imageLabel->setScaledContents(true);
-    m_imageLabel->setPixmap(getTypeIcon());
-    
-    m_infoLabel = new QLabel(formatDisplayInfo());
-    m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
-    m_infoLabel->setWordWrap(true);
-    
-    // Configurazione bottoni (nascosti per default, mostrati solo al hover)
-    m_editButton = new QPushButton("✏");
-    m_deleteButton = new QPushButton("🗑");
-    m_detailsButton = new QPushButton("👁");
-    
-    m_editButton->setFixedSize(24, 24);
-    m_deleteButton->setFixedSize(24, 24);
-    m_detailsButton->setFixedSize(24, 24);
-    
-    m_editButton->setToolTip("Modifica");
-    m_deleteButton->setToolTip("Elimina");
-    m_detailsButton->setToolTip("Dettagli");
-    
-    QString buttonStyle = 
-        "QPushButton {"
-        "    border: none;"
-        "    border-radius: 12px;"
-        "    background-color: rgba(255,255,255,180);"
-        "    font-size: 12px;"
-        "}"
-        "QPushButton:hover {"
-        "    background-color: rgba(33,150,243,200);"
-        "    color: white;"
-        "}";
-    
-    m_editButton->setStyleSheet(buttonStyle);
-    m_deleteButton->setStyleSheet(buttonStyle);
-    m_detailsButton->setStyleSheet(buttonStyle);
-    
-    // I bottoni sono inizialmente nascosti
-    m_editButton->setVisible(false);
-    m_deleteButton->setVisible(false);
-    m_detailsButton->setVisible(false);
-    
-    connect(m_editButton, &QPushButton::clicked, this, &MediaCard::onEditClicked);
-    connect(m_deleteButton, &QPushButton::clicked, this, &MediaCard::onDeleteClicked);
-    connect(m_detailsButton, &QPushButton::clicked, this, &MediaCard::onDetailsClicked);
-    
-    setupTypeSpecificContent();
+    try {
+        setupLayout();
+        
+        // Configurazione delle label con controlli di sicurezza
+        m_typeLabel = new QLabel(m_media->getTypeDisplayName(), this);
+        m_typeLabel->setStyleSheet("font-weight: bold; font-size: 10px; color: #666;");
+        
+        m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25), this);
+        m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
+        m_titleLabel->setWordWrap(true);
+        
+        m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
+        m_yearLabel->setStyleSheet("font-size: 12px; color: #666;");
+        
+        m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80), this);
+        m_descriptionLabel->setStyleSheet("font-size: 11px; color: #555;");
+        m_descriptionLabel->setWordWrap(true);
+        
+        m_imageLabel = new QLabel(this);
+        m_imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
+        m_imageLabel->setScaledContents(true);
+        m_imageLabel->setPixmap(getTypeIcon());
+        
+        m_infoLabel = new QLabel(formatDisplayInfo(), this);
+        m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
+        m_infoLabel->setWordWrap(true);
+        
+        // Configurazione bottoni (nascosti per default, mostrati solo al hover)
+        m_editButton = new QPushButton("✏", this);
+        m_deleteButton = new QPushButton("🗑", this);
+        m_detailsButton = new QPushButton("👁", this);
+        
+        if (m_editButton && m_deleteButton && m_detailsButton) {
+            m_editButton->setFixedSize(24, 24);
+            m_deleteButton->setFixedSize(24, 24);
+            m_detailsButton->setFixedSize(24, 24);
+            
+            m_editButton->setToolTip("Modifica");
+            m_deleteButton->setToolTip("Elimina");
+            m_detailsButton->setToolTip("Dettagli");
+            
+            QString buttonStyle = 
+                "QPushButton {"
+                "    border: none;"
+                "    border-radius: 12px;"
+                "    background-color: rgba(255,255,255,180);"
+                "    font-size: 12px;"
+                "}"
+                "QPushButton:hover {"
+                "    background-color: rgba(33,150,243,200);"
+                "    color: white;"
+                "}";
+            
+            m_editButton->setStyleSheet(buttonStyle);
+            m_deleteButton->setStyleSheet(buttonStyle);
+            m_detailsButton->setStyleSheet(buttonStyle);
+            
+            // I bottoni sono inizialmente nascosti
+            m_editButton->setVisible(false);
+            m_deleteButton->setVisible(false);
+            m_detailsButton->setVisible(false);
+            
+            connect(m_editButton, &QPushButton::clicked, this, &MediaCard::onEditClicked);
+            connect(m_deleteButton, &QPushButton::clicked, this, &MediaCard::onDeleteClicked);
+            connect(m_detailsButton, &QPushButton::clicked, this, &MediaCard::onDetailsClicked);
+        }
+        
+        setupTypeSpecificContent();
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupUI:" << e.what();
+    }
 }
 
 void MediaCard::setupLayout()
 {
-    m_mainLayout = new QVBoxLayout(this);
-    m_mainLayout->setContentsMargins(8, 8, 8, 8);
-    m_mainLayout->setSpacing(4);
-    
-    // Header con tipo e immagine
-    m_headerLayout = new QHBoxLayout();
-    m_headerLayout->setContentsMargins(0, 0, 0, 0);
-    
-    // Content area
-    m_contentLayout = new QVBoxLayout();
-    m_contentLayout->setContentsMargins(0, 0, 0, 0);
-    m_contentLayout->setSpacing(2);
-    
-    // Area bottoni (in overlay)
-    m_buttonLayout = new QHBoxLayout();
-    m_buttonLayout->setContentsMargins(0, 0, 0, 0);
-    m_buttonLayout->addStretch();
+    try {
+        m_mainLayout = new QVBoxLayout(this);
+        if (m_mainLayout) {
+            m_mainLayout->setContentsMargins(8, 8, 8, 8);
+            m_mainLayout->setSpacing(4);
+        }
+        
+        // Header con tipo e immagine
+        m_headerLayout = new QHBoxLayout();
+        if (m_headerLayout) {
+            m_headerLayout->setContentsMargins(0, 0, 0, 0);
+        }
+        
+        // Content area
+        m_contentLayout = new QVBoxLayout();
+        if (m_contentLayout) {
+            m_contentLayout->setContentsMargins(0, 0, 0, 0);
+            m_contentLayout->setSpacing(2);
+        }
+        
+        // Area bottoni (in overlay)
+        m_buttonLayout = new QHBoxLayout();
+        if (m_buttonLayout) {
+            m_buttonLayout->setContentsMargins(0, 0, 0, 0);
+            m_buttonLayout->addStretch();
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupLayout:" << e.what();
+    }
 }
 
 void MediaCard::updateStyleSheet()
 {
-    if (m_selected) {
-        setStyleSheet(STYLE_SELECTED);
-    } else if (m_hovered) {
-        setStyleSheet(STYLE_HOVERED);
-        // Mostra i bottoni quando si fa hover
-        m_editButton->setVisible(true);
-        m_deleteButton->setVisible(true);
-        m_detailsButton->setVisible(true);
-    } else {
-        setStyleSheet(STYLE_NORMAL);
-        // Nascondi i bottoni quando non c'è hover
-        m_editButton->setVisible(false);
-        m_deleteButton->setVisible(false);
-        m_detailsButton->setVisible(false);
+    try {
+        if (m_selected) {
+            setStyleSheet(STYLE_SELECTED);
+        } else if (m_hovered) {
+            setStyleSheet(STYLE_HOVERED);
+            // Mostra i bottoni quando si fa hover
+            if (m_editButton) m_editButton->setVisible(true);
+            if (m_deleteButton) m_deleteButton->setVisible(true);
+            if (m_detailsButton) m_detailsButton->setVisible(true);
+        } else {
+            setStyleSheet(STYLE_NORMAL);
+            // Nascondi i bottoni quando non c'è hover
+            if (m_editButton) m_editButton->setVisible(false);
+            if (m_deleteButton) m_deleteButton->setVisible(false);
+            if (m_detailsButton) m_detailsButton->setVisible(false);
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in updateStyleSheet:" << e.what();
     }
 }
 
 void MediaCard::setupTypeSpecificContent()
 {
-    if (!m_media) return;
+    if (!m_media || !m_mainLayout) return;
     
-    // Rimuovi elementi precedenti
-    QLayoutItem* item;
-    while ((item = m_mainLayout->takeAt(0)) != nullptr) {
-        delete item->widget();
-        delete item;
-    }
-    
-    // Header
-    m_headerLayout = new QHBoxLayout();
-    m_headerLayout->addWidget(m_typeLabel);
-    m_headerLayout->addStretch();
-    m_headerLayout->addWidget(m_imageLabel);
-    
-    // Content
-    m_contentLayout = new QVBoxLayout();
-    m_contentLayout->addWidget(m_titleLabel);
-    
-    QHBoxLayout* yearLayout = new QHBoxLayout();
-    yearLayout->addWidget(new QLabel("Anno:"));
-    yearLayout->addWidget(m_yearLabel);
-    yearLayout->addStretch();
-    m_contentLayout->addLayout(yearLayout);
-    
-    m_contentLayout->addWidget(m_descriptionLabel);
-    m_contentLayout->addWidget(m_infoLabel);
-    
-    // Bottoni
-    m_buttonLayout = new QHBoxLayout();
-    m_buttonLayout->addStretch();
-    m_buttonLayout->addWidget(m_detailsButton);
-    m_buttonLayout->addWidget(m_editButton);
-    m_buttonLayout->addWidget(m_deleteButton);
-    
-    // Aggiungi al layout principale
-    m_mainLayout->addLayout(m_headerLayout);
-    m_mainLayout->addLayout(m_contentLayout);
-    m_mainLayout->addStretch();
-    m_mainLayout->addLayout(m_buttonLayout);
-    
-    QString type = m_media->getTypeDisplayName();
-    if (type == "Libro") {
-        setupLibroContent();
-    } else if (type == "Film") {
-        setupFilmContent();
-    } else if (type == "Articolo") {
-        setupArticoloContent();
+    try {
+        // Pulisci layout esistente con sicurezza
+        while (m_mainLayout->count() > 0) {
+            QLayoutItem* item = m_mainLayout->takeAt(0);
+            if (item) {
+                if (item->widget()) {
+                    item->widget()->setParent(nullptr);
+                }
+                delete item;
+            }
+        }
+        
+        // Ricrea layout
+        if (m_headerLayout && m_typeLabel && m_imageLabel) {
+            m_headerLayout = new QHBoxLayout();
+            m_headerLayout->addWidget(m_typeLabel);
+            m_headerLayout->addStretch();
+            m_headerLayout->addWidget(m_imageLabel);
+        }
+        
+        // Content
+        if (m_contentLayout && m_titleLabel && m_yearLabel && m_descriptionLabel && m_infoLabel) {
+            m_contentLayout = new QVBoxLayout();
+            m_contentLayout->addWidget(m_titleLabel);
+            
+            QHBoxLayout* yearLayout = new QHBoxLayout();
+            yearLayout->addWidget(new QLabel("Anno:", this));
+            yearLayout->addWidget(m_yearLabel);
+            yearLayout->addStretch();
+            m_contentLayout->addLayout(yearLayout);
+            
+            m_contentLayout->addWidget(m_descriptionLabel);
+            m_contentLayout->addWidget(m_infoLabel);
+        }
+        
+        // Bottoni
+        if (m_buttonLayout && m_detailsButton && m_editButton && m_deleteButton) {
+            m_buttonLayout = new QHBoxLayout();
+            m_buttonLayout->addStretch();
+            m_buttonLayout->addWidget(m_detailsButton);
+            m_buttonLayout->addWidget(m_editButton);
+            m_buttonLayout->addWidget(m_deleteButton);
+        }
+        
+        // Aggiungi al layout principale
+        if (m_mainLayout && m_headerLayout && m_contentLayout && m_buttonLayout) {
+            m_mainLayout->addLayout(m_headerLayout);
+            m_mainLayout->addLayout(m_contentLayout);
+            m_mainLayout->addStretch();
+            m_mainLayout->addLayout(m_buttonLayout);
+        }
+        
+        QString type = m_media->getTypeDisplayName();
+        if (type == "Libro") {
+            setupLibroContent();
+        } else if (type == "Film") {
+            setupFilmContent();
+        } else if (type == "Articolo") {
+            setupArticoloContent();
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupTypeSpecificContent:" << e.what();
     }
 }
 
 void MediaCard::setupLibroContent()
 {
-    Libro* libro = dynamic_cast<Libro*>(m_media.get());
-    if (!libro) return;
-    
-    // Aggiungi informazioni specifiche del libro
-    QLabel* autoreLabel = new QLabel(QString("Autore: %1").arg(
-        truncateText(libro->getAutore(), 20)));
-    autoreLabel->setStyleSheet("font-size: 10px; color: #666;");
-    
-    QLabel* pagesLabel = new QLabel(QString("%1 pagine").arg(libro->getPagine()));
-    pagesLabel->setStyleSheet("font-size: 10px; color: #666;");
-    
-    m_contentLayout->insertWidget(m_contentLayout->count() - 1, autoreLabel);
-    m_contentLayout->insertWidget(m_contentLayout->count() - 1, pagesLabel);
+    try {
+        Libro* libro = dynamic_cast<Libro*>(m_media.get());
+        if (!libro || !m_contentLayout) return;
+        
+        // Aggiungi informazioni specifiche del libro
+        QLabel* autoreLabel = new QLabel(QString("Autore: %1").arg(
+            truncateText(libro->getAutore(), 20)), this);
+        autoreLabel->setStyleSheet("font-size: 10px; color: #666;");
+        
+        QLabel* pagesLabel = new QLabel(QString("%1 pagine").arg(libro->getPagine()), this);
+        pagesLabel->setStyleSheet("font-size: 10px; color: #666;");
+        
+        int pos = m_contentLayout->count() - 1;
+        if (pos >= 0) {
+            m_contentLayout->insertWidget(pos, autoreLabel);
+            m_contentLayout->insertWidget(pos + 1, pagesLabel);
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupLibroContent:" << e.what();
+    }
 }
 
 void MediaCard::setupFilmContent()
 {
-    Film* film = dynamic_cast<Film*>(m_media.get());
-    if (!film) return;
-    
-    // Aggiungi informazioni specifiche del film
-    QLabel* registaLabel = new QLabel(QString("Regista: %1").arg(
-        truncateText(film->getRegista(), 20)));
-    registaLabel->setStyleSheet("font-size: 10px; color: #666;");
-    
-    QLabel* durataLabel = new QLabel(film->getDurataFormatted());
-    durataLabel->setStyleSheet("font-size: 10px; color: #666;");
-    
-    m_contentLayout->insertWidget(m_contentLayout->count() - 1, registaLabel);
-    m_contentLayout->insertWidget(m_contentLayout->count() - 1, durataLabel);
+    try {
+        Film* film = dynamic_cast<Film*>(m_media.get());
+        if (!film || !m_contentLayout) return;
+        
+        // Aggiungi informazioni specifiche del film
+        QLabel* registaLabel = new QLabel(QString("Regista: %1").arg(
+            truncateText(film->getRegista(), 20)), this);
+        registaLabel->setStyleSheet("font-size: 10px; color: #666;");
+        
+        QLabel* durataLabel = new QLabel(film->getDurataFormatted(), this);
+        durataLabel->setStyleSheet("font-size: 10px; color: #666;");
+        
+        int pos = m_contentLayout->count() - 1;
+        if (pos >= 0) {
+            m_contentLayout->insertWidget(pos, registaLabel);
+            m_contentLayout->insertWidget(pos + 1, durataLabel);
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupFilmContent:" << e.what();
+    }
 }
 
 void MediaCard::setupArticoloContent()
 {
-    Articolo* articolo = dynamic_cast<Articolo*>(m_media.get());
-    if (!articolo) return;
-    
-    // Aggiungi informazioni specifiche dell'articolo
-    QLabel* rivistaLabel = new QLabel(QString("Rivista: %1").arg(
-        truncateText(articolo->getRivista(), 20)));
-    rivistaLabel->setStyleSheet("font-size: 10px; color: #666;");
-    
-    QLabel* autoriLabel = new QLabel(QString("Autori: %1").arg(
-        truncateText(articolo->getAutori().join(", "), 25)));
-    autoriLabel->setStyleSheet("font-size: 10px; color: #666;");
-    
-    m_contentLayout->insertWidget(m_contentLayout->count() - 1, rivistaLabel);
-    m_contentLayout->insertWidget(m_contentLayout->count() - 1, autoriLabel);
+    try {
+        Articolo* articolo = dynamic_cast<Articolo*>(m_media.get());
+        if (!articolo || !m_contentLayout) return;
+        
+        // Aggiungi informazioni specifiche dell'articolo
+        QLabel* rivistaLabel = new QLabel(QString("Rivista: %1").arg(
+            truncateText(articolo->getRivista(), 20)), this);
+        rivistaLabel->setStyleSheet("font-size: 10px; color: #666;");
+        
+        QLabel* autoriLabel = new QLabel(QString("Autori: %1").arg(
+            truncateText(articolo->getAutori().join(", "), 25)), this);
+        autoriLabel->setStyleSheet("font-size: 10px; color: #666;");
+        
+        int pos = m_contentLayout->count() - 1;
+        if (pos >= 0) {
+            m_contentLayout->insertWidget(pos, rivistaLabel);
+            m_contentLayout->insertWidget(pos + 1, autoriLabel);
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupArticoloContent:" << e.what();
+    }
 }
 
 QPixmap MediaCard::getTypeIcon() const
@@ -449,13 +534,18 @@ QString MediaCard::formatDisplayInfo() const
 {
     if (!m_media) return QString();
     
-    QString info = m_media->getDisplayInfo();
-    
-    // Prendi solo le prime due righe delle informazioni
-    QStringList lines = info.split('\n');
-    if (lines.size() > 2) {
-        return lines.mid(0, 2).join('\n') + "...";
+    try {
+        QString info = m_media->getDisplayInfo();
+        
+        // Prendi solo le prime due righe delle informazioni
+        QStringList lines = info.split('\n');
+        if (lines.size() > 2) {
+            return lines.mid(0, 2).join('\n') + "...";
+        }
+        
+        return info;
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in formatDisplayInfo:" << e.what();
+        return "Errore nel formato";
     }
-    
-    return info;
 }

@@ -80,7 +80,7 @@ private slots:
 private:
     // Setup interfaccia
     void setupUI();
-    void setupMenuBar();
+    // RIMOSSA: void setupMenuBar(); - Non più necessaria
     void setupToolBar();
     void setupStatusBar();
     void setupMainArea();
