@@ -73,7 +73,7 @@ void Libro::setGenere(Genere genere)
 
 std::unique_ptr<Media> Libro::clone() const
 {
-    return std::make_unique<Libro>(*this);
+    return std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, m_editore, m_pagine, m_isbn, m_genere);
 }
 
 QJsonObject Libro::toJson() const
@@ -116,6 +116,20 @@ QString Libro::getDisplayInfo() const
 QString Libro::getTypeDisplayName() const
 {
     return "Libro";
+}
+
+bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
+{
+    if (criteria == "autore") {
+        return m_autore.toLower().contains(value.toLower());
+    } else if (criteria == "editore") {
+        return m_editore.toLower().contains(value.toLower());
+    } else if (criteria == "genere") {
+        return getGenereString().toLower().contains(value.toLower());
+    } else if (criteria == "isbn") {
+        return m_isbn.contains(value);
+    }
+    return false;
 }
 
 bool Libro::matchesCriteria(const QString& criteria, const QString& value) const

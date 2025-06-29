@@ -1,5 +1,4 @@
 #include "articolo.h"
-#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QRegularExpression>
@@ -123,7 +122,7 @@ void Articolo::setDoi(const QString& doi)
 
 std::unique_ptr<Media> Articolo::clone() const
 {
-    return std::make_unique<Articolo>(*this);
+    return std::make_unique<Articolo>(m_titolo, m_anno, m_descrizione, m_autori, m_rivista, m_volume, m_numero, m_pagine, m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);
 }
 
 QJsonObject Articolo::toJson() const
@@ -211,9 +210,23 @@ bool Articolo::matchesCriteria(const QString& criteria, const QString& value) co
     return false;
 }
 
-std::unique_ptr<MediaCard> Articolo::createCard(QWidget* parent) const
+bool Articolo::matchesCriteria(const QString& criteria, const QString& value) const
 {
-    return std::make_unique<MediaCard>(clone(), parent);
+    if (criteria == "autore") {
+        for (const QString& autore : m_autori) {
+            if (autore.toLower().contains(value.toLower())) {
+                return true;
+            }
+        }
+        return false;
+    } else if (criteria == "rivista") {
+        return m_rivista.toLower().contains(value.toLower());
+    } else if (criteria == "categoria") {
+        return getCategoriaString().toLower().contains(value.toLower());
+    } else if (criteria == "doi") {
+        return m_doi.contains(value);
+    }
+    return false;
 }
 
 bool Articolo::isPeerReviewed() const

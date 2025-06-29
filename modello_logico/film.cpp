@@ -1,5 +1,4 @@
 #include "film.h"
-#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QJsonArray>
 
@@ -90,7 +89,7 @@ void Film::setCasaProduzione(const QString& casa_produzione)
 
 std::unique_ptr<Media> Film::clone() const
 {
-    return std::make_unique<Film>(*this);
+    return std::make_unique<Film>(m_titolo, m_anno, m_descrizione, m_regista, m_attori, m_durata, m_genere, m_classificazione, m_casa_produzione);
 }
 
 QJsonObject Film::toJson() const
@@ -172,9 +171,23 @@ bool Film::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-std::unique_ptr<MediaCard> Film::createCard(QWidget* parent) const
+bool Film::matchesCriteria(const QString& criteria, const QString& value) const
 {
-    return std::make_unique<MediaCard>(clone(), parent);
+    if (criteria == "regista") {
+        return m_regista.toLower().contains(value.toLower());
+    } else if (criteria == "attore") {
+        for (const QString& attore : m_attori) {
+            if (attore.toLower().contains(value.toLower())) {
+                return true;
+            }
+        }
+        return false;
+    } else if (criteria == "genere") {
+        return getGenereString().toLower().contains(value.toLower());
+    } else if (criteria == "casa_produzione") {
+        return m_casa_produzione.toLower().contains(value.toLower());
+    }
+    return false;
 }
 
 bool Film::isLongMovie() const
