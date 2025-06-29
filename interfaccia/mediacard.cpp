@@ -61,6 +61,8 @@ MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
     updateStyleSheet();
 }
 
+MediaCard::~MediaCard() = default;
+
 QString MediaCard::getId() const
 {
     return m_media ? m_media->getId() : QString();

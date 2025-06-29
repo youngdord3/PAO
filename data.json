@@ -1,174 +1,206 @@
 {
-  "metadata": {
-    "versione": "1.0",
-    "data_creazione": "2025-06-21T10:00:00Z",
-    "numero_media": 12,
-    "generato_da": "Biblioteca Manager"
-  },
-  "media": [
-    {
-      "type": "libro",
-      "id": "libro-001",
-      "titolo": "Il Nome della Rosa",
-      "anno": 1980,
-      "descrizione": "Un romanzo storico ambientato in un monastero medievale, dove si intrecciano mistero, filosofia e religione.",
-      "autore": "Umberto Eco",
-      "editore": "Bompiani",
-      "pagine": 533,
-      "isbn": "978-8845292613",
-      "genere": 7
-    },
-    {
-      "type": "libro",
-      "id": "libro-002",
-      "titolo": "1984",
-      "anno": 1949,
-      "descrizione": "Un romanzo distopico che descrive una società totalitaria sotto il controllo del Grande Fratello.",
-      "autore": "George Orwell",
-      "editore": "Mondadori",
-      "pagine": 328,
-      "isbn": "978-8804668091",
-      "genere": 0
-    },
-    {
-      "type": "libro",
-      "id": "libro-003",
-      "titolo": "Sapiens: Da animali a dèi",
-      "anno": 2011,
-      "descrizione": "Una breve storia dell'umanità che esplora come Homo sapiens è riuscito a dominare il mondo.",
-      "autore": "Yuval Noah Harari",
-      "editore": "Bompiani",
-      "pagine": 512,
-      "isbn": "978-8845292453",
-      "genere": 1
-    },
-    {
-      "type": "libro",
-      "id": "libro-004",
-      "titolo": "Il Signore degli Anelli",
-      "anno": 1954,
-      "descrizione": "L'epica fantasy che segue Frodo nel suo viaggio per distruggere l'Anello del Potere.",
-      "autore": "J.R.R. Tolkien",
-      "editore": "Rusconi",
-      "pagine": 1216,
-      "isbn": "978-8818012748",
-      "genere": 4
-    },
-    {
-      "type": "film",
-      "id": "film-001",
-      "titolo": "Il Padrino",
-      "anno": 1972,
-      "descrizione": "La saga della famiglia Corleone e l'ascesa di Michael Corleone nel mondo della mafia.",
-      "regista": "Francis Ford Coppola",
-      "attori": ["Marlon Brando", "Al Pacino", "James Caan", "Diane Keaton"],
-      "durata": 175,
-      "genere": 2,
-      "classificazione": 3,
-      "casa_produzione": "Paramount Pictures"
-    },
-    {
-      "type": "film",
-      "id": "film-002",
-      "titolo": "Inception",
-      "anno": 2010,
-      "descrizione": "Un thriller fantascientifico sui sogni condivisi e il furto di idee attraverso la tecnologia dei sogni.",
-      "regista": "Christopher Nolan",
-      "attori": ["Leonardo DiCaprio", "Marion Cotillard", "Tom Hardy", "Ellen Page"],
-      "durata": 148,
-      "genere": 4,
-      "classificazione": 2,
-      "casa_produzione": "Warner Bros"
-    },
-    {
-      "type": "film",
-      "id": "film-003",
-      "titolo": "La Vita è Bella",
-      "anno": 1997,
-      "descrizione": "La storia di un padre che usa la sua immaginazione per proteggere il figlio dagli orrori dell'Olocausto.",
-      "regista": "Roberto Benigni",
-      "attori": ["Roberto Benigni", "Nicoletta Braschi", "Giorgio Cantarini"],
-      "durata": 116,
-      "genere": 2,
-      "classificazione": 1,
-      "casa_produzione": "Melampo Cinematografica"
-    },
-    {
-      "type": "film",
-      "id": "film-004",
-      "titolo": "Spirited Away",
-      "anno": 2001,
-      "descrizione": "Una ragazzina si perde in un mondo magico popolato da spiriti e deve trovare il modo di tornare a casa.",
-      "regista": "Hayao Miyazaki",
-      "attori": ["Rumi Hiiragi", "Miyu Irino", "Mari Natsuki"],
-      "durata": 125,
-      "genere": 9,
-      "classificazione": 0,
-      "casa_produzione": "Studio Ghibli"
-    },
-    {
-      "type": "articolo",
-      "id": "articolo-001",
-      "titolo": "Machine Learning in Healthcare: A Comprehensive Review",
-      "anno": 2023,
-      "descrizione": "Una revisione completa delle applicazioni del machine learning nel settore sanitario.",
-      "autori": ["Dr. Sarah Johnson", "Prof. Michael Chen", "Dr. Elena Rodriguez"],
-      "rivista": "Nature Medicine",
-      "volume": "29",
-      "numero": "4",
-      "pagine": "456-472",
-      "categoria": 2,
-      "tipo_rivista": 0,
-      "data_pubblicazione": "2023-04-15",
-      "doi": "10.1038/s41591-023-02234-x"
-    },
-    {
-      "type": "articolo",
-      "id": "articolo-002",
-      "titolo": "Climate Change and Renewable Energy: Future Perspectives",
-      "anno": 2023,
-      "descrizione": "Analisi delle prospettive future delle energie rinnovabili nel contesto del cambiamento climatico.",
-      "autori": ["Dr. James Thompson", "Prof. Anna Kowalski"],
-      "rivista": "Environmental Science & Technology",
-      "volume": "57",
-      "numero": "12",
-      "pagine": "4823-4835",
-      "categoria": 7,
-      "tipo_rivista": 0,
-      "data_pubblicazione": "2023-06-20",
-      "doi": "10.1021/acs.est.3c01234"
-    },
-    {
-      "type": "articolo",
-      "id": "articolo-003",
-      "titolo": "Quantum Computing: Breaking the Classical Barriers",
-      "anno": 2024,
-      "descrizione": "Esplorazione dei progressi recenti nel quantum computing e delle sue potenziali applicazioni.",
-      "autori": ["Prof. David Kim", "Dr. Lisa Wang", "Dr. Robert Mueller"],
-      "rivista": "Science",
-      "volume": "383",
-      "numero": "6629",
-      "pagine": "123-130",
-      "categoria": 1,
-      "tipo_rivista": 0,
-      "data_pubblicazione": "2024-01-12",
-      "doi": "10.1126/science.adk1234"
-    },
-    {
-      "type": "articolo",
-      "id": "articolo-004",
-      "titolo": "The Impact of Social Media on Modern Democracy",
-      "anno": 2022,
-      "descrizione": "Analisi dell'influenza dei social media sui processi democratici contemporanei.",
-      "autori": ["Prof. Maria Gonzalez", "Dr. Ahmed Hassan"],
-      "rivista": "Political Communication",
-      "volume": "39",
-      "numero": "3",
-      "pagine": "287-305",
-      "categoria": 4,
-      "tipo_rivista": 0,
-      "data_pubblicazione": "2022-09-08",
-      "doi": "10.1080/10584609.2022.2089123"
+    "media": [
+        {
+            "anno": 1980,
+            "autore": "Umberto Eco",
+            "descrizione": "Un romanzo storico ambientato in un monastero medievale, dove si intrecciano mistero, filosofia e religione.",
+            "editore": "Bompiani",
+            "genere": 7,
+            "id": "libro-001",
+            "isbn": "978-8845292613",
+            "pagine": 533,
+            "titolo": "Il Nome della Rosa",
+            "type": "libro"
+        },
+        {
+            "anno": 1949,
+            "autore": "George Orwell",
+            "descrizione": "Un romanzo distopico che descrive una società totalitaria sotto il controllo del Grande Fratello.",
+            "editore": "Mondadori",
+            "genere": 0,
+            "id": "libro-002",
+            "isbn": "978-8804668091",
+            "pagine": 328,
+            "titolo": "1984",
+            "type": "libro"
+        },
+        {
+            "anno": 2011,
+            "autore": "Yuval Noah Harari",
+            "descrizione": "Una breve storia dell'umanità che esplora come Homo sapiens è riuscito a dominare il mondo.",
+            "editore": "Bompiani",
+            "genere": 1,
+            "id": "libro-003",
+            "isbn": "978-8845292453",
+            "pagine": 512,
+            "titolo": "Sapiens: Da animali a dèi",
+            "type": "libro"
+        },
+        {
+            "anno": 1954,
+            "autore": "J.R.R. Tolkien",
+            "descrizione": "L'epica fantasy che segue Frodo nel suo viaggio per distruggere l'Anello del Potere.",
+            "editore": "Rusconi",
+            "genere": 4,
+            "id": "libro-004",
+            "isbn": "978-8818012748",
+            "pagine": 1216,
+            "titolo": "Il Signore degli Anelli",
+            "type": "libro"
+        },
+        {
+            "anno": 1972,
+            "attori": [
+                "Marlon Brando",
+                "Al Pacino",
+                "James Caan",
+                "Diane Keaton"
+            ],
+            "casa_produzione": "Paramount Pictures",
+            "classificazione": 3,
+            "descrizione": "La saga della famiglia Corleone e l'ascesa di Michael Corleone nel mondo della mafia.",
+            "durata": 175,
+            "genere": 2,
+            "id": "film-001",
+            "regista": "Francis Ford Coppola",
+            "titolo": "Il Padrino",
+            "type": "film"
+        },
+        {
+            "anno": 2010,
+            "attori": [
+                "Leonardo DiCaprio",
+                "Marion Cotillard",
+                "Tom Hardy",
+                "Ellen Page"
+            ],
+            "casa_produzione": "Warner Bros",
+            "classificazione": 2,
+            "descrizione": "Un thriller fantascientifico sui sogni condivisi e il furto di idee attraverso la tecnologia dei sogni.",
+            "durata": 148,
+            "genere": 4,
+            "id": "film-002",
+            "regista": "Christopher Nolan",
+            "titolo": "Inception",
+            "type": "film"
+        },
+        {
+            "anno": 1997,
+            "attori": [
+                "Roberto Benigni",
+                "Nicoletta Braschi",
+                "Giorgio Cantarini"
+            ],
+            "casa_produzione": "Melampo Cinematografica",
+            "classificazione": 1,
+            "descrizione": "La storia di un padre che usa la sua immaginazione per proteggere il figlio dagli orrori dell'Olocausto.",
+            "durata": 116,
+            "genere": 2,
+            "id": "film-003",
+            "regista": "Roberto Benigni",
+            "titolo": "La Vita è Bella",
+            "type": "film"
+        },
+        {
+            "anno": 2001,
+            "attori": [
+                "Rumi Hiiragi",
+                "Miyu Irino",
+                "Mari Natsuki"
+            ],
+            "casa_produzione": "Studio Ghibli",
+            "classificazione": 0,
+            "descrizione": "Una ragazzina si perde in un mondo magico popolato da spiriti e deve trovare il modo di tornare a casa.",
+            "durata": 125,
+            "genere": 9,
+            "id": "film-004",
+            "regista": "Hayao Miyazaki",
+            "titolo": "Spirited Away",
+            "type": "film"
+        },
+        {
+            "anno": 2023,
+            "autori": [
+                "Dr. Sarah Johnson",
+                "Prof. Michael Chen",
+                "Dr. Elena Rodriguez"
+            ],
+            "categoria": 2,
+            "data_pubblicazione": "2023-04-15",
+            "descrizione": "Una revisione completa delle applicazioni del machine learning nel settore sanitario.",
+            "doi": "10.1038/s41591-023-02234-x",
+            "id": "articolo-001",
+            "numero": "4",
+            "pagine": "456-472",
+            "rivista": "Nature Medicine",
+            "tipo_rivista": 0,
+            "titolo": "Machine Learning in Healthcare: A Comprehensive Review",
+            "type": "articolo",
+            "volume": "29"
+        },
+        {
+            "anno": 2023,
+            "autori": [
+                "Dr. James Thompson",
+                "Prof. Anna Kowalski"
+            ],
+            "categoria": 7,
+            "data_pubblicazione": "2023-06-20",
+            "descrizione": "Analisi delle prospettive future delle energie rinnovabili nel contesto del cambiamento climatico.",
+            "doi": "10.1021/acs.est.3c01234",
+            "id": "articolo-002",
+            "numero": "12",
+            "pagine": "4823-4835",
+            "rivista": "Environmental Science & Technology",
+            "tipo_rivista": 0,
+            "titolo": "Climate Change and Renewable Energy: Future Perspectives",
+            "type": "articolo",
+            "volume": "57"
+        },
+        {
+            "anno": 2024,
+            "autori": [
+                "Prof. David Kim",
+                "Dr. Lisa Wang",
+                "Dr. Robert Mueller"
+            ],
+            "categoria": 1,
+            "data_pubblicazione": "2024-01-12",
+            "descrizione": "Esplorazione dei progressi recenti nel quantum computing e delle sue potenziali applicazioni.",
+            "doi": "10.1126/science.adk1234",
+            "id": "articolo-003",
+            "numero": "6629",
+            "pagine": "123-130",
+            "rivista": "Science",
+            "tipo_rivista": 0,
+            "titolo": "Quantum Computing: Breaking the Classical Barriers",
+            "type": "articolo",
+            "volume": "383"
+        },
+        {
+            "anno": 2022,
+            "autori": [
+                "Prof. Maria Gonzalez",
+                "Dr. Ahmed Hassan"
+            ],
+            "categoria": 4,
+            "data_pubblicazione": "2022-09-08",
+            "descrizione": "Analisi dell'influenza dei social media sui processi democratici contemporanei.",
+            "doi": "10.1080/10584609.2022.2089123",
+            "id": "articolo-004",
+            "numero": "3",
+            "pagine": "287-305",
+            "rivista": "Political Communication",
+            "tipo_rivista": 0,
+            "titolo": "The Impact of Social Media on Modern Democracy",
+            "type": "articolo",
+            "volume": "39"
+        }
+    ],
+    "metadata": {
+        "data_creazione": "2025-06-29T17:00:07",
+        "generato_da": "Biblioteca Manager",
+        "numero_media": 12,
+        "versione": "1.0"
     }
-  ]
 }

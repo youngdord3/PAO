@@ -24,7 +24,7 @@ class MediaCard : public QFrame
 
 public:
     explicit MediaCard(std::unique_ptr<Media> media, QWidget *parent = nullptr);
-    ~MediaCard() = default;
+    ~MediaCard();
     
     // Accessori
     QString getId() const;
