@@ -123,7 +123,10 @@ void Articolo::setDoi(const QString& doi)
 
 std::unique_ptr<Media> Articolo::clone() const
 {
-    return std::make_unique<Articolo>(m_titolo, m_anno, m_descrizione, m_autori, m_rivista, m_volume, m_numero, m_pagine, m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);
+    // CORREZIONE: Usa il costruttore esplicito invece del copy constructor
+    return std::make_unique<Articolo>(m_titolo, m_anno, m_descrizione, m_autori, 
+                                     m_rivista, m_volume, m_numero, m_pagine, 
+                                     m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);
 }
 
 QJsonObject Articolo::toJson() const
