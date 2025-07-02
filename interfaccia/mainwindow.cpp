@@ -411,6 +411,8 @@ void MainWindow::updateLayout()
     m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
 }
 
+// PROBLEMA IDENTIFICATO E RISOLTO in refreshMediaCards()
+
 void MainWindow::refreshMediaCards()
 {
     clearMediaCards();
@@ -421,13 +423,15 @@ void MainWindow::refreshMediaCards()
         // Prima applica la ricerca testuale
         QString searchText = m_searchEdit->text().trimmed();
         if (searchText.isEmpty()) {
-            // Se non c'è testo di ricerca, prendi tutti i media
-            auto allMedia = m_collezione->getAllMedia();
+            // PROBLEMA: getAllMedia() restituisce const std::vector<std::unique_ptr<Media>>&
+            // Non si può fare assegnazione diretta!
+            const auto& allMedia = m_collezione->getAllMedia(); // CORREZIONE: usa const auto&
+            media.reserve(allMedia.size()); // OTTIMIZZAZIONE: riserva spazio
             for (const auto& m : allMedia) {
                 media.push_back(m.get());
             }
         } else {
-            // Applica la ricerca testuale
+            // Questa parte è corretta - searchMedia restituisce std::vector<Media*>
             media = m_collezione->searchMedia(searchText);
         }
         
@@ -435,23 +439,25 @@ void MainWindow::refreshMediaCards()
         auto filtro = creaFiltroCorrente();
         if (filtro) {
             std::vector<Media*> filteredMedia;
+            filteredMedia.reserve(media.size()); // OTTIMIZZAZIONE
             for (Media* m : media) {
                 if (filtro->matches(m)) {
                     filteredMedia.push_back(m);
                 }
             }
-            media = filteredMedia;
+            media = std::move(filteredMedia); // CORREZIONE: usa move
         }
         
-        // CORREZIONE: usa push_back() invece di append() per std::vector
+        // Creazione delle card
+        m_mediaCards.reserve(media.size()); // OTTIMIZZAZIONE
         for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
                     // Crea MediaCard direttamente usando createCard()
-                    std::unique_ptr<MediaCard> card = mediaPtr->createCard(m_mediaContainer);
+                    auto card = mediaPtr->createCard(m_mediaContainer);
                     if (card) {
                         MediaCard* cardPtr = card.release();
-                        m_mediaCards.push_back(cardPtr); // CORREZIONE: push_back per std::vector
+                        m_mediaCards.push_back(cardPtr);
                         
                         // Connessioni per selezione
                         connect(cardPtr, &MediaCard::selezionato,
