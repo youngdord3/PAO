@@ -25,6 +25,7 @@ const QString MediaCard::STYLE_NORMAL =
     "    border: 1px solid #E0E0E0;"
     "    border-radius: 8px;"
     "    margin: 2px;"
+    "    padding: 8px;"
     "}"
     "MediaCard:hover {"
     "    border: 2px solid #2196F3;"
@@ -37,6 +38,7 @@ const QString MediaCard::STYLE_SELECTED =
     "    border: 2px solid #2196F3;"
     "    border-radius: 8px;"
     "    margin: 2px;"
+    "    padding: 8px;"
     "    box-shadow: 0 2px 8px rgba(33,150,243,0.3);"
     "}";
 
@@ -46,6 +48,7 @@ const QString MediaCard::STYLE_HOVERED =
     "    border: 2px solid #2196F3;"
     "    border-radius: 8px;"
     "    margin: 2px;"
+    "    padding: 8px;"
     "    box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
     "}";
 
@@ -75,6 +78,7 @@ MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
     
     setFixedSize(CARD_WIDTH, CARD_HEIGHT);
     setFrameStyle(QFrame::StyledPanel);
+    setCursor(Qt::PointingHandCursor); // Indica che è cliccabile
     
     try {
         setupUI();
@@ -120,13 +124,13 @@ void MediaCard::updateContent()
     try {
         // Aggiorna i contenuti delle label con controlli di sicurezza
         if (m_titleLabel) {
-            m_titleLabel->setText(truncateText(m_media->getTitolo(), 25));
+            m_titleLabel->setText(truncateText(m_media->getTitolo(), 30));
         }
         if (m_yearLabel) {
             m_yearLabel->setText(QString::number(m_media->getAnno()));
         }
         if (m_descriptionLabel) {
-            m_descriptionLabel->setText(truncateText(m_media->getDescrizione(), 80));
+            m_descriptionLabel->setText(truncateText(m_media->getDescrizione(), 100));
         }
         if (m_typeLabel) {
             m_typeLabel->setText(m_media->getTypeDisplayName());
@@ -140,7 +144,6 @@ void MediaCard::updateContent()
             m_imageLabel->setPixmap(getTypeIcon());
         }
         
-        setupTypeSpecificContent();
     } catch (const std::exception& e) {
         qWarning() << "Errore nell'aggiornamento contenuto MediaCard:" << e.what();
     }
@@ -207,19 +210,20 @@ void MediaCard::paintEvent(QPaintEvent *event)
     }
 }
 
+// Metodi vuoti per compatibilità
 void MediaCard::onEditClicked()
 {
-    emit selezionato(getId());
+    // Rimosso - ora si usa solo il box azioni
 }
 
 void MediaCard::onDeleteClicked()
 {
-    emit selezionato(getId());
+    // Rimosso - ora si usa solo il box azioni
 }
 
 void MediaCard::onDetailsClicked()
 {
-    emit doppioClick(getId());
+    // Rimosso - ora si usa solo il box azioni
 }
 
 void MediaCard::setupUI()
@@ -227,73 +231,64 @@ void MediaCard::setupUI()
     if (!m_media) return;
     
     try {
-        setupLayout();
+        // Layout principale semplificato
+        m_mainLayout = new QVBoxLayout(this);
+        m_mainLayout->setContentsMargins(12, 8, 12, 8);
+        m_mainLayout->setSpacing(6);
         
-        // Configurazione delle label con controlli di sicurezza
+        // Header con tipo e icona
+        m_headerLayout = new QHBoxLayout();
+        m_headerLayout->setContentsMargins(0, 0, 0, 0);
+        
         m_typeLabel = new QLabel(m_media->getTypeDisplayName(), this);
-        m_typeLabel->setStyleSheet("font-weight: bold; font-size: 10px; color: #666;");
-        
-        m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25), this);
-        m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
-        m_titleLabel->setWordWrap(true);
-        
-        m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
-        m_yearLabel->setStyleSheet("font-size: 12px; color: #666;");
-        
-        m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80), this);
-        m_descriptionLabel->setStyleSheet("font-size: 11px; color: #555;");
-        m_descriptionLabel->setWordWrap(true);
+        m_typeLabel->setStyleSheet("font-weight: bold; font-size: 11px; color: #666; text-transform: uppercase;");
         
         m_imageLabel = new QLabel(this);
         m_imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
         m_imageLabel->setScaledContents(true);
         m_imageLabel->setPixmap(getTypeIcon());
         
+        m_headerLayout->addWidget(m_typeLabel);
+        m_headerLayout->addStretch();
+        m_headerLayout->addWidget(m_imageLabel);
+        
+        // Contenuto principale
+        m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 30), this);
+        m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
+        m_titleLabel->setWordWrap(true);
+        m_titleLabel->setMaximumHeight(40); // Limita l'altezza
+        
+        // Anno con label
+        QHBoxLayout* yearLayout = new QHBoxLayout();
+        yearLayout->setContentsMargins(0, 0, 0, 0);
+        QLabel* yearLabelTitle = new QLabel("Anno:", this);
+        yearLabelTitle->setStyleSheet("font-size: 11px; color: #666; font-weight: bold;");
+        m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
+        m_yearLabel->setStyleSheet("font-size: 11px; color: #333;");
+        yearLayout->addWidget(yearLabelTitle);
+        yearLayout->addWidget(m_yearLabel);
+        yearLayout->addStretch();
+        
+        // Descrizione
+        m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 100), this);
+        m_descriptionLabel->setStyleSheet("font-size: 10px; color: #555; line-height: 1.3;");
+        m_descriptionLabel->setWordWrap(true);
+        m_descriptionLabel->setMaximumHeight(45);
+        
+        // Info aggiuntive
         m_infoLabel = new QLabel(formatDisplayInfo(), this);
-        m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
+        m_infoLabel->setStyleSheet("font-size: 9px; color: #777; font-style: italic;");
         m_infoLabel->setWordWrap(true);
+        m_infoLabel->setMaximumHeight(30);
         
-        // Configurazione bottoni (nascosti per default, mostrati solo al hover)
-        m_editButton = new QPushButton("✏", this);
-        m_deleteButton = new QPushButton("🗑", this);
-        m_detailsButton = new QPushButton("👁", this);
+        // Assemblaggio layout
+        m_mainLayout->addLayout(m_headerLayout);
+        m_mainLayout->addWidget(m_titleLabel);
+        m_mainLayout->addLayout(yearLayout);
+        m_mainLayout->addWidget(m_descriptionLabel);
+        m_mainLayout->addStretch();
+        m_mainLayout->addWidget(m_infoLabel);
         
-        if (m_editButton && m_deleteButton && m_detailsButton) {
-            m_editButton->setFixedSize(24, 24);
-            m_deleteButton->setFixedSize(24, 24);
-            m_detailsButton->setFixedSize(24, 24);
-            
-            m_editButton->setToolTip("Modifica");
-            m_deleteButton->setToolTip("Elimina");
-            m_detailsButton->setToolTip("Dettagli");
-            
-            QString buttonStyle = 
-                "QPushButton {"
-                "    border: none;"
-                "    border-radius: 12px;"
-                "    background-color: rgba(255,255,255,180);"
-                "    font-size: 12px;"
-                "}"
-                "QPushButton:hover {"
-                "    background-color: rgba(33,150,243,200);"
-                "    color: white;"
-                "}";
-            
-            m_editButton->setStyleSheet(buttonStyle);
-            m_deleteButton->setStyleSheet(buttonStyle);
-            m_detailsButton->setStyleSheet(buttonStyle);
-            
-            // I bottoni sono inizialmente nascosti
-            m_editButton->setVisible(false);
-            m_deleteButton->setVisible(false);
-            m_detailsButton->setVisible(false);
-            
-            connect(m_editButton, &QPushButton::clicked, this, &MediaCard::onEditClicked);
-            connect(m_deleteButton, &QPushButton::clicked, this, &MediaCard::onDeleteClicked);
-            connect(m_detailsButton, &QPushButton::clicked, this, &MediaCard::onDetailsClicked);
-        }
-        
-        setupTypeSpecificContent();
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupUI:" << e.what();
     }
@@ -301,35 +296,7 @@ void MediaCard::setupUI()
 
 void MediaCard::setupLayout()
 {
-    try {
-        m_mainLayout = new QVBoxLayout(this);
-        if (m_mainLayout) {
-            m_mainLayout->setContentsMargins(8, 8, 8, 8);
-            m_mainLayout->setSpacing(4);
-        }
-        
-        // Header con tipo e immagine
-        m_headerLayout = new QHBoxLayout();
-        if (m_headerLayout) {
-            m_headerLayout->setContentsMargins(0, 0, 0, 0);
-        }
-        
-        // Content area
-        m_contentLayout = new QVBoxLayout();
-        if (m_contentLayout) {
-            m_contentLayout->setContentsMargins(0, 0, 0, 0);
-            m_contentLayout->setSpacing(2);
-        }
-        
-        // Area bottoni (in overlay)
-        m_buttonLayout = new QHBoxLayout();
-        if (m_buttonLayout) {
-            m_buttonLayout->setContentsMargins(0, 0, 0, 0);
-            m_buttonLayout->addStretch();
-        }
-    } catch (const std::exception& e) {
-        qWarning() << "Errore in setupLayout:" << e.what();
-    }
+    // Metodo vuoto - ora tutto è in setupUI()
 }
 
 void MediaCard::updateStyleSheet()
@@ -339,16 +306,8 @@ void MediaCard::updateStyleSheet()
             setStyleSheet(STYLE_SELECTED);
         } else if (m_hovered) {
             setStyleSheet(STYLE_HOVERED);
-            // Mostra i bottoni quando si fa hover
-            if (m_editButton) m_editButton->setVisible(true);
-            if (m_deleteButton) m_deleteButton->setVisible(true);
-            if (m_detailsButton) m_detailsButton->setVisible(true);
         } else {
             setStyleSheet(STYLE_NORMAL);
-            // Nascondi i bottoni quando non c'è hover
-            if (m_editButton) m_editButton->setVisible(false);
-            if (m_deleteButton) m_deleteButton->setVisible(false);
-            if (m_detailsButton) m_detailsButton->setVisible(false);
         }
     } catch (const std::exception& e) {
         qWarning() << "Errore in updateStyleSheet:" << e.what();
@@ -357,78 +316,22 @@ void MediaCard::updateStyleSheet()
 
 void MediaCard::setupTypeSpecificContent()
 {
-    if (!m_media || !m_mainLayout) return;
-    
-    try {
-        // Layout semplificato - aggiungi solo i widget essenziali
-        if (m_headerLayout && m_typeLabel && m_imageLabel) {
-            // Pulisci e ricostruisci solo se necessario
-            while (m_mainLayout->count() > 0) {
-                QLayoutItem* item = m_mainLayout->takeAt(0);
-                if (item && item->layout()) {
-                    // Non cancellare i layout, solo rimuovili
-                }
-                delete item;
-            }
-            
-            // Ricostruisci layout semplice
-            m_headerLayout = new QHBoxLayout();
-            m_headerLayout->addWidget(m_typeLabel);
-            m_headerLayout->addStretch();
-            m_headerLayout->addWidget(m_imageLabel);
-            
-            m_contentLayout = new QVBoxLayout();
-            if (m_titleLabel) m_contentLayout->addWidget(m_titleLabel);
-            if (m_yearLabel) {
-                QHBoxLayout* yearLayout = new QHBoxLayout();
-                yearLayout->addWidget(new QLabel("Anno:", this));
-                yearLayout->addWidget(m_yearLabel);
-                yearLayout->addStretch();
-                m_contentLayout->addLayout(yearLayout);
-            }
-            if (m_descriptionLabel) m_contentLayout->addWidget(m_descriptionLabel);
-            if (m_infoLabel) m_contentLayout->addWidget(m_infoLabel);
-            
-            m_buttonLayout = new QHBoxLayout();
-            m_buttonLayout->addStretch();
-            if (m_detailsButton) m_buttonLayout->addWidget(m_detailsButton);
-            if (m_editButton) m_buttonLayout->addWidget(m_editButton);
-            if (m_deleteButton) m_buttonLayout->addWidget(m_deleteButton);
-            
-            // Aggiungi al layout principale
-            m_mainLayout->addLayout(m_headerLayout);
-            m_mainLayout->addLayout(m_contentLayout);
-            m_mainLayout->addStretch();
-            m_mainLayout->addLayout(m_buttonLayout);
-        }
-        
-        // Aggiungi contenuto specifico per tipo in modo semplice
-        QString type = m_media->getTypeDisplayName();
-        if (type == "Libro") {
-            setupLibroContent();
-        } else if (type == "Film") {
-            setupFilmContent();
-        } else if (type == "Articolo") {
-            setupArticoloContent();
-        }
-    } catch (const std::exception& e) {
-        qWarning() << "Errore in setupTypeSpecificContent:" << e.what();
-    }
+    // Semplificato - ora non serve più
 }
 
 void MediaCard::setupLibroContent()
 {
-    // Implementazione semplificata
+    // Rimosso - ora non serve più
 }
 
 void MediaCard::setupFilmContent()
 {
-    // Implementazione semplificata
+    // Rimosso - ora non serve più
 }
 
 void MediaCard::setupArticoloContent()
 {
-    // Implementazione semplificata
+    // Rimosso - ora non serve più
 }
 
 QPixmap MediaCard::getTypeIcon() const
@@ -439,8 +342,24 @@ QPixmap MediaCard::getTypeIcon() const
     
     QString type = m_media->getTypeDisplayName();
     
-    // Crea un'icona di default semplice
-    QPixmap pixmap(IMAGE_SIZE, IMAGE_SIZE);
+    // Prova prima a caricare l'icona dalle risorse
+    QString iconPath;
+    if (type == "Libro") {
+        iconPath = ":/icons/libro.png";
+    } else if (type == "Film") {
+        iconPath = ":/icons/film.png";
+    } else if (type == "Articolo") {
+        iconPath = ":/icons/articolo.png";
+    }
+    
+    // Carica l'icona se esiste
+    QPixmap pixmap(iconPath);
+    if (!pixmap.isNull()) {
+        return pixmap.scaled(IMAGE_SIZE, IMAGE_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    
+    // Fallback: crea un'icona di default semplice
+    pixmap = QPixmap(IMAGE_SIZE, IMAGE_SIZE);
     QString color = COLOR_DEFAULT;
     
     if (type == "Libro") {
@@ -455,7 +374,7 @@ QPixmap MediaCard::getTypeIcon() const
     
     QPainter painter(&pixmap);
     painter.setPen(Qt::white);
-    painter.setFont(QFont("Arial", 16, QFont::Bold));
+    painter.setFont(QFont("Arial", 14, QFont::Bold));
     painter.drawText(pixmap.rect(), Qt::AlignCenter, type.left(1).toUpper());
     
     return pixmap;
@@ -484,10 +403,10 @@ QString MediaCard::formatDisplayInfo() const
         // Prendi solo le prime due righe delle informazioni
         QStringList lines = info.split('\n');
         if (lines.size() > 2) {
-            return lines.mid(0, 2).join('\n') + "...";
+            return lines.mid(0, 2).join(" • ") + "...";
         }
         
-        return info;
+        return lines.join(" • ");
     } catch (const std::exception& e) {
         qWarning() << "Errore in formatDisplayInfo:" << e.what();
         return "Errore nel formato";

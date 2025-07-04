@@ -16,7 +16,8 @@ class Media;
  * @brief Widget card per visualizzare un media nella collezione
  * 
  * Ogni card mostra le informazioni principali del media
- * con un design responsivo e interattivo
+ * con un design responsivo e interattivo. Le azioni vengono
+ * gestite tramite il box azioni in basso a sinistra.
  */
 class MediaCard : public QFrame
 {
@@ -51,6 +52,7 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private slots:
+    // Rimossi slot per bottoni hover - ora tutto è gestito dal box azioni
     void onEditClicked();
     void onDeleteClicked();
     void onDetailsClicked();
@@ -61,7 +63,7 @@ private:
     void updateStyleSheet();
     void setupTypeSpecificContent();
     
-    // Creazione elementi UI specifici per tipo
+    // Creazione elementi UI specifici per tipo (ora semplificati)
     void setupLibroContent();
     void setupFilmContent();
     void setupArticoloContent();
@@ -79,7 +81,7 @@ private:
     bool m_selected;
     bool m_hovered;
     
-    // Widgets UI - inizializzati a nullptr automaticamente
+    // Widgets UI - layout semplificato
     QVBoxLayout* m_mainLayout;
     QHBoxLayout* m_headerLayout;
     QVBoxLayout* m_contentLayout;
@@ -93,7 +95,7 @@ private:
     QLabel* m_imageLabel;
     QLabel* m_infoLabel;
     
-    // Bottoni azione
+    // RIMOSSI: Bottoni azione hover - ora tutto dal box azioni
     QPushButton* m_editButton;
     QPushButton* m_deleteButton;
     QPushButton* m_detailsButton;
@@ -101,7 +103,7 @@ private:
     // Costanti per il design
     static const int CARD_WIDTH = 280;
     static const int CARD_HEIGHT = 200;
-    static const int IMAGE_SIZE = 48;
+    static const int IMAGE_SIZE = 32; // Ridotto per più spazio al testo
     static const int BORDER_RADIUS = 8;
     static const int SHADOW_OFFSET = 2;
     
