@@ -74,9 +74,11 @@ void Libro::setGenere(Genere genere)
 
 std::unique_ptr<Media> Libro::clone() const
 {
-    // CORREZIONE: Usa il costruttore esplicito invece del copy constructor
-    return std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
-                                  m_editore, m_pagine, m_isbn, m_genere);
+    // CORREZIONE: Preserva l'ID originale nel clone
+    auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
+                                         m_editore, m_pagine, m_isbn, m_genere);
+    cloned->m_id = m_id; // Preserva l'ID originale
+    return cloned;
 }
 
 QJsonObject Libro::toJson() const

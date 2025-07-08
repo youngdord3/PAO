@@ -103,7 +103,7 @@ void MainWindow::setupToolBar()
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     
-    // SOLO le azioni file - RIMOSSE le azioni per media
+    // SOLO le azioni file - RIMOSSE le azioni per media e RIMOSSO il pulsante Info
     QAction* nuovoAction = toolBar->addAction(QIcon(":/icons/new_icon.png"), "Nuovo");
     nuovoAction->setToolTip("Crea una nuova collezione");
     connect(nuovoAction, &QAction::triggered, this, [this]() {
@@ -134,12 +134,7 @@ void MainWindow::setupToolBar()
         }
     });
     
-    toolBar->addSeparator();
-    
-    // Azione informazioni
-    QAction* aboutAction = toolBar->addAction("Info");
-    aboutAction->setToolTip("Informazioni sull'applicazione");
-    connect(aboutAction, &QAction::triggered, this, &MainWindow::informazioniSu);
+    // RIMOSSO: il pulsante Info non c'è più
 }
 
 void MainWindow::setupStatusBar()
@@ -252,9 +247,9 @@ void MainWindow::setupFilterArea()
     m_rivistaEdit->setPlaceholderText("Nome rivista...");
     filtersLayout->addWidget(m_rivistaEdit);
     
-    // Bottoni filtri
+    // Bottoni filtri - RIMOSSA l'icona dal pulsante Applica
     QHBoxLayout* filterButtonLayout = new QHBoxLayout();
-    m_applyFilterButton = new QPushButton(QIcon(":/icons/filter_icon.png"), "Applica");
+    m_applyFilterButton = new QPushButton("Applica");  // RIMOSSA l'icona
     m_resetFilterButton = new QPushButton("Reset");
     filterButtonLayout->addWidget(m_applyFilterButton);
     filterButtonLayout->addWidget(m_resetFilterButton);
@@ -279,7 +274,7 @@ void MainWindow::setupFilterArea()
     statsLayout->addWidget(m_filmLabel);
     statsLayout->addWidget(m_articoliLabel);
     
-    // Gruppo azioni - QUESTO È IMPORTANTE - aggiungiamo le icone
+    // Gruppo azioni
     m_actionsGroup = new QGroupBox("Azioni");
     QVBoxLayout* actionsLayout = new QVBoxLayout(m_actionsGroup);
     
@@ -298,7 +293,7 @@ void MainWindow::setupFilterArea()
     actionsLayout->addWidget(m_removeButton);
     actionsLayout->addWidget(m_detailsButton);
     
-    // CORREZIONE: Connessioni DIRETTE alle azioni senza try-catch che mascherava errori
+    // Connessioni DIRETTE alle azioni
     connect(m_addButton, &QPushButton::clicked, this, &MainWindow::aggiungiMedia);
     connect(m_editButton, &QPushButton::clicked, this, &MainWindow::modificaMedia);
     connect(m_removeButton, &QPushButton::clicked, this, &MainWindow::rimuoviMedia);
@@ -383,14 +378,16 @@ void MainWindow::refreshMediaCards()
             media = std::move(filteredMedia);
         }
         
-        // Creazione delle card
+        // CORREZIONE: Crea MediaCard passando direttamente il puntatore al media originale
+        // invece di clonarlo, per evitare problemi con gli ID
         m_mediaCards.reserve(media.size());
         for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
-                    auto card = mediaPtr->createCard(m_mediaContainer);
-                    if (card) {
-                        MediaCard* cardPtr = card.release();
+                    // NUOVO: Crea MediaCard direttamente con un clone che preserva l'ID
+                    auto clonedMedia = mediaPtr->clone();
+                    if (clonedMedia) {
+                        MediaCard* cardPtr = new MediaCard(std::move(clonedMedia), m_mediaContainer);
                         m_mediaCards.push_back(cardPtr);
                         
                         // IMPORTANTE: Connessioni per selezione
@@ -758,15 +755,7 @@ void MainWindow::onCardDoubleClic(const QString& id)
     visualizzaDettagli();
 }
 
-void MainWindow::informazioniSu()
-{
-    QMessageBox::about(this, "Informazioni",
-        "<h3>Biblioteca Manager</h3>"
-        "<p>Versione 1.0</p>"
-        "<p>Sistema di gestione per biblioteche multimediali</p>"
-        "<p>Supporta libri, film e articoli con interfaccia dinamica</p>"
-        "<p>Sviluppato con Qt 6.2.4 e C++17</p>");
-}
+// RIMOSSO: il metodo informazioniSu() non c'è più
 
 void MainWindow::aggiornaStatistiche()
 {

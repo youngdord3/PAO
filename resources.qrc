@@ -22,19 +22,13 @@
         <file alias="edit_icon.png">immagini/edit_icon.png</file>
         <file alias="delete_icon.png">immagini/delete_icon.png</file>
         <file alias="search_icon.png">immagini/search_icon.png</file>
-        <file alias="filter_icon.png">immagini/filter_icon.png</file>
+        <!-- RIMOSSO: filter_icon.png -->
         
         <!-- Icone per file operations -->
         <file alias="save_icon.png">immagini/save_icon.png</file>
         <file alias="open_icon.png">immagini/open_icon.png</file>
         <file alias="new_icon.png">immagini/new_icon.png</file>
-        <file alias="export_icon.png">immagini/export_icon.png</file>
-        <file alias="import_icon.png">immagini/import_icon.png</file>
         
         <!-- Icone di sistema -->
-        <file alias="info_icon.png">immagini/info_icon.png</file>
-        <file alias="warning_icon.png">immagini/warning_icon.png</file>
-        <file alias="error_icon.png">immagini/error_icon.png</file>
-        <file alias="success_icon.png">immagini/success_icon.png</file>
     </qresource>
 </RCC>

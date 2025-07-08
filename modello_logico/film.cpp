@@ -90,10 +90,12 @@ void Film::setCasaProduzione(const QString& casa_produzione)
 
 std::unique_ptr<Media> Film::clone() const
 {
-    // CORREZIONE: Usa il costruttore esplicito invece del copy constructor
-    return std::make_unique<Film>(m_titolo, m_anno, m_descrizione, m_regista, 
-                                 m_attori, m_durata, m_genere, m_classificazione, 
-                                 m_casa_produzione);
+    // CORREZIONE: Preserva l'ID originale nel clone
+    auto cloned = std::make_unique<Film>(m_titolo, m_anno, m_descrizione, m_regista, 
+                                        m_attori, m_durata, m_genere, m_classificazione, 
+                                        m_casa_produzione);
+    cloned->m_id = m_id; // Preserva l'ID originale
+    return cloned;
 }
 
 QJsonObject Film::toJson() const

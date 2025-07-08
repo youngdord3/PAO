@@ -75,8 +75,7 @@ private slots:
     void onCardSelezionata(const QString& id);
     void onCardDoubleClic(const QString& id);
     
-    // About
-    void informazioniSu();
+    // RIMOSSO: void informazioniSu();
 
 private:
     // Setup interfaccia
