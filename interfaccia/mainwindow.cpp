@@ -281,7 +281,7 @@ void MainWindow::setupFilterArea()
     m_addButton = new QPushButton(QIcon(":/icons/add_icon.png"), "Aggiungi Media");
     m_editButton = new QPushButton(QIcon(":/icons/edit_icon.png"), "Modifica");
     m_removeButton = new QPushButton(QIcon(":/icons/delete_icon.png"), "Rimuovi");
-    m_detailsButton = new QPushButton("Dettagli");
+    m_detailsButton = new QPushButton(QIcon(":/icons/details_icon.png"), "Dettagli");
     
     // IMPORTANTE: Inizialmente disabilitati tranne add
     m_editButton->setEnabled(false);

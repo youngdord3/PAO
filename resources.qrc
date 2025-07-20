@@ -22,7 +22,7 @@
         <file alias="edit_icon.png">immagini/edit_icon.png</file>
         <file alias="delete_icon.png">immagini/delete_icon.png</file>
         <file alias="search_icon.png">immagini/search_icon.png</file>
-        <!-- RIMOSSO: filter_icon.png -->
+        <file alias="details_icon.png">immagini/details_icon.png</file>
         
         <!-- Icone per file operations -->
         <file alias="save_icon.png">immagini/save_icon.png</file>

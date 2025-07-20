@@ -655,8 +655,11 @@ void MediaDialog::setupButtons()
     m_buttonLayout = new QHBoxLayout();
     if (!m_buttonLayout) return;
     
-    m_helpButton = new QPushButton("Aiuto");
-    m_cancelButton = new QPushButton("Annulla");
+    if (!m_readOnly) {
+        m_helpButton = new QPushButton("Aiuto");
+        m_cancelButton = new QPushButton("Annulla");
+    }
+    
     m_okButton = new QPushButton(m_readOnly ? "Chiudi" : (m_isEditing ? "Salva" : "Crea"));
     
     if (m_okButton) {
@@ -667,7 +670,8 @@ void MediaDialog::setupButtons()
         m_buttonLayout->addWidget(m_helpButton);
     }
     m_buttonLayout->addStretch();
-    if (m_cancelButton) {
+    
+    if (m_cancelButton && !m_readOnly) { 
         m_buttonLayout->addWidget(m_cancelButton);
     }
     if (m_okButton) {
@@ -676,11 +680,10 @@ void MediaDialog::setupButtons()
     
     m_mainLayout->addLayout(m_buttonLayout);
     
-    // Connessioni
     if (m_okButton) {
         connect(m_okButton, &QPushButton::clicked, this, &MediaDialog::onAccettaClicked);
     }
-    if (m_cancelButton) {
+    if (m_cancelButton && !m_readOnly) { // CORREZIONE: Solo se esiste e non read-only
         connect(m_cancelButton, &QPushButton::clicked, this, &MediaDialog::onAnnullaClicked);
     }
     if (m_helpButton) {
@@ -719,9 +722,10 @@ void MediaDialog::loadMediaData()
         }
         m_tipoCorrente = tipo;
         
+        // IMPORTANTE: Prima crea il form specifico
         setupTipoSpecificForm();
         
-        // Carica dati specifici per tipo
+        // POI carica i dati specifici per tipo
         if (tipo == "Libro") {
             Libro* libro = dynamic_cast<Libro*>(m_mediaOriginale);
             if (libro) {
@@ -733,9 +737,13 @@ void MediaDialog::loadMediaData()
             }
         } else if (tipo == "Film") {
             Film* film = dynamic_cast<Film*>(m_mediaOriginale);
-            if (film) {
+            if (film && m_attoriList) {
                 if (m_registaEdit) m_registaEdit->setText(film->getRegista());
-                if (m_attoriList) m_attoriList->addItems(film->getAttori());
+                
+                // CORREZIONE: Pulisci la lista prima di aggiungere elementi
+                m_attoriList->clear();
+                m_attoriList->addItems(film->getAttori());
+                
                 if (m_durataSpin) m_durataSpin->setValue(film->getDurata());
                 if (m_genereFilmCombo) m_genereFilmCombo->setCurrentText(film->getGenereString());
                 if (m_classificazioneCombo) m_classificazioneCombo->setCurrentText(film->getClassificazioneString());
@@ -743,8 +751,11 @@ void MediaDialog::loadMediaData()
             }
         } else if (tipo == "Articolo") {
             Articolo* articolo = dynamic_cast<Articolo*>(m_mediaOriginale);
-            if (articolo) {
-                if (m_autoriList) m_autoriList->addItems(articolo->getAutori());
+            if (articolo && m_autoriList) {
+                // CORREZIONE: Pulisci la lista prima di aggiungere elementi
+                m_autoriList->clear();
+                m_autoriList->addItems(articolo->getAutori());
+                
                 if (m_rivistaEdit) m_rivistaEdit->setText(articolo->getRivista());
                 if (m_volumeEdit) m_volumeEdit->setText(articolo->getVolume());
                 if (m_numeroEdit) m_numeroEdit->setText(articolo->getNumero());
@@ -906,7 +917,6 @@ void MediaDialog::enableForm(bool enabled)
         
         if (m_readOnly) {
             if (m_tipoCombo) m_tipoCombo->setEnabled(false);
-            if (m_cancelButton) m_cancelButton->setText("Chiudi");
             if (m_helpButton) m_helpButton->setVisible(false);
         }
     } catch (const std::exception& e) {
