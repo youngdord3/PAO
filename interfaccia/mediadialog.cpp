@@ -37,12 +37,12 @@ MediaDialog::MediaDialog(QWidget *parent)
     , m_validationLabel(nullptr)
 {
     setWindowTitle("Nuovo Media");
-    setAttribute(Qt::WA_DeleteOnClose, false); // Prevenire cancellazione automatica
+    setAttribute(Qt::WA_DeleteOnClose, false);
     
     try {
         setupUI();
         populateComboBoxes();
-        onTipoChanged(); // Inizializza il form per il primo tipo
+        onTipoChanged();
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Errore", QString("Errore nell'inizializzazione: %1").arg(e.what()));
     }
@@ -119,7 +119,6 @@ void MediaDialog::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
     
-    // Focus sul primo campo editabile
     if (!m_readOnly && m_titoloEdit) {
         m_titoloEdit->setFocus();
     }
@@ -246,7 +245,6 @@ void MediaDialog::onValidazioneChanged()
             m_validationLabel->setStyleSheet("color: red;");
         }
     } catch (const std::exception& e) {
-        // Non mostrare errore per la validazione, solo log
         qWarning() << "Errore nella validazione:" << e.what();
     }
 }
@@ -261,7 +259,6 @@ void MediaDialog::setupUI()
         throw std::runtime_error("Impossibile creare layout principale");
     }
     
-    // Scroll area per gestire form lunghi
     m_scrollArea = new QScrollArea();
     if (!m_scrollArea) {
         throw std::runtime_error("Impossibile creare scroll area");
@@ -282,6 +279,7 @@ void MediaDialog::setupUI()
     }
     
     m_formLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+    m_formLayout->setVerticalSpacing(10); // Maggiore spaziatura verticale
     
     m_scrollArea->setWidget(m_formWidget);
     m_mainLayout->addWidget(m_scrollArea);
@@ -289,14 +287,12 @@ void MediaDialog::setupUI()
     setupBaseForm();
     setupButtons();
     
-    // Validation label
     m_validationLabel = new QLabel();
     if (m_validationLabel) {
         m_validationLabel->setWordWrap(true);
         m_mainLayout->addWidget(m_validationLabel);
     }
     
-    // Connessioni per validazione in tempo reale (con controlli di sicurezza)
     if (m_titoloEdit) {
         connect(m_titoloEdit, &QLineEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
     }
@@ -313,14 +309,12 @@ void MediaDialog::setupBaseForm()
 {
     if (!m_formLayout) return;
     
-    // Gruppo informazioni base
     m_baseGroup = new QGroupBox("Informazioni Base");
     if (!m_baseGroup) return;
     
     QFormLayout* baseLayout = new QFormLayout(m_baseGroup);
     if (!baseLayout) return;
     
-    // Tipo
     m_tipoCombo = new QComboBox();
     if (m_tipoCombo) {
         m_tipoCombo->addItems({"Libro", "Film", "Articolo"});
@@ -329,7 +323,6 @@ void MediaDialog::setupBaseForm()
         baseLayout->addRow("Tipo:", m_tipoCombo);
     }
     
-    // Titolo
     m_titoloEdit = new QLineEdit();
     if (m_titoloEdit) {
         m_titoloEdit->setMaxLength(200);
@@ -337,7 +330,6 @@ void MediaDialog::setupBaseForm()
         baseLayout->addRow("Titolo*:", m_titoloEdit);
     }
     
-    // Anno
     m_annoSpin = new QSpinBox();
     if (m_annoSpin) {
         m_annoSpin->setRange(1000, QDate::currentDate().year() + 10);
@@ -345,7 +337,6 @@ void MediaDialog::setupBaseForm()
         baseLayout->addRow("Anno*:", m_annoSpin);
     }
     
-    // Descrizione
     m_descrizioneEdit = new QTextEdit();
     if (m_descrizioneEdit) {
         m_descrizioneEdit->setMaximumHeight(80);
@@ -387,7 +378,8 @@ void MediaDialog::setupLibroForm()
     QFormLayout* libroLayout = new QFormLayout(m_libroGroup);
     if (!libroLayout) return;
     
-    // Autore
+    libroLayout->setVerticalSpacing(5);
+    
     m_autoreEdit = new QLineEdit();
     if (m_autoreEdit) {
         m_autoreEdit->setPlaceholderText("Nome dell'autore...");
@@ -395,14 +387,12 @@ void MediaDialog::setupLibroForm()
         connect(m_autoreEdit, &QLineEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
     }
     
-    // Editore
     m_editoreEdit = new QLineEdit();
     if (m_editoreEdit) {
         m_editoreEdit->setPlaceholderText("Casa editrice...");
         libroLayout->addRow("Editore:", m_editoreEdit);
     }
     
-    // Pagine
     m_pagineSpin = new QSpinBox();
     if (m_pagineSpin) {
         m_pagineSpin->setRange(1, 10000);
@@ -412,7 +402,6 @@ void MediaDialog::setupLibroForm()
                 this, &MediaDialog::onValidazioneChanged);
     }
     
-    // ISBN
     m_isbnEdit = new QLineEdit();
     if (m_isbnEdit) {
         m_isbnEdit->setPlaceholderText("ISBN-10 o ISBN-13...");
@@ -423,7 +412,6 @@ void MediaDialog::setupLibroForm()
         connect(m_isbnEdit, &QLineEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
     }
     
-    // Genere
     m_genereLibroCombo = new QComboBox();
     if (m_genereLibroCombo) {
         m_genereLibroCombo->addItems(Libro::getAllGeneri());
@@ -440,90 +428,114 @@ void MediaDialog::setupFilmForm()
     m_filmGroup = new QGroupBox("Dettagli Film");
     if (!m_filmGroup) return;
     
-    QFormLayout* filmLayout = new QFormLayout(m_filmGroup);
-    if (!filmLayout) return;
+    // Usa QVBoxLayout invece di QFormLayout per maggiore controllo
+    QVBoxLayout* filmMainLayout = new QVBoxLayout(m_filmGroup);
+    filmMainLayout->setSpacing(10);
     
     // Regista
+    QHBoxLayout* registaLayout = new QHBoxLayout();
+    QLabel* registaLabel = new QLabel("Regista*:");
+    registaLabel->setFixedWidth(120);
     m_registaEdit = new QLineEdit();
     if (m_registaEdit) {
         m_registaEdit->setPlaceholderText("Nome del regista...");
-        filmLayout->addRow("Regista*:", m_registaEdit);
+        registaLayout->addWidget(registaLabel);
+        registaLayout->addWidget(m_registaEdit);
+        filmMainLayout->addLayout(registaLayout);
         connect(m_registaEdit, &QLineEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
     }
     
-    // Attori
-    QWidget* attoriWidget = new QWidget();
-    if (attoriWidget) {
-        QVBoxLayout* attoriLayout = new QVBoxLayout(attoriWidget);
-        if (attoriLayout) {
-            attoriLayout->setContentsMargins(0, 0, 0, 0);
-            
-            m_attoriList = new QListWidget();
-            if (m_attoriList) {
-                m_attoriList->setMaximumHeight(80);
-                attoriLayout->addWidget(m_attoriList);
-            }
-            
-            QHBoxLayout* attoriButtonLayout = new QHBoxLayout();
-            if (attoriButtonLayout) {
-                m_nuovoAttoreEdit = new QLineEdit();
-                if (m_nuovoAttoreEdit) {
-                    m_nuovoAttoreEdit->setPlaceholderText("Nome attore...");
-                    attoriButtonLayout->addWidget(m_nuovoAttoreEdit);
-                }
-                
-                m_aggiungiAttoreBtn = new QPushButton("Aggiungi");
-                if (m_aggiungiAttoreBtn) {
-                    attoriButtonLayout->addWidget(m_aggiungiAttoreBtn);
-                    connect(m_aggiungiAttoreBtn, &QPushButton::clicked, this, &MediaDialog::onAggiungiAttoreClicked);
-                }
-                
-                m_rimuoviAttoreBtn = new QPushButton("Rimuovi");
-                if (m_rimuoviAttoreBtn) {
-                    attoriButtonLayout->addWidget(m_rimuoviAttoreBtn);
-                    connect(m_rimuoviAttoreBtn, &QPushButton::clicked, this, &MediaDialog::onRimuoviAttoreClicked);
-                }
-                
-                attoriLayout->addLayout(attoriButtonLayout);
-            }
-            
-            filmLayout->addRow("Attori*:", attoriWidget);
-        }
+    // Attori con layout verticale
+    QVBoxLayout* attoriLayout = new QVBoxLayout();
+    QLabel* attoriLabel = new QLabel("Attori*:");
+    attoriLayout->addWidget(attoriLabel);
+    
+    m_attoriList = new QListWidget();
+    if (m_attoriList) {
+        m_attoriList->setMinimumHeight(80);
+        m_attoriList->setMaximumHeight(120);
+        attoriLayout->addWidget(m_attoriList);
     }
     
+    // Controlli per aggiungere attori
+    QHBoxLayout* attoriControlLayout = new QHBoxLayout();
+    m_nuovoAttoreEdit = new QLineEdit();
+    if (m_nuovoAttoreEdit) {
+        m_nuovoAttoreEdit->setPlaceholderText("Nome attore...");
+        attoriControlLayout->addWidget(m_nuovoAttoreEdit);
+    }
+    
+    m_aggiungiAttoreBtn = new QPushButton("Aggiungi");
+    if (m_aggiungiAttoreBtn) {
+        m_aggiungiAttoreBtn->setMaximumWidth(80);
+        attoriControlLayout->addWidget(m_aggiungiAttoreBtn);
+        connect(m_aggiungiAttoreBtn, &QPushButton::clicked, this, &MediaDialog::onAggiungiAttoreClicked);
+    }
+    
+    m_rimuoviAttoreBtn = new QPushButton("Rimuovi");
+    if (m_rimuoviAttoreBtn) {
+        m_rimuoviAttoreBtn->setMaximumWidth(80);
+        attoriControlLayout->addWidget(m_rimuoviAttoreBtn);
+        connect(m_rimuoviAttoreBtn, &QPushButton::clicked, this, &MediaDialog::onRimuoviAttoreClicked);
+    }
+    
+    attoriLayout->addLayout(attoriControlLayout);
+    filmMainLayout->addLayout(attoriLayout);
+    
     // Durata
+    QHBoxLayout* durataLayout = new QHBoxLayout();
+    QLabel* durataLabel = new QLabel("Durata*:");
+    durataLabel->setFixedWidth(120);
     m_durataSpin = new QSpinBox();
     if (m_durataSpin) {
         m_durataSpin->setRange(1, 1000);
         m_durataSpin->setValue(90);
         m_durataSpin->setSuffix(" min");
-        filmLayout->addRow("Durata*:", m_durataSpin);
+        m_durataSpin->setMaximumWidth(150);
+        durataLayout->addWidget(durataLabel);
+        durataLayout->addWidget(m_durataSpin);
+        durataLayout->addStretch();
+        filmMainLayout->addLayout(durataLayout);
         connect(m_durataSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
                 this, &MediaDialog::onValidazioneChanged);
     }
     
     // Genere
+    QHBoxLayout* genereLayout = new QHBoxLayout();
+    QLabel* genereLabel = new QLabel("Genere:");
+    genereLabel->setFixedWidth(120);
     m_genereFilmCombo = new QComboBox();
     if (m_genereFilmCombo) {
         m_genereFilmCombo->addItems(Film::getAllGeneri());
-        filmLayout->addRow("Genere:", m_genereFilmCombo);
+        genereLayout->addWidget(genereLabel);
+        genereLayout->addWidget(m_genereFilmCombo);
+        filmMainLayout->addLayout(genereLayout);
     }
     
     // Classificazione
+    QHBoxLayout* classLayout = new QHBoxLayout();
+    QLabel* classLabel = new QLabel("Classificazione:");
+    classLabel->setFixedWidth(120);
     m_classificazioneCombo = new QComboBox();
     if (m_classificazioneCombo) {
         m_classificazioneCombo->addItems(Film::getAllClassificazioni());
-        filmLayout->addRow("Classificazione:", m_classificazioneCombo);
+        classLayout->addWidget(classLabel);
+        classLayout->addWidget(m_classificazioneCombo);
+        filmMainLayout->addLayout(classLayout);
     }
     
     // Casa di produzione
+    QHBoxLayout* casaLayout = new QHBoxLayout();
+    QLabel* casaLabel = new QLabel("Casa Produzione:");
+    casaLabel->setFixedWidth(120);
     m_casaProduzioneEdit = new QLineEdit();
     if (m_casaProduzioneEdit) {
         m_casaProduzioneEdit->setPlaceholderText("Nome casa di produzione...");
-        filmLayout->addRow("Casa Produzione:", m_casaProduzioneEdit);
+        casaLayout->addWidget(casaLabel);
+        casaLayout->addWidget(m_casaProduzioneEdit);
+        filmMainLayout->addLayout(casaLayout);
     }
     
-    // Connessioni aggiuntive
     if (m_nuovoAttoreEdit) {
         connect(m_nuovoAttoreEdit, &QLineEdit::returnPressed, this, &MediaDialog::onAggiungiAttoreClicked);
     }
@@ -538,109 +550,152 @@ void MediaDialog::setupArticoloForm()
     m_articoloGroup = new QGroupBox("Dettagli Articolo");
     if (!m_articoloGroup) return;
     
-    QFormLayout* articoloLayout = new QFormLayout(m_articoloGroup);
-    if (!articoloLayout) return;
+    // Usa QVBoxLayout per maggiore controllo
+    QVBoxLayout* articoloMainLayout = new QVBoxLayout(m_articoloGroup);
+    articoloMainLayout->setSpacing(10);
     
-    // Autori
-    QWidget* autoriWidget = new QWidget();
-    if (autoriWidget) {
-        QVBoxLayout* autoriLayout = new QVBoxLayout(autoriWidget);
-        if (autoriLayout) {
-            autoriLayout->setContentsMargins(0, 0, 0, 0);
-            
-            m_autoriList = new QListWidget();
-            if (m_autoriList) {
-                m_autoriList->setMaximumHeight(80);
-                autoriLayout->addWidget(m_autoriList);
-            }
-            
-            QHBoxLayout* autoriButtonLayout = new QHBoxLayout();
-            if (autoriButtonLayout) {
-                m_nuovoAutoreEdit = new QLineEdit();
-                if (m_nuovoAutoreEdit) {
-                    m_nuovoAutoreEdit->setPlaceholderText("Nome autore...");
-                    autoriButtonLayout->addWidget(m_nuovoAutoreEdit);
-                }
-                
-                m_aggiungiAutoreBtn = new QPushButton("Aggiungi");
-                if (m_aggiungiAutoreBtn) {
-                    autoriButtonLayout->addWidget(m_aggiungiAutoreBtn);
-                    connect(m_aggiungiAutoreBtn, &QPushButton::clicked, this, &MediaDialog::onAggiungiAutoreClicked);
-                }
-                
-                m_rimuoviAutoreBtn = new QPushButton("Rimuovi");
-                if (m_rimuoviAutoreBtn) {
-                    autoriButtonLayout->addWidget(m_rimuoviAutoreBtn);
-                    connect(m_rimuoviAutoreBtn, &QPushButton::clicked, this, &MediaDialog::onRimuoviAutoreClicked);
-                }
-                
-                autoriLayout->addLayout(autoriButtonLayout);
-            }
-            
-            articoloLayout->addRow("Autori*:", autoriWidget);
-        }
+    // Autori con layout verticale
+    QVBoxLayout* autoriLayout = new QVBoxLayout();
+    QLabel* autoriLabel = new QLabel("Autori*:");
+    autoriLayout->addWidget(autoriLabel);
+    
+    m_autoriList = new QListWidget();
+    if (m_autoriList) {
+        m_autoriList->setMinimumHeight(80);
+        m_autoriList->setMaximumHeight(120);
+        autoriLayout->addWidget(m_autoriList);
     }
     
-    // Altri campi dell'articolo...
+    // Controlli per aggiungere autori
+    QHBoxLayout* autoriControlLayout = new QHBoxLayout();
+    m_nuovoAutoreEdit = new QLineEdit();
+    if (m_nuovoAutoreEdit) {
+        m_nuovoAutoreEdit->setPlaceholderText("Nome autore...");
+        autoriControlLayout->addWidget(m_nuovoAutoreEdit);
+    }
+    
+    m_aggiungiAutoreBtn = new QPushButton("Aggiungi");
+    if (m_aggiungiAutoreBtn) {
+        m_aggiungiAutoreBtn->setMaximumWidth(80);
+        autoriControlLayout->addWidget(m_aggiungiAutoreBtn);
+        connect(m_aggiungiAutoreBtn, &QPushButton::clicked, this, &MediaDialog::onAggiungiAutoreClicked);
+    }
+    
+    m_rimuoviAutoreBtn = new QPushButton("Rimuovi");
+    if (m_rimuoviAutoreBtn) {
+        m_rimuoviAutoreBtn->setMaximumWidth(80);
+        autoriControlLayout->addWidget(m_rimuoviAutoreBtn);
+        connect(m_rimuoviAutoreBtn, &QPushButton::clicked, this, &MediaDialog::onRimuoviAutoreClicked);
+    }
+    
+    autoriLayout->addLayout(autoriControlLayout);
+    articoloMainLayout->addLayout(autoriLayout);
+    
+    // Rivista
+    QHBoxLayout* rivistaLayout = new QHBoxLayout();
+    QLabel* rivistaLabel = new QLabel("Rivista*:");
+    rivistaLabel->setFixedWidth(120);
     m_rivistaEdit = new QLineEdit();
     if (m_rivistaEdit) {
         m_rivistaEdit->setPlaceholderText("Nome della rivista...");
-        articoloLayout->addRow("Rivista*:", m_rivistaEdit);
+        rivistaLayout->addWidget(rivistaLabel);
+        rivistaLayout->addWidget(m_rivistaEdit);
+        articoloMainLayout->addLayout(rivistaLayout);
         connect(m_rivistaEdit, &QLineEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
     }
     
     // Data pubblicazione
+    QHBoxLayout* dataLayout = new QHBoxLayout();
+    QLabel* dataLabel = new QLabel("Data Pubblicazione*:");
+    dataLabel->setFixedWidth(120);
     m_dataPubblicazioneEdit = new QDateEdit();
     if (m_dataPubblicazioneEdit) {
         m_dataPubblicazioneEdit->setDate(QDate::currentDate());
         m_dataPubblicazioneEdit->setCalendarPopup(true);
-        articoloLayout->addRow("Data Pubblicazione*:", m_dataPubblicazioneEdit);
+        m_dataPubblicazioneEdit->setMaximumWidth(200);
+        dataLayout->addWidget(dataLabel);
+        dataLayout->addWidget(m_dataPubblicazioneEdit);
+        dataLayout->addStretch();
+        articoloMainLayout->addLayout(dataLayout);
         connect(m_dataPubblicazioneEdit, &QDateEdit::dateChanged, this, &MediaDialog::onValidazioneChanged);
     }
     
-    // Altri campi...
+    // Volume e Numero
+    QHBoxLayout* volNumLayout = new QHBoxLayout();
+    QLabel* volNumLabel = new QLabel("Volume/Numero:");
+    volNumLabel->setFixedWidth(120);
+    
     m_volumeEdit = new QLineEdit();
     m_numeroEdit = new QLineEdit();
-    m_pagineEdit = new QLineEdit();
-    m_doiEdit = new QLineEdit();
-    m_categoriaCombo = new QComboBox();
-    m_tipoRivistaCombo = new QComboBox();
     
     if (m_volumeEdit && m_numeroEdit) {
-        QHBoxLayout* volNumLayout = new QHBoxLayout();
         m_volumeEdit->setPlaceholderText("Vol.");
         m_numeroEdit->setPlaceholderText("Num.");
-        volNumLayout->addWidget(new QLabel("Volume:"));
+        m_volumeEdit->setMaximumWidth(80);
+        m_numeroEdit->setMaximumWidth(80);
+        
+        volNumLayout->addWidget(volNumLabel);
         volNumLayout->addWidget(m_volumeEdit);
-        volNumLayout->addWidget(new QLabel("Numero:"));
+        volNumLayout->addWidget(new QLabel("/"));
         volNumLayout->addWidget(m_numeroEdit);
-        articoloLayout->addRow("Volume/Numero:", volNumLayout);
+        volNumLayout->addStretch();
+        
+        articoloMainLayout->addLayout(volNumLayout);
     }
     
+    // Pagine
+    QHBoxLayout* pagineLayout = new QHBoxLayout();
+    QLabel* pagineLabel = new QLabel("Pagine:");
+    pagineLabel->setFixedWidth(120);
+    m_pagineEdit = new QLineEdit();
     if (m_pagineEdit) {
         m_pagineEdit->setPlaceholderText("es. 123-130 o 45");
-        articoloLayout->addRow("Pagine:", m_pagineEdit);
+        m_pagineEdit->setMaximumWidth(200);
+        pagineLayout->addWidget(pagineLabel);
+        pagineLayout->addWidget(m_pagineEdit);
+        pagineLayout->addStretch();
+        articoloMainLayout->addLayout(pagineLayout);
     }
     
+    // Categoria
+    QHBoxLayout* categoriaLayout = new QHBoxLayout();
+    QLabel* categoriaLabel = new QLabel("Categoria:");
+    categoriaLabel->setFixedWidth(120);
+    m_categoriaCombo = new QComboBox();
     if (m_categoriaCombo) {
         m_categoriaCombo->addItems(Articolo::getAllCategorie());
-        articoloLayout->addRow("Categoria:", m_categoriaCombo);
+        categoriaLayout->addWidget(categoriaLabel);
+        categoriaLayout->addWidget(m_categoriaCombo);
+        articoloMainLayout->addLayout(categoriaLayout);
     }
     
+    // Tipo Rivista
+    QHBoxLayout* tipoLayout = new QHBoxLayout();
+    QLabel* tipoLabel = new QLabel("Tipo Rivista:");
+    tipoLabel->setFixedWidth(120);
+    m_tipoRivistaCombo = new QComboBox();
     if (m_tipoRivistaCombo) {
         m_tipoRivistaCombo->addItems(Articolo::getAllTipiRivista());
-        articoloLayout->addRow("Tipo Rivista:", m_tipoRivistaCombo);
+        tipoLayout->addWidget(tipoLabel);
+        tipoLayout->addWidget(m_tipoRivistaCombo);
+        articoloMainLayout->addLayout(tipoLayout);
     }
     
+    // DOI
+    QHBoxLayout* doiLayout = new QHBoxLayout();
+    QLabel* doiLabel = new QLabel("DOI:");
+    doiLabel->setFixedWidth(120);
+    m_doiEdit = new QLineEdit();
     if (m_doiEdit) {
         m_doiEdit->setPlaceholderText("es. 10.1000/182");
         QRegularExpressionValidator* doiValidator = 
             new QRegularExpressionValidator(QRegularExpression("^10\\.\\d{4,}/\\S+$"), this);
         m_doiEdit->setValidator(doiValidator);
-        articoloLayout->addRow("DOI:", m_doiEdit);
+        doiLayout->addWidget(doiLabel);
+        doiLayout->addWidget(m_doiEdit);
+        articoloMainLayout->addLayout(doiLayout);
     }
     
-    // Connessioni aggiuntive
     if (m_nuovoAutoreEdit) {
         connect(m_nuovoAutoreEdit, &QLineEdit::returnPressed, this, &MediaDialog::onAggiungiAutoreClicked);
     }
@@ -655,35 +710,34 @@ void MediaDialog::setupButtons()
     m_buttonLayout = new QHBoxLayout();
     if (!m_buttonLayout) return;
     
-    if (!m_readOnly) {
-        m_helpButton = new QPushButton("Aiuto");
-        m_cancelButton = new QPushButton("Annulla");
-    }
-    
+    m_helpButton = new QPushButton("Aiuto");
+    m_cancelButton = new QPushButton("Annulla");
     m_okButton = new QPushButton(m_readOnly ? "Chiudi" : (m_isEditing ? "Salva" : "Crea"));
     
     if (m_okButton) {
         m_okButton->setDefault(true);
     }
     
-    if (m_helpButton) {
+    if (m_helpButton && !m_readOnly) {
         m_buttonLayout->addWidget(m_helpButton);
     }
     m_buttonLayout->addStretch();
     
-    if (m_cancelButton && !m_readOnly) { 
+    if (m_cancelButton && !m_readOnly) {
         m_buttonLayout->addWidget(m_cancelButton);
     }
+    
     if (m_okButton) {
         m_buttonLayout->addWidget(m_okButton);
     }
     
     m_mainLayout->addLayout(m_buttonLayout);
     
+    // Connessioni
     if (m_okButton) {
         connect(m_okButton, &QPushButton::clicked, this, &MediaDialog::onAccettaClicked);
     }
-    if (m_cancelButton && !m_readOnly) { // CORREZIONE: Solo se esiste e non read-only
+    if (m_cancelButton) {
         connect(m_cancelButton, &QPushButton::clicked, this, &MediaDialog::onAnnullaClicked);
     }
     if (m_helpButton) {
@@ -722,10 +776,9 @@ void MediaDialog::loadMediaData()
         }
         m_tipoCorrente = tipo;
         
-        // IMPORTANTE: Prima crea il form specifico
         setupTipoSpecificForm();
         
-        // POI carica i dati specifici per tipo
+        // Carica dati specifici per tipo
         if (tipo == "Libro") {
             Libro* libro = dynamic_cast<Libro*>(m_mediaOriginale);
             if (libro) {
@@ -737,13 +790,12 @@ void MediaDialog::loadMediaData()
             }
         } else if (tipo == "Film") {
             Film* film = dynamic_cast<Film*>(m_mediaOriginale);
-            if (film && m_attoriList) {
+            if (film) {
                 if (m_registaEdit) m_registaEdit->setText(film->getRegista());
-                
-                // CORREZIONE: Pulisci la lista prima di aggiungere elementi
-                m_attoriList->clear();
-                m_attoriList->addItems(film->getAttori());
-                
+                if (m_attoriList) {
+                    m_attoriList->clear();
+                    m_attoriList->addItems(film->getAttori());
+                }
                 if (m_durataSpin) m_durataSpin->setValue(film->getDurata());
                 if (m_genereFilmCombo) m_genereFilmCombo->setCurrentText(film->getGenereString());
                 if (m_classificazioneCombo) m_classificazioneCombo->setCurrentText(film->getClassificazioneString());
@@ -751,11 +803,11 @@ void MediaDialog::loadMediaData()
             }
         } else if (tipo == "Articolo") {
             Articolo* articolo = dynamic_cast<Articolo*>(m_mediaOriginale);
-            if (articolo && m_autoriList) {
-                // CORREZIONE: Pulisci la lista prima di aggiungere elementi
-                m_autoriList->clear();
-                m_autoriList->addItems(articolo->getAutori());
-                
+            if (articolo) {
+                if (m_autoriList) {
+                    m_autoriList->clear();
+                    m_autoriList->addItems(articolo->getAutori());
+                }
                 if (m_rivistaEdit) m_rivistaEdit->setText(articolo->getRivista());
                 if (m_volumeEdit) m_volumeEdit->setText(articolo->getVolume());
                 if (m_numeroEdit) m_numeroEdit->setText(articolo->getNumero());
@@ -913,11 +965,45 @@ void MediaDialog::enableForm(bool enabled)
 {
     try {
         // Disabilita/abilita tutti i widget del form
-        setEnabled(enabled);
+        if (m_tipoCombo) m_tipoCombo->setEnabled(enabled && !m_isEditing);
+        if (m_titoloEdit) m_titoloEdit->setEnabled(enabled);
+        if (m_annoSpin) m_annoSpin->setEnabled(enabled);
+        if (m_descrizioneEdit) m_descrizioneEdit->setEnabled(enabled);
+        
+        // Disabilita tutti i controlli specifici
+        if (m_autoreEdit) m_autoreEdit->setEnabled(enabled);
+        if (m_editoreEdit) m_editoreEdit->setEnabled(enabled);
+        if (m_pagineSpin) m_pagineSpin->setEnabled(enabled);
+        if (m_isbnEdit) m_isbnEdit->setEnabled(enabled);
+        if (m_genereLibroCombo) m_genereLibroCombo->setEnabled(enabled);
+        
+        if (m_registaEdit) m_registaEdit->setEnabled(enabled);
+        if (m_attoriList) m_attoriList->setEnabled(enabled);
+        if (m_nuovoAttoreEdit) m_nuovoAttoreEdit->setEnabled(enabled);
+        if (m_aggiungiAttoreBtn) m_aggiungiAttoreBtn->setEnabled(enabled);
+        if (m_rimuoviAttoreBtn) m_rimuoviAttoreBtn->setEnabled(enabled);
+        if (m_durataSpin) m_durataSpin->setEnabled(enabled);
+        if (m_genereFilmCombo) m_genereFilmCombo->setEnabled(enabled);
+        if (m_classificazioneCombo) m_classificazioneCombo->setEnabled(enabled);
+        if (m_casaProduzioneEdit) m_casaProduzioneEdit->setEnabled(enabled);
+        
+        if (m_autoriList) m_autoriList->setEnabled(enabled);
+        if (m_nuovoAutoreEdit) m_nuovoAutoreEdit->setEnabled(enabled);
+        if (m_aggiungiAutoreBtn) m_aggiungiAutoreBtn->setEnabled(enabled);
+        if (m_rimuoviAutoreBtn) m_rimuoviAutoreBtn->setEnabled(enabled);
+        if (m_rivistaEdit) m_rivistaEdit->setEnabled(enabled);
+        if (m_volumeEdit) m_volumeEdit->setEnabled(enabled);
+        if (m_numeroEdit) m_numeroEdit->setEnabled(enabled);
+        if (m_pagineEdit) m_pagineEdit->setEnabled(enabled);
+        if (m_categoriaCombo) m_categoriaCombo->setEnabled(enabled);
+        if (m_tipoRivistaCombo) m_tipoRivistaCombo->setEnabled(enabled);
+        if (m_dataPubblicazioneEdit) m_dataPubblicazioneEdit->setEnabled(enabled);
+        if (m_doiEdit) m_doiEdit->setEnabled(enabled);
         
         if (m_readOnly) {
-            if (m_tipoCombo) m_tipoCombo->setEnabled(false);
+            if (m_cancelButton) m_cancelButton->setVisible(false);
             if (m_helpButton) m_helpButton->setVisible(false);
+            if (m_validationLabel) m_validationLabel->setVisible(false);
         }
     } catch (const std::exception& e) {
         qWarning() << "Errore in enableForm:" << e.what();
