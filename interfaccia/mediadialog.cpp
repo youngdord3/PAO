@@ -897,20 +897,23 @@ void MediaDialog::clearSpecificForm()
     try {
         if (!m_formLayout) return;
         
-        // Rimuovi i gruppi specifici esistenti
+        // NASCONDE immediatamente tutti i gruppi specifici prima di eliminarli
         if (m_libroGroup) {
+            m_libroGroup->setVisible(false);
             m_formLayout->removeWidget(m_libroGroup);
             m_libroGroup->deleteLater();
             m_libroGroup = nullptr;
         }
         
         if (m_filmGroup) {
+            m_filmGroup->setVisible(false);
             m_formLayout->removeWidget(m_filmGroup);
             m_filmGroup->deleteLater();
             m_filmGroup = nullptr;
         }
         
         if (m_articoloGroup) {
+            m_articoloGroup->setVisible(false);
             m_formLayout->removeWidget(m_articoloGroup);
             m_articoloGroup->deleteLater();
             m_articoloGroup = nullptr;

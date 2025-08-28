@@ -596,16 +596,26 @@ void MainWindow::modificaMedia()
         
         Media* media = m_collezione->findMedia(m_selezionato_id);
         if (!media) {
-            mostraErrore("Media non trovato");
+            mostraErrore("Media non trovato con ID: " + m_selezionato_id);
             return;
         }
+        
+        qDebug() << "Apertura dialog modifica per media:" << media->getTitolo() << "Tipo:" << media->getTypeDisplayName();
         
         MediaDialog dialog(media, this);
         if (dialog.exec() == QDialog::Accepted) {
             auto updatedMedia = dialog.getMedia();
-            if (updatedMedia && m_collezione->updateMedia(m_selezionato_id, std::move(updatedMedia))) {
-                m_modificato = true;
-                aggiornaStatusBar();
+            if (updatedMedia) {
+                qDebug() << "Media modificato, aggiornamento collezione...";
+                if (m_collezione->updateMedia(m_selezionato_id, std::move(updatedMedia))) {
+                    m_modificato = true;
+                    aggiornaStatusBar();
+                    mostraInfo("Media modificato con successo");
+                } else {
+                    mostraErrore("Errore nell'aggiornamento del media nella collezione");
+                }
+            } else {
+                mostraErrore("Errore nella creazione del media modificato");
             }
         }
     } catch (const std::exception& e) {
