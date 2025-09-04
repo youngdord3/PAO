@@ -10,13 +10,82 @@
 #include <QRegularExpressionValidator>
 #include <QScrollArea>
 #include <QSplitter>
+#include <QTimer>
+
+MediaDialog::MediaDialog(Media* media, QWidget *parent, bool readOnly)
+    : QDialog(parent)
+    , m_mediaOriginale(media)
+    , m_readOnly(readOnly)
+    , m_isEditing(true)
+    , m_validationEnabled(!readOnly)  // SPOSTATO QUI per evitare warning
+    , m_tipoCorrente("")              // AGGIUNTO se mancante
+    , m_mainLayout(nullptr)
+    , m_tabWidget(nullptr)
+    , m_scrollArea(nullptr)
+    , m_formWidget(nullptr)
+    , m_formLayout(nullptr)
+    , m_baseGroup(nullptr)
+    , m_tipoCombo(nullptr)
+    , m_titoloEdit(nullptr)
+    , m_annoSpin(nullptr)
+    , m_descrizioneEdit(nullptr)
+    , m_libroGroup(nullptr)
+    , m_filmGroup(nullptr)
+    , m_articoloGroup(nullptr)
+    , m_buttonLayout(nullptr)
+    , m_okButton(nullptr)
+    , m_cancelButton(nullptr)
+    , m_helpButton(nullptr)
+    , m_validationLabel(nullptr)
+{
+    // VERIFICA CRITICA: Il media deve essere valido
+    if (!m_mediaOriginale) {
+        qCritical() << "MediaDialog creato con media nullo!";
+        setWindowTitle("ERRORE - Media non valido");
+        setAttribute(Qt::WA_DeleteOnClose, false);
+        
+        // Crea un layout minimale con messaggio di errore
+        QVBoxLayout* errorLayout = new QVBoxLayout(this);
+        QLabel* errorLabel = new QLabel("ERRORE: Media non disponibile", this);
+        errorLabel->setStyleSheet("color: red; font-weight: bold; font-size: 16px;");
+        errorLabel->setAlignment(Qt::AlignCenter);
+        errorLayout->addWidget(errorLabel);
+        
+        QPushButton* closeButton = new QPushButton("Chiudi", this);
+        connect(closeButton, &QPushButton::clicked, this, &QDialog::reject);
+        errorLayout->addWidget(closeButton);
+        
+        return; // Esci dal costruttore
+    }
+    
+    // Imposta titolo appropriato
+    if (readOnly) {
+        setWindowTitle(QString("Dettagli - %1").arg(m_mediaOriginale->getTitolo()));
+    } else {
+        setWindowTitle(QString("Modifica - %1").arg(m_mediaOriginale->getTitolo()));
+    }
+    
+    setAttribute(Qt::WA_DeleteOnClose, false);
+    
+    try {
+        setupUI();
+        populateComboBoxes();
+        loadMediaData();
+        enableForm(!readOnly);
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Errore Critico", 
+            QString("Impossibile creare il dialog di modifica:\n%1").arg(e.what()));
+        QTimer::singleShot(100, this, &QDialog::reject);
+    }
+}
 
 MediaDialog::MediaDialog(QWidget *parent)
     : QDialog(parent)
     , m_mediaOriginale(nullptr)
     , m_readOnly(false)
     , m_isEditing(false)
-    , m_validationEnabled(true)
+    , m_validationEnabled(true)       // SPOSTATO QUI per evitare warning
+    , m_tipoCorrente("")              // AGGIUNTO se mancante
     , m_mainLayout(nullptr)
     , m_tabWidget(nullptr)
     , m_scrollArea(nullptr)
@@ -42,52 +111,39 @@ MediaDialog::MediaDialog(QWidget *parent)
     try {
         setupUI();
         populateComboBoxes();
-        onTipoChanged();
+        onTipoChanged(); // Inizializza il form per il primo tipo
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Errore", QString("Errore nell'inizializzazione: %1").arg(e.what()));
     }
 }
 
-MediaDialog::MediaDialog(Media* media, QWidget *parent, bool readOnly)
-    : QDialog(parent)
-    , m_mediaOriginale(media)
-    , m_readOnly(readOnly)
-    , m_isEditing(true)
-    , m_validationEnabled(!readOnly)
-    , m_mainLayout(nullptr)
-    , m_tabWidget(nullptr)
-    , m_scrollArea(nullptr)
-    , m_formWidget(nullptr)
-    , m_formLayout(nullptr)
-    , m_baseGroup(nullptr)
-    , m_tipoCombo(nullptr)
-    , m_titoloEdit(nullptr)
-    , m_annoSpin(nullptr)
-    , m_descrizioneEdit(nullptr)
-    , m_libroGroup(nullptr)
-    , m_filmGroup(nullptr)
-    , m_articoloGroup(nullptr)
-    , m_buttonLayout(nullptr)
-    , m_okButton(nullptr)
-    , m_cancelButton(nullptr)
-    , m_helpButton(nullptr)
-    , m_validationLabel(nullptr)
+bool MediaDialog::isDialogValid() const
 {
-    if (readOnly) {
-        setWindowTitle("Dettagli Media");
-    } else {
-        setWindowTitle("Modifica Media");
+    // Per il dialog di modifica, verifica che il media originale sia valido
+    if (m_isEditing) {
+        return m_mediaOriginale != nullptr;
     }
     
-    setAttribute(Qt::WA_DeleteOnClose, false);
+    // Per nuovi media, verifica che i controlli base siano stati creati
+    return m_titoloEdit != nullptr && m_annoSpin != nullptr && m_tipoCombo != nullptr;
+}
+
+void MediaDialog::showEvent(QShowEvent *event)
+{
+    // Verifica finale prima di mostrare il dialog
+    if (!isDialogValid()) {
+        qCritical() << "Dialog non valido, impossibile mostrarlo";
+        event->ignore();
+        QTimer::singleShot(100, this, &QDialog::reject);
+        return;
+    }
     
-    try {
-        setupUI();
-        populateComboBoxes();
-        loadMediaData();
-        enableForm(!readOnly);
-    } catch (const std::exception& e) {
-        QMessageBox::critical(this, "Errore", QString("Errore nell'inizializzazione: %1").arg(e.what()));
+    QDialog::showEvent(event);
+    
+    // Focus sul primo campo editabile solo se non in modalità read-only
+    if (!m_readOnly && m_titoloEdit && m_titoloEdit->isEnabled()) {
+        m_titoloEdit->setFocus();
+        m_titoloEdit->selectAll();
     }
 }
 
@@ -115,30 +171,61 @@ std::unique_ptr<Media> MediaDialog::getMedia() const
     return nullptr;
 }
 
-void MediaDialog::showEvent(QShowEvent *event)
-{
-    QDialog::showEvent(event);
-    
-    if (!m_readOnly && m_titoloEdit) {
-        m_titoloEdit->setFocus();
-    }
-}
 
 void MediaDialog::onTipoChanged()
 {
     try {
-        if (!m_tipoCombo) return;
+        if (!m_tipoCombo) {
+            qWarning() << "onTipoChanged chiamato con m_tipoCombo nullo";
+            return;
+        }
         
         QString nuovoTipo = m_tipoCombo->currentText();
+        qDebug() << "Tipo cambiato da:" << m_tipoCorrente << "a:" << nuovoTipo;
         
-        if (nuovoTipo != m_tipoCorrente) {
-            m_tipoCorrente = nuovoTipo;
-            setupTipoSpecificForm();
-            updateFormVisibility();
+        // Evita loop infiniti e operazioni non necessarie
+        if (nuovoTipo == m_tipoCorrente) {
+            qDebug() << "Tipo non cambiato, nessuna azione necessaria";
+            return;
         }
+        
+        // Durante il caricamento dati non fare nulla
+        if (m_isEditing && m_mediaOriginale) {
+            QString tipoOriginale = m_mediaOriginale->getTypeDisplayName();
+            if (nuovoTipo != tipoOriginale) {
+                // In modalità modifica, non permettere cambio di tipo
+                qDebug() << "Cambio tipo non permesso in modalità modifica";
+                // Blocca temporaneamente i signal per evitare loop
+                m_tipoCombo->blockSignals(true);
+                m_tipoCombo->setCurrentText(tipoOriginale);
+                m_tipoCombo->blockSignals(false);
+                
+                QMessageBox::information(this, "Cambio Tipo", 
+                    "Il tipo di media non può essere modificato. "
+                    "Per cambiare tipo, crea un nuovo media.");
+                return;
+            }
+        }
+        
+        m_tipoCorrente = nuovoTipo;
+        setupTipoSpecificForm();
+        updateFormVisibility();
+        onValidazioneChanged();
+        
     } catch (const std::exception& e) {
-        QMessageBox::warning(this, "Errore", QString("Errore nel cambio tipo: %1").arg(e.what()));
+        qWarning() << "Errore in onTipoChanged:" << e.what();
     }
+}
+
+bool MediaDialog::isDialogValid() const
+{
+    // Per il dialog di modifica, verifica che il media originale sia valido
+    if (m_isEditing) {
+        return m_mediaOriginale != nullptr;
+    }
+    
+    // Per nuovi media, verifica che i controlli base siano stati creati
+    return m_titoloEdit != nullptr && m_annoSpin != nullptr && m_tipoCombo != nullptr;
 }
 
 void MediaDialog::onAccettaClicked()
@@ -755,15 +842,22 @@ void MediaDialog::setupButtons()
 
 void MediaDialog::loadMediaData()
 {
-    if (!m_mediaOriginale) return;
+    if (!m_mediaOriginale) {
+        qCritical() << "loadMediaData chiamato con media nullo!";
+        return;
+    }
     
     try {
-        // Carica dati base
+        qDebug() << "Caricamento dati per:" << m_mediaOriginale->getTitolo();
+        
+        // Carica dati base con verifiche di sicurezza
         if (m_titoloEdit) {
             m_titoloEdit->setText(m_mediaOriginale->getTitolo());
+            qDebug() << "Titolo caricato:" << m_mediaOriginale->getTitolo();
         }
         if (m_annoSpin) {
             m_annoSpin->setValue(m_mediaOriginale->getAnno());
+            qDebug() << "Anno caricato:" << m_mediaOriginale->getAnno();
         }
         if (m_descrizioneEdit) {
             m_descrizioneEdit->setPlainText(m_mediaOriginale->getDescrizione());
@@ -771,26 +865,44 @@ void MediaDialog::loadMediaData()
         
         // Imposta il tipo e carica dati specifici
         QString tipo = m_mediaOriginale->getTypeDisplayName();
+        qDebug() << "Tipo media da caricare:" << tipo;
+        
         if (m_tipoCombo) {
-            m_tipoCombo->setCurrentText(tipo);
+            int index = m_tipoCombo->findText(tipo);
+            if (index >= 0) {
+                m_tipoCombo->setCurrentIndex(index);
+                qDebug() << "Tipo impostato nel combo:" << tipo << "index:" << index;
+            } else {
+                qWarning() << "Tipo non trovato nel combo:" << tipo;
+                // Prova ad aggiungere il tipo se non esiste
+                m_tipoCombo->addItem(tipo);
+                m_tipoCombo->setCurrentText(tipo);
+            }
         }
+        
         m_tipoCorrente = tipo;
         
+        // IMPORTANTE: Setup del form specifico PRIMA di caricare i dati
         setupTipoSpecificForm();
         
-        // Carica dati specifici per tipo
+        // Carica dati specifici per tipo con casting sicuro
         if (tipo == "Libro") {
-            Libro* libro = dynamic_cast<Libro*>(m_mediaOriginale);
-            if (libro) {
+            if (Libro* libro = dynamic_cast<Libro*>(m_mediaOriginale)) {
+                qDebug() << "Caricamento dati libro...";
                 if (m_autoreEdit) m_autoreEdit->setText(libro->getAutore());
                 if (m_editoreEdit) m_editoreEdit->setText(libro->getEditore());
                 if (m_pagineSpin) m_pagineSpin->setValue(libro->getPagine());
                 if (m_isbnEdit) m_isbnEdit->setText(libro->getIsbn());
-                if (m_genereLibroCombo) m_genereLibroCombo->setCurrentText(libro->getGenereString());
+                if (m_genereLibroCombo) {
+                    m_genereLibroCombo->setCurrentText(libro->getGenereString());
+                }
+                qDebug() << "Dati libro caricati - Autore:" << libro->getAutore();
+            } else {
+                qWarning() << "Cast a Libro fallito!";
             }
         } else if (tipo == "Film") {
-            Film* film = dynamic_cast<Film*>(m_mediaOriginale);
-            if (film) {
+            if (Film* film = dynamic_cast<Film*>(m_mediaOriginale)) {
+                qDebug() << "Caricamento dati film...";
                 if (m_registaEdit) m_registaEdit->setText(film->getRegista());
                 if (m_attoriList) {
                     m_attoriList->clear();
@@ -800,10 +912,13 @@ void MediaDialog::loadMediaData()
                 if (m_genereFilmCombo) m_genereFilmCombo->setCurrentText(film->getGenereString());
                 if (m_classificazioneCombo) m_classificazioneCombo->setCurrentText(film->getClassificazioneString());
                 if (m_casaProduzioneEdit) m_casaProduzioneEdit->setText(film->getCasaProduzione());
+                qDebug() << "Dati film caricati - Regista:" << film->getRegista();
+            } else {
+                qWarning() << "Cast a Film fallito!";
             }
         } else if (tipo == "Articolo") {
-            Articolo* articolo = dynamic_cast<Articolo*>(m_mediaOriginale);
-            if (articolo) {
+            if (Articolo* articolo = dynamic_cast<Articolo*>(m_mediaOriginale)) {
+                qDebug() << "Caricamento dati articolo...";
                 if (m_autoriList) {
                     m_autoriList->clear();
                     m_autoriList->addItems(articolo->getAutori());
@@ -816,14 +931,25 @@ void MediaDialog::loadMediaData()
                 if (m_tipoRivistaCombo) m_tipoRivistaCombo->setCurrentText(articolo->getTipoRivistaString());
                 if (m_dataPubblicazioneEdit) m_dataPubblicazioneEdit->setDate(articolo->getDataPubblicazione());
                 if (m_doiEdit) m_doiEdit->setText(articolo->getDoi());
+                qDebug() << "Dati articolo caricati - Rivista:" << articolo->getRivista();
+            } else {
+                qWarning() << "Cast a Articolo fallito!";
             }
+        } else {
+            qWarning() << "Tipo di media non riconosciuto:" << tipo;
         }
         
         updateFormVisibility();
+        onValidazioneChanged(); // Aggiorna la validazione dopo il caricamento
+        
+        qDebug() << "loadMediaData completato con successo";
+        
     } catch (const std::exception& e) {
+        qCritical() << "Errore in loadMediaData:" << e.what();
         QMessageBox::warning(this, "Errore", QString("Errore nel caricamento dati: %1").arg(e.what()));
     }
 }
+
 
 bool MediaDialog::validateInput()
 {

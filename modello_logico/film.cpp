@@ -90,11 +90,14 @@ void Film::setCasaProduzione(const QString& casa_produzione)
 
 std::unique_ptr<Media> Film::clone() const
 {
-    // CORREZIONE: Preserva l'ID originale nel clone
+    // Crea una nuova istanza con tutti i dati correnti
     auto cloned = std::make_unique<Film>(m_titolo, m_anno, m_descrizione, m_regista, 
                                         m_attori, m_durata, m_genere, m_classificazione, 
                                         m_casa_produzione);
-    cloned->m_id = m_id; // Preserva l'ID originale
+    
+    // IMPORTANTE: Copia l'ID originale per mantenere la corrispondenza
+    cloned->m_id = this->m_id;
+    
     return cloned;
 }
 

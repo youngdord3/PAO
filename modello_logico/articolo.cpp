@@ -123,11 +123,14 @@ void Articolo::setDoi(const QString& doi)
 
 std::unique_ptr<Media> Articolo::clone() const
 {
-    // CORREZIONE: Preserva l'ID originale nel clone
+    // Crea una nuova istanza con tutti i dati correnti
     auto cloned = std::make_unique<Articolo>(m_titolo, m_anno, m_descrizione, m_autori, 
                                             m_rivista, m_volume, m_numero, m_pagine, 
                                             m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);
-    cloned->m_id = m_id; // Preserva l'ID originale
+    
+    // IMPORTANTE: Copia l'ID originale per mantenere la corrispondenza
+    cloned->m_id = this->m_id;
+    
     return cloned;
 }
 

@@ -57,6 +57,7 @@ protected:
     // Template method steps - da implementare nelle classi derivate
     virtual bool validateSpecificFields() const = 0;
     virtual QString getSearchableText() const = 0;
+    void setIdFromClone(const QString& id) { m_id = id; }
     
     // Attributi comuni protetti
     QString m_id;

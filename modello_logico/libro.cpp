@@ -74,10 +74,13 @@ void Libro::setGenere(Genere genere)
 
 std::unique_ptr<Media> Libro::clone() const
 {
-    // CORREZIONE: Preserva l'ID originale nel clone
+    // Crea una nuova istanza con tutti i dati correnti
     auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
                                          m_editore, m_pagine, m_isbn, m_genere);
-    cloned->m_id = m_id; // Preserva l'ID originale
+    
+    // IMPORTANTE: Copia l'ID originale per mantenere la corrispondenza
+    cloned->m_id = this->m_id;
+    
     return cloned;
 }
 
