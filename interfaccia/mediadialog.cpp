@@ -117,21 +117,10 @@ MediaDialog::MediaDialog(QWidget *parent)
     }
 }
 
-bool MediaDialog::isDialogValid() const
-{
-    // Per il dialog di modifica, verifica che il media originale sia valido
-    if (m_isEditing) {
-        return m_mediaOriginale != nullptr;
-    }
-    
-    // Per nuovi media, verifica che i controlli base siano stati creati
-    return m_titoloEdit != nullptr && m_annoSpin != nullptr && m_tipoCombo != nullptr;
-}
-
 void MediaDialog::showEvent(QShowEvent *event)
 {
     // Verifica finale prima di mostrare il dialog
-    if (!isDialogValid()) {
+    if (!validateInput()) {
         qCritical() << "Dialog non valido, impossibile mostrarlo";
         event->ignore();
         QTimer::singleShot(100, this, &QDialog::reject);
@@ -215,17 +204,6 @@ void MediaDialog::onTipoChanged()
     } catch (const std::exception& e) {
         qWarning() << "Errore in onTipoChanged:" << e.what();
     }
-}
-
-bool MediaDialog::isDialogValid() const
-{
-    // Per il dialog di modifica, verifica che il media originale sia valido
-    if (m_isEditing) {
-        return m_mediaOriginale != nullptr;
-    }
-    
-    // Per nuovi media, verifica che i controlli base siano stati creati
-    return m_titoloEdit != nullptr && m_annoSpin != nullptr && m_tipoCombo != nullptr;
 }
 
 void MediaDialog::onAccettaClicked()

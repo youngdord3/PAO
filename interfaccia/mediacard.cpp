@@ -236,6 +236,130 @@ void MediaCard::paintEvent(QPaintEvent *event)
     }
 }
 
+void MediaCard::setupLayout()
+{
+    try {
+        // Pulisci layout esistente se presente
+        if (layout()) {
+            QLayoutItem* item;
+            while ((item = layout()->takeAt(0)) != nullptr) {
+                delete item->widget();
+                delete item;
+            }
+            delete layout();
+        }
+        
+        m_mainLayout = new QVBoxLayout(this);
+        if (m_mainLayout) {
+            m_mainLayout->setContentsMargins(8, 8, 8, 8);
+            m_mainLayout->setSpacing(4);
+        }
+        
+        // Header con tipo e immagine
+        m_headerLayout = new QHBoxLayout();
+        if (m_headerLayout) {
+            m_headerLayout->setContentsMargins(0, 0, 0, 0);
+            if (m_mainLayout) {
+                m_mainLayout->addLayout(m_headerLayout);
+            }
+        }
+        
+        // Content area
+        m_contentLayout = new QVBoxLayout();
+        if (m_contentLayout) {
+            m_contentLayout->setContentsMargins(0, 0, 0, 0);
+            m_contentLayout->setSpacing(2);
+            if (m_mainLayout) {
+                m_mainLayout->addLayout(m_contentLayout);
+            }
+        }
+        
+        // Aggiungi stretch
+        if (m_mainLayout) {
+            m_mainLayout->addStretch();
+        }
+        
+        // Area bottoni (in overlay)
+        m_buttonLayout = new QHBoxLayout();
+        if (m_buttonLayout) {
+            m_buttonLayout->setContentsMargins(0, 0, 0, 0);
+            m_buttonLayout->addStretch();
+            if (m_mainLayout) {
+                m_mainLayout->addLayout(m_buttonLayout);
+            }
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupLayout:" << e.what();
+    }
+}
+
+void MediaCard::setupTypeSpecificContent()
+{
+    if (!m_media || !m_mainLayout) return;
+    
+    try {
+        // Aggiungi widgets al layout se esistono
+        if (m_headerLayout && m_typeLabel && m_imageLabel) {
+            m_headerLayout->addWidget(m_typeLabel);
+            m_headerLayout->addStretch();
+            m_headerLayout->addWidget(m_imageLabel);
+        }
+        
+        if (m_contentLayout) {
+            if (m_titleLabel) m_contentLayout->addWidget(m_titleLabel);
+            
+            if (m_yearLabel) {
+                QHBoxLayout* yearLayout = new QHBoxLayout();
+                yearLayout->addWidget(new QLabel("Anno:", this));
+                yearLayout->addWidget(m_yearLabel);
+                yearLayout->addStretch();
+                m_contentLayout->addLayout(yearLayout);
+            }
+            
+            if (m_descriptionLabel) m_contentLayout->addWidget(m_descriptionLabel);
+            if (m_infoLabel) m_contentLayout->addWidget(m_infoLabel);
+        }
+        
+        if (m_buttonLayout) {
+            m_buttonLayout->addStretch();
+            if (m_detailsButton) m_buttonLayout->addWidget(m_detailsButton);
+            if (m_editButton) m_buttonLayout->addWidget(m_editButton);
+            if (m_deleteButton) m_buttonLayout->addWidget(m_deleteButton);
+        }
+        
+        // Aggiungi contenuto specifico per tipo
+        QString type = m_media->getTypeDisplayName();
+        if (type == "Libro") {
+            setupLibroContent();
+        } else if (type == "Film") {
+            setupFilmContent();
+        } else if (type == "Articolo") {
+            setupArticoloContent();
+        }
+        
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupTypeSpecificContent:" << e.what();
+    }
+}
+
+void MediaCard::setupLibroContent()
+{
+    // Implementazione base per libri
+    // Per ora vuota, può essere estesa in futuro
+}
+
+void MediaCard::setupFilmContent()
+{
+    // Implementazione base per film
+    // Per ora vuota, può essere estesa in futuro
+}
+
+void MediaCard::setupArticoloContent()
+{
+    // Implementazione base per articoli
+    // Per ora vuota, può essere estesa in futuro
+}
+
 void MediaCard::setupUI()
 {
     if (!m_media) {
