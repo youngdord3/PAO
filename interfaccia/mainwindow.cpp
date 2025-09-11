@@ -426,7 +426,7 @@ void MainWindow::clearMediaCards()
     m_mediaCards.clear();
     
     m_selezionato_id.clear();
-    aggiornaStatusBar()();
+    aggiornaStatusBar();
 }
 
 
