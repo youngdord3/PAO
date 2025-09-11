@@ -13,18 +13,15 @@
 class Media;
 
 /**
- * @brief Widget card per visualizzare un media nella collezione
- * 
- * Ogni card mostra le informazioni principali del media
- * con un design responsivo e interattivo. Le azioni vengono
- * gestite tramite il box azioni in basso a sinistra.
+ * @brief Widget card semplificato per visualizzare un media
  */
 class MediaCard : public QFrame
 {
     Q_OBJECT
 
 public:
-    explicit MediaCard(std::unique_ptr<Media> media, QWidget *parent = nullptr);
+    // CORREZIONE: Costruttore semplificato che prende puntatore raw
+    explicit MediaCard(Media* media, QWidget *parent = nullptr);
     virtual ~MediaCard();
     
     // Accessori
@@ -51,72 +48,38 @@ protected:
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
-private slots:
-    // Rimossi slot per bottoni hover - ora tutto è gestito dal box azioni
-    void onEditClicked();
-    void onDeleteClicked();
-    void onDetailsClicked();
-
 private:
     void setupUI();
     void setupLayout();
     void updateStyleSheet();
-    void setupTypeSpecificContent();
     
-    // Creazione elementi UI specifici per tipo (ora semplificati)
-    void setupLibroContent();
-    void setupFilmContent();
-    void setupArticoloContent();
-    
-    // Gestione immagini
-    QPixmap getTypeIcon() const;
-    QPixmap loadMediaImage() const;
-    
-    // Utility
     QString truncateText(const QString& text, int maxLength) const;
     QString formatDisplayInfo() const;
+    QPixmap getTypeIcon() const;
     
-    // Membri privati
-    std::unique_ptr<Media> m_media;
+    // CORREZIONE: Usa puntatore raw invece di unique_ptr
+    Media* m_media;  // NON possiede il media, solo riferimento
     bool m_selected;
     bool m_hovered;
     
-    // Widgets UI - layout semplificato
+    // Widgets UI - semplificati
     QVBoxLayout* m_mainLayout;
-    QHBoxLayout* m_headerLayout;
-    QVBoxLayout* m_contentLayout;
-    QHBoxLayout* m_buttonLayout;
-    
-    // Elementi UI comuni
     QLabel* m_typeLabel;
     QLabel* m_titleLabel;
     QLabel* m_yearLabel;
     QLabel* m_descriptionLabel;
     QLabel* m_imageLabel;
-    QLabel* m_infoLabel;
-    
-    // RIMOSSI: Bottoni azione hover - ora tutto dal box azioni
-    QPushButton* m_editButton;
-    QPushButton* m_deleteButton;
-    QPushButton* m_detailsButton;
     
     // Costanti per il design
     static const int CARD_WIDTH = 280;
     static const int CARD_HEIGHT = 200;
-    static const int IMAGE_SIZE = 32; // Ridotto per più spazio al testo
-    static const int BORDER_RADIUS = 8;
-    static const int SHADOW_OFFSET = 2;
+    static const int IMAGE_SIZE = 48;
     
     // Colori per i tipi di media
     static const QString COLOR_LIBRO;
     static const QString COLOR_FILM;
     static const QString COLOR_ARTICOLO;
     static const QString COLOR_DEFAULT;
-    
-    // Stili CSS
-    static const QString STYLE_NORMAL;
-    static const QString STYLE_SELECTED;
-    static const QString STYLE_HOVERED;
 };
 
 #endif // MEDIACARD_H

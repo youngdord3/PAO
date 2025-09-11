@@ -344,9 +344,10 @@ void MainWindow::updateLayout()
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    for (size_t i = 0; i < m_mediaCards.size(); ++i) {
-        int row = static_cast<int>(i) / columns;
-        int col = static_cast<int>(i) % columns;
+    // CORREZIONE: usa int invece di size_t per QList
+    for (int i = 0; i < m_mediaCards.size(); ++i) {
+        int row = i / columns;
+        int col = i % columns;
         m_mediaLayout->addWidget(m_mediaCards[i], row, col);
     }
     
@@ -365,9 +366,9 @@ void MainWindow::refreshMediaCards()
         QString searchText = m_searchEdit ? m_searchEdit->text().trimmed() : QString();
         if (searchText.isEmpty()) {
             // Se non c'è testo di ricerca, prendi tutti i media
-            const auto& allMedia = m_collezione->getAllMedia();
+            auto allMedia = m_collezione->getAllMedia();
             for (const auto& m : allMedia) {
-                if (m) { // Controllo di sicurezza
+                if (m && m->isValid()) { // Controllo validità
                     media.push_back(m.get());
                 }
             }
@@ -381,69 +382,72 @@ void MainWindow::refreshMediaCards()
         if (filtro) {
             std::vector<Media*> filteredMedia;
             for (Media* m : media) {
-                if (m && filtro->matches(m)) { // Controllo di sicurezza
+                if (m && filtro->matches(m)) {
                     filteredMedia.push_back(m);
                 }
             }
             media = filteredMedia;
         }
         
-        // Crea le card in modo sicuro
+        // CORREZIONE: Crea le card senza problemi di copia
         for (Media* mediaPtr : media) {
-            if (mediaPtr) {
+            if (mediaPtr && mediaPtr->isValid()) {
                 try {
-                    // CORREZIONE: Non usiamo più createCard() che può causare problemi
-                    // Creiamo direttamente la MediaCard
-                    auto cardPtr = std::make_unique<MediaCard>(mediaPtr->clone(), m_mediaContainer);
-                    
+                    // CORREZIONE: Usa new invece di unique_ptr per evitare problemi di copia
+                    MediaCard* cardPtr = new MediaCard(mediaPtr->clone(), m_mediaContainer);
                     if (cardPtr) {
-                        // Connessioni per selezione
-                        connect(cardPtr.get(), &MediaCard::selezionato,
+                        m_mediaCards.append(cardPtr); // CORREZIONE: append per QList
+                        
+                        // Connessioni per selezione con controllo di sicurezza
+                        connect(cardPtr, &MediaCard::selezionato,
                                 this, &MainWindow::onCardSelezionata);
-                        connect(cardPtr.get(), &MediaCard::doppioClick,
+                        connect(cardPtr, &MediaCard::doppioClick,
                                 this, &MainWindow::onCardDoubleClic);
                         
-                        m_mediaCards.push_back(cardPtr.release());
+                        // Mantieni la selezione se possibile
+                        if (cardPtr->getId() == m_selezionato_id) {
+                            cardPtr->setSelected(true);
+                        }
                     }
                 } catch (const std::exception& e) {
-                    qWarning() << "Errore nella creazione MediaCard:" << e.what();
+                    qWarning() << "Errore nella creazione MediaCard per" << mediaPtr->getTitolo() << ":" << e.what();
                 }
             }
         }
         
         updateLayout();
         aggiornaStatistiche();
+        aggiornaStatoButtoes();
         
-        qDebug() << "RefreshMediaCards completato:" << m_mediaCards.size() << "cards create";
+        // Aggiorna status con numero di risultati
+        if (m_countLabel) {
+            QString status = QString("%1 media").arg(static_cast<int>(media.size()));
+            if (static_cast<size_t>(media.size()) != m_collezione->size()) {
+                status += QString(" (di %1 totali)").arg(static_cast<int>(m_collezione->size()));
+            }
+            m_countLabel->setText(status);
+        }
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore durante l'aggiornamento: %1").arg(e.what()));
+        clearMediaCards(); // Pulisce in caso di errore
     }
 }
 
 void MainWindow::clearMediaCards()
 {
-    qDebug() << "Clearing" << m_mediaCards.size() << "media cards";
-    
-    // Rimuovi dal layout e cancella in modo sicuro
     for (MediaCard* card : m_mediaCards) {
         if (card) {
-            if (m_mediaLayout) {
-                m_mediaLayout->removeWidget(card);
-            }
-            // Disconnetti tutti i signal prima della cancellazione
-            disconnect(card, nullptr, this, nullptr);
-            card->deleteLater();
+            m_mediaLayout->removeWidget(card);
+            card->deleteLater(); // Qt gestirà la cancellazione del widget
         }
     }
     m_mediaCards.clear();
     
-    // Reset della selezione
     m_selezionato_id.clear();
-    if (m_editButton) m_editButton->setEnabled(false);
-    if (m_removeButton) m_removeButton->setEnabled(false);
-    if (m_detailsButton) m_detailsButton->setEnabled(false);
+    aggiornaStatoButtoes();
 }
+
 
 void MainWindow::applicaRicercaCorrente()
 {
@@ -590,70 +594,87 @@ void MainWindow::esci()
 void MainWindow::aggiungiMedia()
 {
     try {
-        MediaDialog dialog(this);
-        if (dialog.exec() == QDialog::Accepted) {
-            auto media = dialog.getMedia();
-            if (media) {
-                m_collezione->addMedia(std::move(media));
-                m_modificato = true;
-                aggiornaStatusBar();
+        // IMPORTANTE: Crea il dialog come puntatore locale, non come smart pointer
+        MediaDialog* dialog = new MediaDialog(this);
+        
+        // Assicurati che il dialog venga cancellato alla chiusura
+        dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+        
+        // Connessione usando lambda per gestire il risultato
+        connect(dialog, &QDialog::finished, this, [this, dialog](int result) {
+            if (result == QDialog::Accepted) {
+                try {
+                    auto media = dialog->getMedia();
+                    if (media && media->isValid()) {
+                        m_collezione->addMedia(std::move(media));
+                        m_modificato = true;
+                        aggiornaStatusBar();
+                        mostraInfo("Media aggiunto con successo");
+                    } else {
+                        mostraErrore("Media non valido - non è stato aggiunto");
+                    }
+                } catch (const std::exception& e) {
+                    mostraErrore(QString("Errore nell'aggiunta del media: %1").arg(e.what()));
+                }
             }
-        }
+        });
+        
+        // Mostra il dialog in modo non bloccante
+        dialog->show();
+        
     } catch (const std::exception& e) {
-        mostraErrore(QString("Errore nell'aggiunta: %1").arg(e.what()));
+        mostraErrore(QString("Errore nella creazione del dialog: %1").arg(e.what()));
     }
 }
 
 void MainWindow::modificaMedia()
 {
     try {
-        // Verifica preliminari più robuste
         if (m_selezionato_id.isEmpty()) {
-            mostraErrore("Nessun media selezionato");
-            return;
-        }
-        
-        if (!m_collezione) {
-            mostraErrore("Collezione non inizializzata");
+            mostraInfo("Seleziona un media da modificare");
             return;
         }
         
         Media* media = m_collezione->findMedia(m_selezionato_id);
         if (!media) {
-            mostraErrore("Media selezionato non trovato nella collezione");
-            // Reset della selezione
-            m_selezionato_id.clear();
-            m_editButton->setEnabled(false);
-            m_removeButton->setEnabled(false);
-            m_detailsButton->setEnabled(false);
+            mostraErrore("Media selezionato non trovato");
             return;
         }
         
-        qDebug() << "Apertura dialog modifica per:" << media->getTitolo();
+        // CORREZIONE: Crea dialog come puntatore locale
+        MediaDialog* dialog = new MediaDialog(media, this, false);
+        dialog->setAttribute(Qt::WA_DeleteOnClose, true);
         
-        // IMPORTANTE: Creiamo il dialog in modo sicuro
-        std::unique_ptr<MediaDialog> dialog = std::make_unique<MediaDialog>(media, this, false);
+        // Cattura l'ID del media per sicurezza
+        QString mediaId = m_selezionato_id;
         
-        if (dialog->exec() == QDialog::Accepted) {
-            auto updatedMedia = dialog->getMedia();
-            if (updatedMedia) {
-                qDebug() << "Media aggiornato, applicazione modifiche...";
-                if (m_collezione->updateMedia(m_selezionato_id, std::move(updatedMedia))) {
-                    m_modificato = true;
-                    aggiornaStatusBar();
-                    mostraInfo("Media modificato con successo");
-                } else {
-                    mostraErrore("Errore nell'aggiornamento del media");
+        connect(dialog, &QDialog::finished, this, [this, dialog, mediaId](int result) {
+            if (result == QDialog::Accepted) {
+                try {
+                    auto updatedMedia = dialog->getMedia();
+                    if (updatedMedia && updatedMedia->isValid()) {
+                        if (m_collezione->updateMedia(mediaId, std::move(updatedMedia))) {
+                            m_modificato = true;
+                            aggiornaStatusBar();
+                            mostraInfo("Media modificato con successo");
+                            // Aggiorna la selezione
+                            refreshMediaCards();
+                        } else {
+                            mostraErrore("Impossibile aggiornare il media");
+                        }
+                    } else {
+                        mostraErrore("Media modificato non valido");
+                    }
+                } catch (const std::exception& e) {
+                    mostraErrore(QString("Errore nella modifica: %1").arg(e.what()));
                 }
-            } else {
-                mostraErrore("Dati del media non validi");
             }
-        }
+        });
+        
+        dialog->show();
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nella modifica: %1").arg(e.what()));
-    } catch (...) {
-        mostraErrore("Errore sconosciuto nella modifica del media");
     }
 }
 
@@ -661,21 +682,50 @@ void MainWindow::rimuoviMedia()
 {
     try {
         if (m_selezionato_id.isEmpty()) {
-            mostraErrore("Nessun media selezionato");
+            mostraInfo("Seleziona un media da rimuovere");
             return;
         }
         
         Media* media = m_collezione->findMedia(m_selezionato_id);
         if (!media) {
-            mostraErrore("Media non trovato");
+            mostraErrore("Media selezionato non trovato");
+            m_selezionato_id.clear();
+            aggiornaStatoButtoes();
             return;
         }
         
-        if (confermaAzione(QString("Rimuovere '%1'?").arg(media->getTitolo()))) {
+        // Conferma con più dettagli
+        QString messaggio = QString("Sei sicuro di voler rimuovere il media:\n\n"
+                                   "Titolo: %1\n"
+                                   "Tipo: %2\n"
+                                   "Anno: %3\n\n"
+                                   "Questa azione non può essere annullata.")
+                           .arg(media->getTitolo())
+                           .arg(media->getTypeDisplayName())
+                           .arg(media->getAnno());
+        
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Conferma Rimozione");
+        msgBox.setText(messaggio);
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        
+        if (msgBox.exec() == QMessageBox::Yes) {
+            QString titoloRimosso = media->getTitolo(); // Salva per il messaggio
+            
             if (m_collezione->removeMedia(m_selezionato_id)) {
+                m_selezionato_id.clear();
                 m_modificato = true;
-                mostraInfo("Media rimosso");
                 aggiornaStatusBar();
+                aggiornaStatoButtoes();
+                
+                // Aggiorna la visualizzazione
+                refreshMediaCards();
+                
+                mostraInfo(QString("Media '%1' rimosso con successo").arg(titoloRimosso));
+            } else {
+                mostraErrore("Impossibile rimuovere il media dalla collezione");
             }
         }
     } catch (const std::exception& e) {
@@ -687,20 +737,59 @@ void MainWindow::visualizzaDettagli()
 {
     try {
         if (m_selezionato_id.isEmpty()) {
-            mostraErrore("Nessun media selezionato");
+            mostraInfo("Seleziona un media per visualizzare i dettagli");
             return;
         }
         
         Media* media = m_collezione->findMedia(m_selezionato_id);
         if (!media) {
-            mostraErrore("Media non trovato");
+            mostraErrore("Media selezionato non trovato");
             return;
         }
         
-        MediaDialog dialog(media, this, true); // true = modalità solo lettura
-        dialog.exec();
+        // CORREZIONE: Dialog di sola lettura
+        MediaDialog* dialog = new MediaDialog(media, this, true); // true = modalità solo lettura
+        dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+        
+        // Per i dettagli non serve gestire il risultato
+        dialog->show();
+        
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nella visualizzazione: %1").arg(e.what()));
+    }
+}
+
+void MainWindow::verificaValiditaCollezione()
+{
+    try {
+        if (!m_collezione->isValidCollection()) {
+            QStringList errors = m_collezione->getValidationErrors();
+            QString message = "Errori nella collezione:\n" + errors.join("\n");
+            QMessageBox::warning(this, "Collezione non valida", message);
+        } else {
+            qDebug() << "Collezione valida - tutti i media sono corretti";
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nella verifica validità:" << e.what();
+    }
+}
+
+void MainWindow::aggiornaStatoButtoes()
+{
+    bool hasSelection = !m_selezionato_id.isEmpty() && 
+                       (m_collezione->findMedia(m_selezionato_id) != nullptr);
+    
+    if (m_editButton) m_editButton->setEnabled(hasSelection);
+    if (m_removeButton) m_removeButton->setEnabled(hasSelection);
+    if (m_detailsButton) m_detailsButton->setEnabled(hasSelection);
+    
+    // Se non c'è selezione valida, deseleziona tutte le card
+    if (!hasSelection) {
+        for (MediaCard* card : m_mediaCards) {
+            if (card) {
+                card->setSelected(false);
+            }
+        }
     }
 }
 
@@ -773,66 +862,52 @@ void MainWindow::onCollezioneCaricata(int count)
 
 void MainWindow::onCardSelezionata(const QString& id)
 {
-    // Verifica che l'ID sia valido
-    if (id.isEmpty()) {
-        qWarning() << "ID vuoto nella selezione card";
-        return;
-    }
-    
-    // Verifica che il media esista effettivamente
-    Media* media = m_collezione->findMedia(id);
-    if (!media) {
-        qWarning() << "Media non trovato per ID:" << id;
-        // Reset della selezione se il media non esiste
-        m_selezionato_id.clear();
-        m_editButton->setEnabled(false);
-        m_removeButton->setEnabled(false);
-        m_detailsButton->setEnabled(false);
-        return;
-    }
-    
-    m_selezionato_id = id;
-    m_editButton->setEnabled(true);
-    m_removeButton->setEnabled(true);
-    m_detailsButton->setEnabled(true);
-    
-    // Deseleziona altre card in modo sicuro
-    for (MediaCard* card : m_mediaCards) {
-        if (card && card->getId() != id) {
-            card->setSelected(false);
+    try {
+        // Verifica che il media esista ancora
+        Media* media = m_collezione->findMedia(id);
+        if (!media) {
+            qWarning() << "Card selezionata per media inesistente:" << id;
+            aggiornaStatoButtoes();
+            return;
         }
-    }
-    
-    // Seleziona la card corretta
-    for (MediaCard* card : m_mediaCards) {
-        if (card && card->getId() == id) {
-            card->setSelected(true);
-            break;
+        
+        m_selezionato_id = id;
+        
+        // Deseleziona altre card e seleziona quella corrente
+        for (MediaCard* card : m_mediaCards) {
+            if (card) {
+                card->setSelected(card->getId() == id);
+            }
         }
+        
+        aggiornaStatoButtoes();
+        
+        // Mostra info nella status bar
+        mostraInfo(QString("Selezionato: %1").arg(media->getTitolo()));
+        
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nella selezione card:" << e.what();
+        aggiornaStatoButtoes();
     }
-    
-    qDebug() << "Media selezionato:" << media->getTitolo() << "ID:" << id;
 }
 
 void MainWindow::onCardDoubleClic(const QString& id)
 {
     try {
-        if (id.isEmpty()) {
-            qWarning() << "ID vuoto nel doppio click";
-            return;
-        }
-        
         // Verifica che il media esista
-        Media* media = m_collezione->findMedia(id);
-        if (!media) {
+        if (!m_collezione->findMedia(id)) {
             mostraErrore("Media non trovato");
             return;
         }
         
         m_selezionato_id = id;
+        aggiornaStatoButtoes();
+        
+        // Apri i dettagli
         visualizzaDettagli();
+        
     } catch (const std::exception& e) {
-        mostraErrore(QString("Errore nel doppio click: %1").arg(e.what()));
+        mostraErrore(QString("Errore nell'apertura dettagli: %1").arg(e.what()));
     }
 }
 

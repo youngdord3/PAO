@@ -73,8 +73,6 @@ MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
 {
     if (!m_media) {
         qWarning() << "MediaCard creata con media nullo!";
-        // Non lanciare eccezione, ma gestisci gracefully
-        setVisible(false);
         return;
     }
     
@@ -83,13 +81,9 @@ MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
     
     try {
         setupUI();
-        updateContent(); // Chiamiamo updateContent() invece di updateStyleSheet()
         updateStyleSheet();
-        
-        qDebug() << "MediaCard creata per:" << m_media->getTitolo() << "ID:" << m_media->getId();
     } catch (const std::exception& e) {
         qWarning() << "Errore nella creazione MediaCard:" << e.what();
-        setVisible(false);
     }
 }
 
@@ -100,19 +94,12 @@ MediaCard::~MediaCard()
 
 QString MediaCard::getId() const
 {
-    if (m_media) {
-        return m_media->getId();
-    }
-    qWarning() << "Tentativo di ottenere ID da MediaCard con media nullo";
-    return QString();
+    return m_media ? m_media->getId() : QString();
 }
 
 Media* MediaCard::getMedia() const
 {
-    if (!m_media) {
-        qWarning() << "Tentativo di ottenere Media da MediaCard con media nullo";
-    }
-    return m_media.get();
+    return m_media;
 }
 
 void MediaCard::setSelected(bool selected)
@@ -131,13 +118,9 @@ bool MediaCard::isSelected() const
 
 void MediaCard::updateContent()
 {
-    if (!m_media) {
-        qWarning() << "updateContent chiamato su MediaCard con media nullo";
-        return;
-    }
+    if (!m_media) return;
     
     try {
-        // Aggiorna i contenuti delle label con controlli di sicurezza
         if (m_titleLabel) {
             m_titleLabel->setText(truncateText(m_media->getTitolo(), 25));
         }
@@ -150,16 +133,9 @@ void MediaCard::updateContent()
         if (m_typeLabel) {
             m_typeLabel->setText(m_media->getTypeDisplayName());
         }
-        if (m_infoLabel) {
-            m_infoLabel->setText(formatDisplayInfo());
-        }
-        
-        // Aggiorna l'icona del tipo
         if (m_imageLabel) {
             m_imageLabel->setPixmap(getTypeIcon());
         }
-        
-        setupTypeSpecificContent();
     } catch (const std::exception& e) {
         qWarning() << "Errore nell'aggiornamento contenuto MediaCard:" << e.what();
     }
@@ -167,27 +143,17 @@ void MediaCard::updateContent()
 
 void MediaCard::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && m_media) {
+    if (event->button() == Qt::LeftButton) {
         setSelected(true);
-        QString id = getId();
-        if (!id.isEmpty()) {
-            qDebug() << "Card selezionata:" << m_media->getTitolo() << "ID:" << id;
-            emit selezionato(id);
-        } else {
-            qWarning() << "ID vuoto nella selezione card";
-        }
+        emit selezionato(getId());
     }
     QFrame::mousePressEvent(event);
 }
 
 void MediaCard::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && m_media) {
-        QString id = getId();
-        if (!id.isEmpty()) {
-            qDebug() << "Doppio click su card:" << m_media->getTitolo() << "ID:" << id;
-            emit doppioClick(id);
-        }
+    if (event->button() == Qt::LeftButton) {
+        emit doppioClick(getId());
     }
     QFrame::mouseDoubleClickEvent(event);
 }
@@ -239,54 +205,10 @@ void MediaCard::paintEvent(QPaintEvent *event)
 void MediaCard::setupLayout()
 {
     try {
-        // Pulisci layout esistente se presente
-        if (layout()) {
-            QLayoutItem* item;
-            while ((item = layout()->takeAt(0)) != nullptr) {
-                delete item->widget();
-                delete item;
-            }
-            delete layout();
-        }
-        
         m_mainLayout = new QVBoxLayout(this);
         if (m_mainLayout) {
             m_mainLayout->setContentsMargins(8, 8, 8, 8);
             m_mainLayout->setSpacing(4);
-        }
-        
-        // Header con tipo e immagine
-        m_headerLayout = new QHBoxLayout();
-        if (m_headerLayout) {
-            m_headerLayout->setContentsMargins(0, 0, 0, 0);
-            if (m_mainLayout) {
-                m_mainLayout->addLayout(m_headerLayout);
-            }
-        }
-        
-        // Content area
-        m_contentLayout = new QVBoxLayout();
-        if (m_contentLayout) {
-            m_contentLayout->setContentsMargins(0, 0, 0, 0);
-            m_contentLayout->setSpacing(2);
-            if (m_mainLayout) {
-                m_mainLayout->addLayout(m_contentLayout);
-            }
-        }
-        
-        // Aggiungi stretch
-        if (m_mainLayout) {
-            m_mainLayout->addStretch();
-        }
-        
-        // Area bottoni (in overlay)
-        m_buttonLayout = new QHBoxLayout();
-        if (m_buttonLayout) {
-            m_buttonLayout->setContentsMargins(0, 0, 0, 0);
-            m_buttonLayout->addStretch();
-            if (m_mainLayout) {
-                m_mainLayout->addLayout(m_buttonLayout);
-            }
         }
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupLayout:" << e.what();
@@ -362,111 +284,43 @@ void MediaCard::setupArticoloContent()
 
 void MediaCard::setupUI()
 {
-    if (!m_media) {
-        qWarning() << "setupUI chiamato su MediaCard con media nullo";
-        return;
-    }
+    if (!m_media) return;
     
     try {
         setupLayout();
         
-        // Configurazione delle label con controlli di sicurezza più rigorosi
-        if (!m_typeLabel) {
-            m_typeLabel = new QLabel(m_media->getTypeDisplayName(), this);
-            if (m_typeLabel) {
-                m_typeLabel->setStyleSheet("font-weight: bold; font-size: 10px; color: #666;");
-            }
+        m_typeLabel = new QLabel(m_media->getTypeDisplayName(), this);
+        m_typeLabel->setStyleSheet("font-weight: bold; font-size: 10px; color: #666;");
+        
+        m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25), this);
+        m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
+        m_titleLabel->setWordWrap(true);
+        
+        m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
+        m_yearLabel->setStyleSheet("font-size: 12px; color: #666;");
+        
+        m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80), this);
+        m_descriptionLabel->setStyleSheet("font-size: 11px; color: #555;");
+        m_descriptionLabel->setWordWrap(true);
+        
+        m_imageLabel = new QLabel(this);
+        m_imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
+        m_imageLabel->setScaledContents(true);
+        m_imageLabel->setPixmap(getTypeIcon());
+        
+        // Layout semplificato
+        if (m_mainLayout) {
+            QHBoxLayout* headerLayout = new QHBoxLayout();
+            headerLayout->addWidget(m_typeLabel);
+            headerLayout->addStretch();
+            headerLayout->addWidget(m_imageLabel);
+            
+            m_mainLayout->addLayout(headerLayout);
+            m_mainLayout->addWidget(m_titleLabel);
+            m_mainLayout->addWidget(m_yearLabel);
+            m_mainLayout->addWidget(m_descriptionLabel);
+            m_mainLayout->addStretch();
         }
-        
-        if (!m_titleLabel) {
-            m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25), this);
-            if (m_titleLabel) {
-                m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
-                m_titleLabel->setWordWrap(true);
-            }
-        }
-        
-        if (!m_yearLabel) {
-            m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
-            if (m_yearLabel) {
-                m_yearLabel->setStyleSheet("font-size: 12px; color: #666;");
-            }
-        }
-        
-        if (!m_descriptionLabel) {
-            m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80), this);
-            if (m_descriptionLabel) {
-                m_descriptionLabel->setStyleSheet("font-size: 11px; color: #555;");
-                m_descriptionLabel->setWordWrap(true);
-            }
-        }
-        
-        if (!m_imageLabel) {
-            m_imageLabel = new QLabel(this);
-            if (m_imageLabel) {
-                m_imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
-                m_imageLabel->setScaledContents(true);
-                m_imageLabel->setPixmap(getTypeIcon());
-            }
-        }
-        
-        if (!m_infoLabel) {
-            m_infoLabel = new QLabel(formatDisplayInfo(), this);
-            if (m_infoLabel) {
-                m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
-                m_infoLabel->setWordWrap(true);
-            }
-        }
-        
-        // Configurazione bottoni (nascosti per default, mostrati solo al hover)
-        if (!m_editButton) {
-            m_editButton = new QPushButton("✏", this);
-            if (m_editButton) {
-                m_editButton->setFixedSize(24, 24);
-                m_editButton->setToolTip("Modifica");
-                m_editButton->setVisible(false);
-                connect(m_editButton, &QPushButton::clicked, this, &MediaCard::onEditClicked);
-            }
-        }
-        
-        if (!m_deleteButton) {
-            m_deleteButton = new QPushButton("🗑", this);
-            if (m_deleteButton) {
-                m_deleteButton->setFixedSize(24, 24);
-                m_deleteButton->setToolTip("Elimina");
-                m_deleteButton->setVisible(false);
-                connect(m_deleteButton, &QPushButton::clicked, this, &MediaCard::onDeleteClicked);
-            }
-        }
-        
-        if (!m_detailsButton) {
-            m_detailsButton = new QPushButton("👁", this);
-            if (m_detailsButton) {
-                m_detailsButton->setFixedSize(24, 24);
-                m_detailsButton->setToolTip("Dettagli");
-                m_detailsButton->setVisible(false);
-                connect(m_detailsButton, &QPushButton::clicked, this, &MediaCard::onDetailsClicked);
-            }
-        }
-        
-        // Applica stile ai bottoni se esistono
-        QString buttonStyle = 
-            "QPushButton {"
-            "    border: none;"
-            "    border-radius: 12px;"
-            "    background-color: rgba(255,255,255,180);"
-            "    font-size: 12px;"
-            "}"
-            "QPushButton:hover {"
-            "    background-color: rgba(33,150,243,200);"
-            "    color: white;"
-            "}";
-        
-        if (m_editButton) m_editButton->setStyleSheet(buttonStyle);
-        if (m_deleteButton) m_deleteButton->setStyleSheet(buttonStyle);
-        if (m_detailsButton) m_detailsButton->setStyleSheet(buttonStyle);
-        
-        setupTypeSpecificContent();
         
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupUI:" << e.what();
@@ -476,13 +330,15 @@ void MediaCard::setupUI()
 void MediaCard::updateStyleSheet()
 {
     try {
+        QString style;
         if (m_selected) {
-            setStyleSheet(STYLE_SELECTED);
+            style = "MediaCard { background-color: #E3F2FD; border: 2px solid #2196F3; border-radius: 8px; }";
         } else if (m_hovered) {
-            setStyleSheet(STYLE_HOVERED);
+            style = "MediaCard { background-color: #F5F5F5; border: 2px solid #2196F3; border-radius: 8px; }";
         } else {
-            setStyleSheet(STYLE_NORMAL);
+            style = "MediaCard { background-color: white; border: 1px solid #E0E0E0; border-radius: 8px; }";
         }
+        setStyleSheet(style);
     } catch (const std::exception& e) {
         qWarning() << "Errore in updateStyleSheet:" << e.what();
     }
@@ -495,25 +351,6 @@ QPixmap MediaCard::getTypeIcon() const
     }
     
     QString type = m_media->getTypeDisplayName();
-    
-    // Prova prima a caricare l'icona dalle risorse
-    QString iconPath;
-    if (type == "Libro") {
-        iconPath = ":/icons/libro.png";
-    } else if (type == "Film") {
-        iconPath = ":/icons/film.png";
-    } else if (type == "Articolo") {
-        iconPath = ":/icons/articolo.png";
-    }
-    
-    // Carica l'icona se esiste
-    QPixmap pixmap(iconPath);
-    if (!pixmap.isNull()) {
-        return pixmap.scaled(IMAGE_SIZE, IMAGE_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-    
-    // Fallback: crea un'icona di default semplice
-    pixmap = QPixmap(IMAGE_SIZE, IMAGE_SIZE);
     QString color = COLOR_DEFAULT;
     
     if (type == "Libro") {
@@ -524,11 +361,12 @@ QPixmap MediaCard::getTypeIcon() const
         color = COLOR_ARTICOLO;
     }
     
+    QPixmap pixmap(IMAGE_SIZE, IMAGE_SIZE);
     pixmap.fill(QColor(color));
     
     QPainter painter(&pixmap);
     painter.setPen(Qt::white);
-    painter.setFont(QFont("Arial", 14, QFont::Bold));
+    painter.setFont(QFont("Arial", 16, QFont::Bold));
     painter.drawText(pixmap.rect(), Qt::AlignCenter, type.left(1).toUpper());
     
     return pixmap;
@@ -549,20 +387,14 @@ QString MediaCard::truncateText(const QString& text, int maxLength) const
 
 QString MediaCard::formatDisplayInfo() const
 {
-    if (!m_media) {
-        qWarning() << "formatDisplayInfo chiamato su MediaCard con media nullo";
-        return "Errore: media non disponibile";
-    }
+    if (!m_media) return QString();
     
     try {
         QString info = m_media->getDisplayInfo();
-        
-        // Prendi solo le prime due righe delle informazioni
         QStringList lines = info.split('\n');
         if (lines.size() > 2) {
             return lines.mid(0, 2).join('\n') + "...";
         }
-        
         return info;
     } catch (const std::exception& e) {
         qWarning() << "Errore in formatDisplayInfo:" << e.what();

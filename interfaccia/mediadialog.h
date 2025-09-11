@@ -1,5 +1,3 @@
-// CORREZIONI per interfaccia/mediadialog.h
-
 #ifndef MEDIADIALOG_H
 #define MEDIADIALOG_H
 
@@ -18,8 +16,7 @@
 #include <QTabWidget>
 #include <QListWidget>
 #include <QScrollArea>
-#include <QTimer>          // AGGIUNTO
-#include <QShowEvent>      // AGGIUNTO
+#include <QTimer>  // AGGIUNTO per QTimer::singleShot
 #include <memory>
 
 class Media;
@@ -42,7 +39,8 @@ public:
     // Costruttore per modifica media esistente
     explicit MediaDialog(Media* media, QWidget *parent = nullptr, bool readOnly = false);
     
-    ~MediaDialog() = default;
+    // CORREZIONE: Distruttore esplicito per cleanup
+    ~MediaDialog();
     
     // Ottieni il media creato/modificato
     std::unique_ptr<Media> getMedia() const;
@@ -83,19 +81,20 @@ private:
     void populateComboBoxes();
     void enableForm(bool enabled);
     
-    // AGGIUNTO: Metodo per verificare validità dialog
-    bool isDialogValid() const;
+    // NUOVI METODI per gestione sicura della memoria
+    void setupConnections();
+    void disconnectGroupWidgets(QGroupBox* group);
+    void resetSpecificPointers();
     
     // Factory methods per creazione media
     std::unique_ptr<Media> createLibro() const;
     std::unique_ptr<Media> createFilm() const;
     std::unique_ptr<Media> createArticolo() const;
     
-    // Membri privati - RIORDINATI per evitare warning di inizializzazione
+    // Membri privati
     Media* m_mediaOriginale;
     bool m_readOnly;
     bool m_isEditing;
-    bool m_validationEnabled;  // SPOSTATO PRIMA dei puntatori
     QString m_tipoCorrente;
     
     // Layout principali
@@ -155,6 +154,7 @@ private:
     
     // Validation
     QLabel* m_validationLabel;
+    bool m_validationEnabled;
     
     // Costanti
     static const int DIALOG_WIDTH = 600;
