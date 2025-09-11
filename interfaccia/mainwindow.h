@@ -98,6 +98,7 @@ private:
     // Utility
     void aggiornaStatistiche();
     void aggiornaStatusBar();
+    void aggiornaStatoBottoni();
     void salvaImpostazioni();
     void caricaImpostazioni();
     bool verificaModifiche();

@@ -219,12 +219,6 @@ bool Articolo::matchesCriteria(const QString& criteria, const QString& value) co
     return false;
 }
 
-std::unique_ptr<MediaCard> Articolo::createCard(QWidget* parent) const
-{
-    Q_UNUSED(parent)
-    return nullptr; // Questo metodo non sarà più usato
-}
-
 bool Articolo::isPeerReviewed() const
 {
     return m_tipo_rivista == Accademica || m_tipo_rivista == Specialistica;

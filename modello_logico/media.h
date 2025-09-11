@@ -49,15 +49,13 @@ public:
     // Metodi per la ricerca e filtri
     virtual bool matchesFilter(const QString& searchText) const;
     virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
-    
-    // Factory method per la creazione di card specifiche
-    virtual std::unique_ptr<MediaCard> createCard(QWidget* parent = nullptr) const = 0;
+
+    // RIMOSSO: createCard() - non più necessario
 
 protected:
     // Template method steps - da implementare nelle classi derivate
     virtual bool validateSpecificFields() const = 0;
     virtual QString getSearchableText() const = 0;
-    void setId(const QString& id) { m_id = id; }
     
     // Attributi comuni protetti
     QString m_id;

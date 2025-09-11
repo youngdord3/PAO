@@ -180,12 +180,6 @@ bool Film::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-std::unique_ptr<MediaCard> Film::createCard(QWidget* parent) const
-{
-    Q_UNUSED(parent)
-    return nullptr; // Questo metodo non sarà più usato
-}
-
 bool Film::isLongMovie() const
 {
     return m_durata > 150; // Film lunghi sopra le 2.5 ore

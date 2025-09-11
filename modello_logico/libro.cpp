@@ -140,14 +140,6 @@ bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-std::unique_ptr<MediaCard> Libro::createCard(QWidget* parent) const
-{
-    // CORREZIONE: Non usare il factory method, ritorna nullptr
-    // Il MainWindow userà direttamente new MediaCard(clone(), parent)
-    Q_UNUSED(parent)
-    return nullptr; // Questo metodo non sarà più usato
-}
-
 bool Libro::isLongBook() const
 {
     return m_pagine > 400;

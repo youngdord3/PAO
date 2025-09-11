@@ -13,14 +13,17 @@
 class Media;
 
 /**
- * @brief Widget card semplificato per visualizzare un media
+ * @brief Widget card per visualizzare un media nella collezione
+ * 
+ * Ogni card mostra le informazioni principali del media
+ * con un design responsivo e interattivo
  */
 class MediaCard : public QFrame
 {
     Q_OBJECT
 
 public:
-    // CORREZIONE: Costruttore semplificato che prende puntatore raw
+    // CORREZIONE: Cambia il costruttore per prendere un puntatore raw invece di unique_ptr
     explicit MediaCard(Media* media, QWidget *parent = nullptr);
     virtual ~MediaCard();
     
@@ -48,38 +51,71 @@ protected:
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
+private slots:
+    void onEditClicked();
+    void onDeleteClicked();
+    void onDetailsClicked();
+
 private:
     void setupUI();
     void setupLayout();
     void updateStyleSheet();
+    void setupTypeSpecificContent();
     
+    // Creazione elementi UI specifici per tipo
+    void setupLibroContent();
+    void setupFilmContent();
+    void setupArticoloContent();
+    
+    // Gestione immagini
+    QPixmap getTypeIcon() const;
+    QPixmap loadMediaImage() const;
+    
+    // Utility
     QString truncateText(const QString& text, int maxLength) const;
     QString formatDisplayInfo() const;
-    QPixmap getTypeIcon() const;
     
     // CORREZIONE: Usa puntatore raw invece di unique_ptr
-    Media* m_media;  // NON possiede il media, solo riferimento
+    Media* m_media;
     bool m_selected;
     bool m_hovered;
     
-    // Widgets UI - semplificati
+    // Widgets UI - inizializzati a nullptr automaticamente
     QVBoxLayout* m_mainLayout;
+    QHBoxLayout* m_headerLayout;
+    QVBoxLayout* m_contentLayout;
+    QHBoxLayout* m_buttonLayout;
+    
+    // Elementi UI comuni
     QLabel* m_typeLabel;
     QLabel* m_titleLabel;
     QLabel* m_yearLabel;
     QLabel* m_descriptionLabel;
     QLabel* m_imageLabel;
+    QLabel* m_infoLabel;
+    
+    // Bottoni azione
+    QPushButton* m_editButton;
+    QPushButton* m_deleteButton;
+    QPushButton* m_detailsButton;
     
     // Costanti per il design
     static const int CARD_WIDTH = 280;
     static const int CARD_HEIGHT = 200;
     static const int IMAGE_SIZE = 48;
+    static const int BORDER_RADIUS = 8;
+    static const int SHADOW_OFFSET = 2;
     
     // Colori per i tipi di media
     static const QString COLOR_LIBRO;
     static const QString COLOR_FILM;
     static const QString COLOR_ARTICOLO;
     static const QString COLOR_DEFAULT;
+    
+    // Stili CSS
+    static const QString STYLE_NORMAL;
+    static const QString STYLE_SELECTED;
+    static const QString STYLE_HOVERED;
 };
 
 #endif // MEDIACARD_H
