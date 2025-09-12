@@ -992,7 +992,7 @@ void MediaDialog::enableForm(bool enabled)
         
         if (m_readOnly) {
             if (m_tipoCombo) m_tipoCombo->setEnabled(false);
-            if (m_cancelButton) m_cancelButton->setText("Chiudi");
+            if (m_cancelButton) m_cancelButton->setVisible(false); // NASCONDE il bottone Cancel in modalità sola lettura
             if (m_helpButton) m_helpButton->setVisible(false);
         }
     } catch (const std::exception& e) {
