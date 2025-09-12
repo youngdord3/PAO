@@ -99,11 +99,9 @@ void MainWindow::setupToolBar()
     QToolBar* toolBar = addToolBar("Principale");
     toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     
-    // IMPORTANTE: Rendiamo la toolbar non movibile
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     
-    // SOLO le azioni file - RIMOSSE le azioni per media e RIMOSSO il pulsante Info
     QAction* nuovoAction = toolBar->addAction(QIcon(":/icons/new_icon.png"), "Nuovo");
     nuovoAction->setToolTip("Crea una nuova collezione");
     connect(nuovoAction, &QAction::triggered, this, [this]() {
@@ -134,18 +132,12 @@ void MainWindow::setupToolBar()
         }
     });
     
-    // RIMOSSO: il pulsante Info non c'è più
 }
 
 void MainWindow::setupStatusBar()
 {
     m_statusLabel = new QLabel("Pronto");
     statusBar()->addWidget(m_statusLabel);
-    
-    statusBar()->addPermanentWidget(new QLabel(" | "));
-    
-    m_countLabel = new QLabel("0 media");
-    statusBar()->addPermanentWidget(m_countLabel);
     
     m_progressBar = new QProgressBar();
     m_progressBar->setVisible(false);
@@ -247,9 +239,9 @@ void MainWindow::setupFilterArea()
     m_rivistaEdit->setPlaceholderText("Nome rivista...");
     filtersLayout->addWidget(m_rivistaEdit);
     
-    // Bottoni filtri - RIMOSSA l'icona dal pulsante Applica
+    // Bottoni filtri
     QHBoxLayout* filterButtonLayout = new QHBoxLayout();
-    m_applyFilterButton = new QPushButton("Applica");  // RIMOSSA l'icona
+    m_applyFilterButton = new QPushButton("Applica"); 
     m_resetFilterButton = new QPushButton("Reset");
     filterButtonLayout->addWidget(m_applyFilterButton);
     filterButtonLayout->addWidget(m_resetFilterButton);
@@ -301,7 +293,7 @@ void MainWindow::setupFilterArea()
     actionsLayout->addWidget(m_removeButton);
     actionsLayout->addWidget(m_detailsButton);
     
-    // Connessioni DIRETTE alle azioni
+    // Connessioni dirette alle azioni
     connect(m_addButton, &QPushButton::clicked, this, &MainWindow::aggiungiMedia);
     connect(m_editButton, &QPushButton::clicked, this, &MainWindow::modificaMedia);
     connect(m_removeButton, &QPushButton::clicked, this, &MainWindow::rimuoviMedia);
@@ -344,14 +336,13 @@ void MainWindow::updateLayout()
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    // CORREZIONE: usa int invece di size_t per QList
     for (int i = 0; i < m_mediaCards.size(); ++i) {
         int row = i / columns;
         int col = i % columns;
         m_mediaLayout->addWidget(m_mediaCards[i], row, col);
     }
     
-    // Aggiungi stretch per spingere le card in alto
+    // Stretch per spingere le card in alto
     m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
 }
 
@@ -387,11 +378,9 @@ void MainWindow::refreshMediaCards()
             media = filteredMedia;
         }
         
-        // CORREZIONE: Crea le MediaCard in modo più semplice
         for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
-                    // Crea direttamente una MediaCard e aggiungila al layout
                     MediaCard* card = new MediaCard(mediaPtr, m_mediaContainer);
                     m_mediaCards.push_back(card);
                     
@@ -420,7 +409,7 @@ void MainWindow::clearMediaCards()
     for (MediaCard* card : m_mediaCards) {
         if (card) {
             m_mediaLayout->removeWidget(card);
-            card->deleteLater(); // Qt gestirà la cancellazione del widget
+            card->deleteLater();
         }
     }
     m_mediaCards.clear();
@@ -473,7 +462,6 @@ std::unique_ptr<FiltroStrategy> MainWindow::creaFiltroCorrente()
     return hasFiltri ? std::move(filtroComposto) : nullptr;
 }
 
-// RESTO DEI METODI IDENTICI...
 void MainWindow::nuovaCollezione()
 {
     try {
@@ -575,13 +563,10 @@ void MainWindow::esci()
 void MainWindow::aggiungiMedia()
 {
     try {
-        // IMPORTANTE: Crea il dialog come puntatore locale, non come smart pointer
         MediaDialog* dialog = new MediaDialog(this);
         
-        // Assicurati che il dialog venga cancellato alla chiusura
         dialog->setAttribute(Qt::WA_DeleteOnClose, true);
         
-        // Connessione usando lambda per gestire il risultato
         connect(dialog, &QDialog::finished, this, [this, dialog](int result) {
             if (result == QDialog::Accepted) {
                 try {
@@ -600,7 +585,6 @@ void MainWindow::aggiungiMedia()
             }
         });
         
-        // Mostra il dialog in modo non bloccante
         dialog->show();
         
     } catch (const std::exception& e) {
@@ -622,11 +606,9 @@ void MainWindow::modificaMedia()
             return;
         }
         
-        // CORREZIONE: Crea dialog come puntatore locale
         MediaDialog* dialog = new MediaDialog(media, this, false);
         dialog->setAttribute(Qt::WA_DeleteOnClose, true);
         
-        // Cattura l'ID del media per sicurezza
         QString mediaId = m_selezionato_id;
         
         connect(dialog, &QDialog::finished, this, [this, dialog, mediaId](int result) {
@@ -638,7 +620,6 @@ void MainWindow::modificaMedia()
                             m_modificato = true;
                             aggiornaStatusBar();
                             mostraInfo("Media modificato con successo");
-                            // Aggiorna la selezione
                             refreshMediaCards();
                         } else {
                             mostraErrore("Impossibile aggiornare il media");
@@ -675,7 +656,6 @@ void MainWindow::rimuoviMedia()
             return;
         }
         
-        // Conferma con più dettagli
         QString messaggio = QString("Sei sicuro di voler rimuovere il media:\n\n"
                                    "Titolo: %1\n"
                                    "Tipo: %2\n"
@@ -693,7 +673,7 @@ void MainWindow::rimuoviMedia()
         msgBox.setDefaultButton(QMessageBox::No);
         
         if (msgBox.exec() == QMessageBox::Yes) {
-            QString titoloRimosso = media->getTitolo(); // Salva per il messaggio
+            QString titoloRimosso = media->getTitolo();
             
             if (m_collezione->removeMedia(m_selezionato_id)) {
                 m_selezionato_id.clear();
@@ -701,7 +681,6 @@ void MainWindow::rimuoviMedia()
                 aggiornaStatusBar();
                 aggiornaStatoBottoni();
                 
-                // Aggiorna la visualizzazione
                 refreshMediaCards();
                 
                 mostraInfo(QString("Media '%1' rimosso con successo").arg(titoloRimosso));
@@ -728,11 +707,9 @@ void MainWindow::visualizzaDettagli()
             return;
         }
         
-        // CORREZIONE: Dialog di sola lettura
         MediaDialog* dialog = new MediaDialog(media, this, true); // true = modalità solo lettura
         dialog->setAttribute(Qt::WA_DeleteOnClose, true);
         
-        // Per i dettagli non serve gestire il risultato
         dialog->show();
         
     } catch (const std::exception& e) {
@@ -850,7 +827,6 @@ void MainWindow::onCardDoubleClic(const QString& id)
         m_selezionato_id = id;
         aggiornaStatoBottoni();
         
-        // Apri i dettagli
         visualizzaDettagli();
         
     } catch (const std::exception& e) {
@@ -878,7 +854,6 @@ void MainWindow::aggiornaStatistiche()
 void MainWindow::aggiornaStatusBar()
 {
     try {
-        m_countLabel->setText(QString("%1 media").arg(m_collezione->size()));
         
         if (m_modificato) {
             m_statusLabel->setText("Modificato");
@@ -889,6 +864,7 @@ void MainWindow::aggiornaStatusBar()
         qWarning() << "Errore nell'aggiornamento status bar:" << e.what();
     }
 }
+
 
 void MainWindow::salvaImpostazioni()
 {
@@ -957,7 +933,6 @@ void MainWindow::mostraErrore(const QString& errore)
 void MainWindow::mostraInfo(const QString& info)
 {
     m_statusLabel->setText(info);
-    // Auto-reset dopo 3 secondi
     QTimer::singleShot(3000, [this]() {
         m_statusLabel->setText("Pronto");
     });

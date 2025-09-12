@@ -154,7 +154,6 @@ private:
     
     // Status bar
     QLabel* m_statusLabel;
-    QLabel* m_countLabel;
     QProgressBar* m_progressBar;
     
     QList<MediaCard*> m_mediaCards;
