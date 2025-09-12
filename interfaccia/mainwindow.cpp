@@ -28,6 +28,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QMessageBox>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -124,7 +125,9 @@ void MainWindow::salvaImpostazioni()
     try {
         QSettings settings;
         settings.setValue("geometria", saveGeometry());
-        settings.setValue("splitter", m_splitter->saveState());
+        if (m_splitter) {
+            settings.setValue("splitter", m_splitter->saveState());
+        }
     } catch (const std::exception& e) {
         qWarning() << "Errore nel salvataggio impostazioni:" << e.what();
     }
@@ -135,7 +138,9 @@ void MainWindow::caricaImpostazioni()
     try {
         QSettings settings;
         restoreGeometry(settings.value("geometria").toByteArray());
-        m_splitter->restoreState(settings.value("splitter").toByteArray());
+        if (m_splitter) {
+            m_splitter->restoreState(settings.value("splitter").toByteArray());
+        }
     } catch (const std::exception& e) {
         qWarning() << "Errore nel caricamento impostazioni:" << e.what();
     }
@@ -167,7 +172,7 @@ bool MainWindow::verificaModifiche()
 void MainWindow::resetInterfaccia()
 {
     try {
-        m_searchEdit->clear();
+        if (m_searchEdit) m_searchEdit->clear();
         resetFiltri();
         m_selezionato_id.clear();
         refreshMediaCards();
@@ -179,16 +184,22 @@ void MainWindow::resetInterfaccia()
 void MainWindow::mostraErrore(const QString& errore)
 {
     QMessageBox::critical(this, "Errore", errore);
-    m_statusLabel->setText("Errore: " + errore);
+    if (m_statusLabel) {
+        m_statusLabel->setText("Errore: " + errore);
+    }
     qWarning() << "ERRORE:" << errore;
 }
 
 void MainWindow::mostraInfo(const QString& info)
 {
-    m_statusLabel->setText(info);
+    if (m_statusLabel) {
+        m_statusLabel->setText(info);
+    }
     // Auto-reset dopo 3 secondi
     QTimer::singleShot(3000, [this]() {
-        m_statusLabel->setText("Pronto");
+        if (m_statusLabel) {
+            m_statusLabel->setText("Pronto");
+        }
     });
 }
 
@@ -196,7 +207,9 @@ bool MainWindow::confermaAzione(const QString& messaggio)
 {
     return QMessageBox::question(this, "Conferma", messaggio,
                                 QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
-}closeEvent(QCloseEvent *event)
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (verificaModifiche()) {
         salvaImpostazioni();
@@ -530,52 +543,65 @@ void MainWindow::updateLayout()
     m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
 }
 
-// CORREZIONE PRINCIPALE: Fix compatibile con MediaCard(Media*, QWidget*)
 void MainWindow::refreshMediaCards()
 {
     clearMediaCards();
     
+    if (!m_collezione || !m_mediaContainer) {
+        qWarning() << "Collezione o container non inizializzati!";
+        return;
+    }
+    
     try {
-        std::vector<Media*> mediaPointers;
+        std::vector<Media*> media;
         
         // Prima applica la ricerca testuale
-        QString searchText = m_searchEdit->text().trimmed();
+        QString searchText;
+        if (m_searchEdit) {
+            searchText = m_searchEdit->text().trimmed();
+        }
+        
         if (searchText.isEmpty()) {
             // Se non c'è testo di ricerca, prendi tutti i media
             const auto& allMedia = m_collezione->getAllMedia();
             for (const auto& m : allMedia) {
-                mediaPointers.push_back(m.get());
+                if (m) {
+                    media.push_back(m.get());
+                }
             }
         } else {
             // Applica la ricerca testuale
-            mediaPointers = m_collezione->searchMedia(searchText);
+            media = m_collezione->searchMedia(searchText);
         }
         
         // Poi applica i filtri sui risultati della ricerca
         auto filtro = creaFiltroCorrente();
         if (filtro) {
             std::vector<Media*> filteredMedia;
-            for (Media* m : mediaPointers) {
-                if (filtro->matches(m)) {
+            for (Media* m : media) {
+                if (m && filtro->matches(m)) {
                     filteredMedia.push_back(m);
                 }
             }
-            mediaPointers = std::move(filteredMedia);
+            media = filteredMedia;
         }
         
-        // CORREZIONE: Crea MediaCard compatibilmente con il costruttore originale Media*
-        for (Media* mediaPtr : mediaPointers) {
+        // Crea le card
+        for (Media* mediaPtr : media) {
             if (mediaPtr) {
                 try {
-                    // Usa il costruttore originale che prende Media* direttamente
-                    MediaCard* cardPtr = new MediaCard(mediaPtr, m_mediaContainer);
-                    m_mediaCards.push_back(cardPtr);
-                    
-                    // Connessioni per selezione
-                    connect(cardPtr, &MediaCard::selezionato,
-                            this, &MainWindow::onCardSelezionata);
-                    connect(cardPtr, &MediaCard::doppioClick,
-                            this, &MainWindow::onCardDoubleClic);
+                    // Crea la card passando una copia del media
+                    auto mediaClone = mediaPtr->clone();
+                    if (mediaClone) {
+                        MediaCard* cardPtr = new MediaCard(std::move(mediaClone), m_mediaContainer);
+                        m_mediaCards.push_back(cardPtr);
+                        
+                        // Connessioni per selezione
+                        connect(cardPtr, &MediaCard::selezionato,
+                                this, &MainWindow::onCardSelezionata);
+                        connect(cardPtr, &MediaCard::doppioClick,
+                                this, &MainWindow::onCardDoubleClic);
+                    }
                 } catch (const std::exception& e) {
                     qWarning() << "Errore nella creazione MediaCard:" << e.what();
                 }

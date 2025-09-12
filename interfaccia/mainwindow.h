@@ -157,6 +157,10 @@ private:
     void mostraErrore(const QString& errore);
     void mostraInfo(const QString& info);
     bool confermaAzione(const QString& messaggio);
+    bool verificaModifiche();
+    void resetInterfaccia();
+    void salvaImpostazioni();
+    void caricaImpostazioni();
     
     // Membri privati
     std::unique_ptr<Collezione> m_collezione;

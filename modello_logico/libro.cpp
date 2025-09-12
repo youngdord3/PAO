@@ -1,5 +1,5 @@
 #include "libro.h"
-#include "interfaccia/mediacard.h"
+// RIMOSSO: #include "interfaccia/mediacard.h" - evita dipendenza circolare
 #include <QJsonObject>
 #include <QRegularExpression>
 
@@ -74,14 +74,9 @@ void Libro::setGenere(Genere genere)
 
 std::unique_ptr<Media> Libro::clone() const
 {
-    // Crea una nuova istanza con tutti i dati correnti
-    auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
-                                         m_editore, m_pagine, m_isbn, m_genere);
-    
-    // IMPORTANTE: Copia l'ID originale per mantenere la corrispondenza
-    cloned->m_id = this->m_id;
-    
-    return cloned;
+    // CORREZIONE: Usa il costruttore esplicito invece del copy constructor
+    return std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
+                                  m_editore, m_pagine, m_isbn, m_genere);
 }
 
 QJsonObject Libro::toJson() const
@@ -139,6 +134,12 @@ bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
     }
     return false;
 }
+
+// RIMOSSO: createCard() - sarà gestito diversamente nell'interfaccia
+// std::unique_ptr<MediaCard> Libro::createCard(QWidget* parent) const
+// {
+//     return std::make_unique<MediaCard>(clone(), parent);
+// }
 
 bool Libro::isLongBook() const
 {
