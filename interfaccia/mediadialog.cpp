@@ -136,10 +136,8 @@ std::unique_ptr<Media> MediaDialog::getMedia() const
             media = createArticolo();
         }
         
-        // ✅ CORREZIONE: Se stiamo modificando, mantieni l'ID originale
         if (media && m_isEditing && m_mediaOriginale) {
-            // Forza l'ID originale nel nuovo oggetto
-            media->m_id = m_mediaOriginale->getId();
+            media->setId(m_mediaOriginale->getId());
         }
         
         return media;
@@ -150,7 +148,6 @@ std::unique_ptr<Media> MediaDialog::getMedia() const
     
     return nullptr;
 }
-
 void MediaDialog::onTipoChanged()
 {
     try {
@@ -1029,6 +1026,7 @@ std::unique_ptr<Media> MediaDialog::createLibro() const
         auto libro = std::make_unique<Libro>(titolo, anno, descrizione, autore, 
                                            editore, pagine, isbn, genere);
         
+        // ✅ CORREZIONE: Usa setId() se stiamo modificando
         if (m_isEditing && m_mediaOriginale) {
             libro->setId(m_mediaOriginale->getId());
         }
@@ -1070,6 +1068,7 @@ std::unique_ptr<Media> MediaDialog::createFilm() const
         auto film = std::make_unique<Film>(titolo, anno, descrizione, regista, attori, 
                                          durata, genere, classificazione, casaProduzione);
         
+        // ✅ CORREZIONE: Usa setId() se stiamo modificando
         if (m_isEditing && m_mediaOriginale) {
             film->setId(m_mediaOriginale->getId());
         }
@@ -1113,6 +1112,7 @@ std::unique_ptr<Media> MediaDialog::createArticolo() const
                                                  volume, numero, pagine, categoria, tipoRivista,
                                                  dataPubblicazione, doi);
         
+        // ✅ CORREZIONE: Usa setId() se stiamo modificando
         if (m_isEditing && m_mediaOriginale) {
             articolo->setId(m_mediaOriginale->getId());
         }

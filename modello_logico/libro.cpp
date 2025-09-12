@@ -78,8 +78,8 @@ std::unique_ptr<Media> Libro::clone() const
     auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
                                          m_editore, m_pagine, m_isbn, m_genere);
     
-    // IMPORTANTE: Copia l'ID originale per mantenere la corrispondenza
-    cloned->m_id = this->m_id;
+    // ✅ CORREZIONE: Usa setId() invece dell'accesso diretto
+    cloned->setId(this->getId());
     
     return cloned;
 }

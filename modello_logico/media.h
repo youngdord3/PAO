@@ -35,7 +35,7 @@ public:
     void setTitolo(const QString& titolo);
     void setAnno(int anno);
     void setDescrizione(const QString& descrizione);
-    void setId(const QString& id) { m_id = id; }
+    void setId(const QString& id) { m_id = id; }  // QUESTO METODO È GIÀ PRESENTE E PUBBLICO
     
     // Metodi virtuali
     virtual std::unique_ptr<Media> clone() const = 0;
