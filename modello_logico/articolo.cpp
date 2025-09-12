@@ -1,4 +1,5 @@
 #include "articolo.h"
+#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QRegularExpression>

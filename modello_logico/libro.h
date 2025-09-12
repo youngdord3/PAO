@@ -4,7 +4,6 @@
 #include "media.h"
 #include <QStringList>
 
-// Forward declarations
 class MediaCard;
 class QWidget;
 
@@ -57,8 +56,7 @@ public:
     QString getTypeDisplayName() const override;
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
     
-    // RIMOSSO: createCard() - sarà gestito diversamente
-    // std::unique_ptr<MediaCard> createCard(QWidget* parent = nullptr) const override;
+    // RIMOSSO: createCard() - non più necessario
     
     // Metodi specifici per libro
     bool isLongBook() const;

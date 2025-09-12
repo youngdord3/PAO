@@ -49,10 +49,8 @@ public:
     // Metodi per la ricerca e filtri
     virtual bool matchesFilter(const QString& searchText) const;
     virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
-    
-    // RIMOZIONE TEMPORANEA del metodo createCard per risolvere dipendenze circolari
-    // Sarà gestito diversamente nell'interfaccia
-    // virtual std::unique_ptr<MediaCard> createCard(QWidget* parent = nullptr) const = 0;
+
+    // RIMOSSO: createCard() - non più necessario
 
 protected:
     // Template method steps - da implementare nelle classi derivate

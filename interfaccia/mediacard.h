@@ -23,11 +23,9 @@ class MediaCard : public QFrame
     Q_OBJECT
 
 public:
-    explicit MediaCard(std::unique_ptr<Media> media, QWidget *parent = nullptr);
+    // CORREZIONE: Cambia il costruttore per prendere un puntatore raw invece di unique_ptr
+    explicit MediaCard(Media* media, QWidget *parent = nullptr);
     virtual ~MediaCard();
-    
-    // NUOVO: Metodo statico per creare card dal media
-    static std::unique_ptr<MediaCard> createFor(const Media* media, QWidget* parent = nullptr);
     
     // Accessori
     QString getId() const;
@@ -77,8 +75,8 @@ private:
     QString truncateText(const QString& text, int maxLength) const;
     QString formatDisplayInfo() const;
     
-    // Membri privati
-    std::unique_ptr<Media> m_media;
+    // CORREZIONE: Usa puntatore raw invece di unique_ptr
+    Media* m_media;
     bool m_selected;
     bool m_hovered;
     

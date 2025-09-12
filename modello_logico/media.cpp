@@ -1,7 +1,6 @@
 #include "media.h"
 #include <QUuid>
 #include <QDateTime>
-#include <QDate>
 
 Media::Media(const QString& titolo, int anno, const QString& descrizione)
     : m_id(generateId()), m_titolo(titolo), m_anno(anno), m_descrizione(descrizione)

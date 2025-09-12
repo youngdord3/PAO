@@ -49,21 +49,10 @@ const QString MediaCard::STYLE_HOVERED =
     "    box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
     "}";
 
-// NUOVO METODO STATICO PER CREARE LE CARD
-std::unique_ptr<MediaCard> MediaCard::createFor(const Media* media, QWidget* parent)
-{
-    if (!media) return nullptr;
-    
-    // Crea una copia del media per la card
-    auto mediaCopy = media->clone();
-    if (!mediaCopy) return nullptr;
-    
-    return std::make_unique<MediaCard>(std::move(mediaCopy), parent);
-}
-
-MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
+// CORREZIONE: Cambia il costruttore per accettare un puntatore raw
+MediaCard::MediaCard(Media* media, QWidget *parent)
     : QFrame(parent)
-    , m_media(std::move(media))
+    , m_media(media)  // CORREZIONE: Assegna direttamente il puntatore
     , m_selected(false)
     , m_hovered(false)
     , m_mainLayout(nullptr)
@@ -98,7 +87,7 @@ MediaCard::MediaCard(std::unique_ptr<Media> media, QWidget *parent)
 
 MediaCard::~MediaCard()
 {
-    // Il distruttore è già implicito per unique_ptr
+    // CORREZIONE: Non cancellare il media pointer, poiché non lo possediamo
 }
 
 QString MediaCard::getId() const
@@ -108,7 +97,7 @@ QString MediaCard::getId() const
 
 Media* MediaCard::getMedia() const
 {
-    return m_media.get();
+    return m_media;
 }
 
 void MediaCard::setSelected(bool selected)
