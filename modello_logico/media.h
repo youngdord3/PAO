@@ -35,8 +35,9 @@ public:
     void setTitolo(const QString& titolo);
     void setAnno(int anno);
     void setDescrizione(const QString& descrizione);
+    void setId(const QString& id) { m_id = id; }
     
-    // Metodi virtuali puri per il polimorfismo non banale
+    // Metodi virtuali
     virtual std::unique_ptr<Media> clone() const = 0;
     virtual QJsonObject toJson() const = 0;
     virtual void fromJson(const QJsonObject& json) = 0;
@@ -49,8 +50,6 @@ public:
     // Metodi per la ricerca e filtri
     virtual bool matchesFilter(const QString& searchText) const;
     virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
-
-    // RIMOSSO: createCard() - non più necessario
 
 protected:
     // Template method steps - da implementare nelle classi derivate

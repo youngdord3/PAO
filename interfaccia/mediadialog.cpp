@@ -120,20 +120,29 @@ void MediaDialog::showEvent(QShowEvent *event)
 
 std::unique_ptr<Media> MediaDialog::getMedia() const
 {
-    if (m_readOnly || !m_tipoCombo) {
+    if (m_readOnly) {
         return nullptr;
     }
     
     try {
         QString tipo = m_tipoCombo->currentText();
+        std::unique_ptr<Media> media;
         
         if (tipo == "Libro") {
-            return createLibro();
+            media = createLibro();
         } else if (tipo == "Film") {
-            return createFilm();
+            media = createFilm();
         } else if (tipo == "Articolo") {
-            return createArticolo();
+            media = createArticolo();
         }
+        
+        // ✅ CORREZIONE: Se stiamo modificando, mantieni l'ID originale
+        if (media && m_isEditing && m_mediaOriginale) {
+            // Forza l'ID originale nel nuovo oggetto
+            media->m_id = m_mediaOriginale->getId();
+        }
+        
+        return media;
     } catch (const std::exception& e) {
         QMessageBox::critical(const_cast<MediaDialog*>(this), "Errore", 
                              QString("Errore nella creazione media: %1").arg(e.what()));
@@ -1017,8 +1026,14 @@ std::unique_ptr<Media> MediaDialog::createLibro() const
         QString isbn = m_isbnEdit->text().trimmed();
         Libro::Genere genere = Libro::stringToGenere(m_genereLibroCombo->currentText());
         
-        return std::make_unique<Libro>(titolo, anno, descrizione, autore, 
-                                      editore, pagine, isbn, genere);
+        auto libro = std::make_unique<Libro>(titolo, anno, descrizione, autore, 
+                                           editore, pagine, isbn, genere);
+        
+        if (m_isEditing && m_mediaOriginale) {
+            libro->setId(m_mediaOriginale->getId());
+        }
+        
+        return libro;
     } catch (const std::exception& e) {
         qWarning() << "Errore in createLibro:" << e.what();
         return nullptr;
@@ -1041,7 +1056,10 @@ std::unique_ptr<Media> MediaDialog::createFilm() const
         
         QStringList attori;
         for (int i = 0; i < m_attoriList->count(); ++i) {
-            attori << m_attoriList->item(i)->text();
+            QString attore = m_attoriList->item(i)->text().trimmed();
+            if (!attore.isEmpty()) {
+                attori << attore;
+            }
         }
         
         int durata = m_durataSpin->value();
@@ -1049,8 +1067,14 @@ std::unique_ptr<Media> MediaDialog::createFilm() const
         Film::Classificazione classificazione = Film::stringToClassificazione(m_classificazioneCombo->currentText());
         QString casaProduzione = m_casaProduzioneEdit->text().trimmed();
         
-        return std::make_unique<Film>(titolo, anno, descrizione, regista, attori, 
-                                     durata, genere, classificazione, casaProduzione);
+        auto film = std::make_unique<Film>(titolo, anno, descrizione, regista, attori, 
+                                         durata, genere, classificazione, casaProduzione);
+        
+        if (m_isEditing && m_mediaOriginale) {
+            film->setId(m_mediaOriginale->getId());
+        }
+        
+        return film;
     } catch (const std::exception& e) {
         qWarning() << "Errore in createFilm:" << e.what();
         return nullptr;
@@ -1085,9 +1109,15 @@ std::unique_ptr<Media> MediaDialog::createArticolo() const
         QDate dataPubblicazione = m_dataPubblicazioneEdit->date();
         QString doi = m_doiEdit->text().trimmed();
         
-        return std::make_unique<Articolo>(titolo, anno, descrizione, autori, rivista,
-                                         volume, numero, pagine, categoria, tipoRivista,
-                                         dataPubblicazione, doi);
+        auto articolo = std::make_unique<Articolo>(titolo, anno, descrizione, autori, rivista,
+                                                 volume, numero, pagine, categoria, tipoRivista,
+                                                 dataPubblicazione, doi);
+        
+        if (m_isEditing && m_mediaOriginale) {
+            articolo->setId(m_mediaOriginale->getId());
+        }
+        
+        return articolo;
     } catch (const std::exception& e) {
         qWarning() << "Errore in createArticolo:" << e.what();
         return nullptr;
