@@ -71,7 +71,132 @@ MainWindow::~MainWindow()
     salvaImpostazioni();
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::onCardDoubleClic(const QString& id)
+{
+    m_selezionato_id = id;
+    visualizzaDettagli();
+}
+
+void MainWindow::informazioniSu()
+{
+    QMessageBox::about(this, "Informazioni",
+        "<h3>Biblioteca Manager</h3>"
+        "<p>Versione 1.0</p>"
+        "<p>Sistema di gestione per biblioteche multimediali</p>"
+        "<p>Supporta libri, film e articoli con interfaccia dinamica</p>"
+        "<p>Sviluppato con Qt 6.2.4 e C++17</p>");
+}
+
+void MainWindow::aggiornaStatistiche()
+{
+    try {
+        size_t total = m_collezione->size();
+        size_t libri = m_collezione->countByType("Libro");
+        size_t film = m_collezione->countByType("Film");
+        size_t articoli = m_collezione->countByType("Articolo");
+        
+        m_totalLabel->setText(QString("Totale: %1").arg(total));
+        m_libriLabel->setText(QString("Libri: %1").arg(libri));
+        m_filmLabel->setText(QString("Film: %1").arg(film));
+        m_articoliLabel->setText(QString("Articoli: %1").arg(articoli));
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nell'aggiornamento statistiche:" << e.what();
+    }
+}
+
+void MainWindow::aggiornaStatusBar()
+{
+    try {
+        m_countLabel->setText(QString("%1 media").arg(m_collezione->size()));
+        
+        if (m_modificato) {
+            m_statusLabel->setText("Modificato");
+        } else {
+            m_statusLabel->setText("Pronto");
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nell'aggiornamento status bar:" << e.what();
+    }
+}
+
+void MainWindow::salvaImpostazioni()
+{
+    try {
+        QSettings settings;
+        settings.setValue("geometria", saveGeometry());
+        settings.setValue("splitter", m_splitter->saveState());
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nel salvataggio impostazioni:" << e.what();
+    }
+}
+
+void MainWindow::caricaImpostazioni()
+{
+    try {
+        QSettings settings;
+        restoreGeometry(settings.value("geometria").toByteArray());
+        m_splitter->restoreState(settings.value("splitter").toByteArray());
+    } catch (const std::exception& e) {
+        qWarning() << "Errore nel caricamento impostazioni:" << e.what();
+    }
+}
+
+bool MainWindow::verificaModifiche()
+{
+    try {
+        if (m_modificato) {
+            QMessageBox::StandardButton ret = QMessageBox::question(this,
+                "Modifiche non salvate",
+                "Ci sono modifiche non salvate. Salvare ora?",
+                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            
+            if (ret == QMessageBox::Save) {
+                salvaCollezione();
+                return !m_modificato; // Solo se il salvataggio è riuscito
+            } else if (ret == QMessageBox::Cancel) {
+                return false;
+            }
+        }
+        return true;
+    } catch (const std::exception& e) {
+        mostraErrore(QString("Errore nella verifica modifiche: %1").arg(e.what()));
+        return false;
+    }
+}
+
+void MainWindow::resetInterfaccia()
+{
+    try {
+        m_searchEdit->clear();
+        resetFiltri();
+        m_selezionato_id.clear();
+        refreshMediaCards();
+    } catch (const std::exception& e) {
+        mostraErrore(QString("Errore nel reset interfaccia: %1").arg(e.what()));
+    }
+}
+
+void MainWindow::mostraErrore(const QString& errore)
+{
+    QMessageBox::critical(this, "Errore", errore);
+    m_statusLabel->setText("Errore: " + errore);
+    qWarning() << "ERRORE:" << errore;
+}
+
+void MainWindow::mostraInfo(const QString& info)
+{
+    m_statusLabel->setText(info);
+    // Auto-reset dopo 3 secondi
+    QTimer::singleShot(3000, [this]() {
+        m_statusLabel->setText("Pronto");
+    });
+}
+
+bool MainWindow::confermaAzione(const QString& messaggio)
+{
+    return QMessageBox::question(this, "Conferma", messaggio,
+                                QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
+}closeEvent(QCloseEvent *event)
 {
     if (verificaModifiche()) {
         salvaImpostazioni();
@@ -99,7 +224,6 @@ void MainWindow::setupToolBar()
     QToolBar* toolBar = addToolBar("Principale");
     toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     
-    // IMPORTANTE: Rendiamo la toolbar non movibile
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     
@@ -396,7 +520,6 @@ void MainWindow::updateLayout()
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    // Usa size_t per evitare warning di conversione
     for (size_t i = 0; i < m_mediaCards.size(); ++i) {
         int row = static_cast<int>(i) / columns;
         int col = static_cast<int>(i) % columns;
@@ -407,60 +530,52 @@ void MainWindow::updateLayout()
     m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
 }
 
+// CORREZIONE PRINCIPALE: Fix compatibile con MediaCard(Media*, QWidget*)
 void MainWindow::refreshMediaCards()
 {
     clearMediaCards();
     
     try {
-        std::vector<Media*> media;
+        std::vector<Media*> mediaPointers;
         
         // Prima applica la ricerca testuale
         QString searchText = m_searchEdit->text().trimmed();
         if (searchText.isEmpty()) {
             // Se non c'è testo di ricerca, prendi tutti i media
-            auto allMedia = m_collezione->getAllMedia();
+            const auto& allMedia = m_collezione->getAllMedia();
             for (const auto& m : allMedia) {
-                media.push_back(m.get());
+                mediaPointers.push_back(m.get());
             }
         } else {
             // Applica la ricerca testuale
-            auto tmp = m_collezione->searchMedia(searchText);
-            media.clear();
-            media.reserve(tmp.size());
-            for (Media* mptr : tmp) media.push_back(mptr);
+            mediaPointers = m_collezione->searchMedia(searchText);
         }
         
         // Poi applica i filtri sui risultati della ricerca
         auto filtro = creaFiltroCorrente();
         if (filtro) {
             std::vector<Media*> filteredMedia;
-            for (Media* m : media) {
+            for (Media* m : mediaPointers) {
                 if (filtro->matches(m)) {
                     filteredMedia.push_back(m);
                 }
             }
-            media.clear();
-            media.reserve(filteredMedia.size());
-            for (auto& uptr : filteredMedia) {
-            media.push_back(std::move(uptr));
+            mediaPointers = std::move(filteredMedia);
         }
         
-        // Usa push_back() invece di append() per std::vector
-        for (Media* mediaPtr : media) {
+        // CORREZIONE: Crea MediaCard compatibilmente con il costruttore originale Media*
+        for (Media* mediaPtr : mediaPointers) {
             if (mediaPtr) {
                 try {
-                    // Crea MediaCard direttamente usando createCard()
-                    std::unique_ptr<MediaCard> card = mediaPtr->createCard(m_mediaContainer);
-                    if (card) {
-                        MediaCard* cardPtr = card.release();
-                        m_mediaCards.push_back(cardPtr);
-                        
-                        // Connessioni per selezione
-                        connect(cardPtr, &MediaCard::selezionato,
-                                this, &MainWindow::onCardSelezionata);
-                        connect(cardPtr, &MediaCard::doppioClick,
-                                this, &MainWindow::onCardDoubleClic);
-                    }
+                    // Usa il costruttore originale che prende Media* direttamente
+                    MediaCard* cardPtr = new MediaCard(mediaPtr, m_mediaContainer);
+                    m_mediaCards.push_back(cardPtr);
+                    
+                    // Connessioni per selezione
+                    connect(cardPtr, &MediaCard::selezionato,
+                            this, &MainWindow::onCardSelezionata);
+                    connect(cardPtr, &MediaCard::doppioClick,
+                            this, &MainWindow::onCardDoubleClic);
                 } catch (const std::exception& e) {
                     qWarning() << "Errore nella creazione MediaCard:" << e.what();
                 }
@@ -480,7 +595,7 @@ void MainWindow::clearMediaCards()
     for (MediaCard* card : m_mediaCards) {
         if (card) {
             m_mediaLayout->removeWidget(card);
-            card->deleteLater();
+            card->deleteLater(); // Qt gestirà la cancellazione del widget
         }
     }
     m_mediaCards.clear();
@@ -786,131 +901,4 @@ void MainWindow::onCardSelezionata(const QString& id)
             card->setSelected(false);
         }
     }
-}
-
-void MainWindow::onCardDoubleClic(const QString& id)
-{
-    m_selezionato_id = id;
-    visualizzaDettagli();
-}
-
-void MainWindow::informazioniSu()
-{
-    QMessageBox::about(this, "Informazioni",
-        "<h3>Biblioteca Manager</h3>"
-        "<p>Versione 1.0</p>"
-        "<p>Sistema di gestione per biblioteche multimediali</p>"
-        "<p>Supporta libri, film e articoli con interfaccia dinamica</p>"
-        "<p>Sviluppato con Qt 6.2.4 e C++17</p>");
-}
-
-void MainWindow::aggiornaStatistiche()
-{
-    try {
-        size_t total = m_collezione->size();
-        size_t libri = m_collezione->countByType("Libro");
-        size_t film = m_collezione->countByType("Film");
-        size_t articoli = m_collezione->countByType("Articolo");
-        
-        m_totalLabel->setText(QString("Totale: %1").arg(total));
-        m_libriLabel->setText(QString("Libri: %1").arg(libri));
-        m_filmLabel->setText(QString("Film: %1").arg(film));
-        m_articoliLabel->setText(QString("Articoli: %1").arg(articoli));
-    } catch (const std::exception& e) {
-        qWarning() << "Errore nell'aggiornamento statistiche:" << e.what();
-    }
-}
-
-void MainWindow::aggiornaStatusBar()
-{
-    try {
-        m_countLabel->setText(QString("%1 media").arg(m_collezione->size()));
-        
-        if (m_modificato) {
-            m_statusLabel->setText("Modificato");
-        } else {
-            m_statusLabel->setText("Pronto");
-        }
-    } catch (const std::exception& e) {
-        qWarning() << "Errore nell'aggiornamento status bar:" << e.what();
-    }
-}
-
-void MainWindow::salvaImpostazioni()
-{
-    try {
-        QSettings settings("BibliotecaManager", "MainWindow");
-        settings.setValue("geometria", saveGeometry());
-        settings.setValue("splitter", m_splitter->saveState());
-    } catch (const std::exception& e) {
-        qWarning() << "Errore nel salvataggio impostazioni:" << e.what();
-    }
-}
-
-void MainWindow::caricaImpostazioni()
-{
-    try {
-        QSettings settings("BibliotecaManager", "MainWindow");
-        restoreGeometry(settings.value("geometria").toByteArray());
-        m_splitter->restoreState(settings.value("splitter").toByteArray());
-    } catch (const std::exception& e) {
-        qWarning() << "Errore nel caricamento impostazioni:" << e.what();
-    }
-}
-
-bool MainWindow::verificaModifiche()
-{
-    try {
-        if (m_modificato) {
-            QMessageBox::StandardButton ret = QMessageBox::question(this,
-                "Modifiche non salvate",
-                "Ci sono modifiche non salvate. Salvare ora?",
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-            
-            if (ret == QMessageBox::Save) {
-                salvaCollezione();
-                return !m_modificato; // Solo se il salvataggio è riuscito
-            } else if (ret == QMessageBox::Cancel) {
-                return false;
-            }
-        }
-        return true;
-    } catch (const std::exception& e) {
-        mostraErrore(QString("Errore nella verifica modifiche: %1").arg(e.what()));
-        return false;
-    }
-}
-
-void MainWindow::resetInterfaccia()
-{
-    try {
-        m_searchEdit->clear();
-        resetFiltri();
-        m_selezionato_id.clear();
-        refreshMediaCards();
-    } catch (const std::exception& e) {
-        mostraErrore(QString("Errore nel reset interfaccia: %1").arg(e.what()));
-    }
-}
-
-void MainWindow::mostraErrore(const QString& errore)
-{
-    QMessageBox::critical(this, "Errore", errore);
-    m_statusLabel->setText("Errore: " + errore);
-    qWarning() << "ERRORE:" << errore;
-}
-
-void MainWindow::mostraInfo(const QString& info)
-{
-    m_statusLabel->setText(info);
-    // Auto-reset dopo 3 secondi
-    QTimer::singleShot(3000, [this]() {
-        m_statusLabel->setText("Pronto");
-    });
-}
-
-bool MainWindow::confermaAzione(const QString& messaggio)
-{
-    return QMessageBox::question(this, "Conferma", messaggio,
-                                QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
 }

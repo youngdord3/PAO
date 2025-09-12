@@ -49,10 +49,9 @@ const QString MediaCard::STYLE_HOVERED =
     "    box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
     "}";
 
-// CORREZIONE: Cambia il costruttore per accettare un puntatore raw
 MediaCard::MediaCard(Media* media, QWidget *parent)
     : QFrame(parent)
-    , m_media(media)  // CORREZIONE: Assegna direttamente il puntatore
+    , m_media(media)  // CORREZIONE: assegnazione diretta del puntatore
     , m_selected(false)
     , m_hovered(false)
     , m_mainLayout(nullptr)
@@ -87,7 +86,8 @@ MediaCard::MediaCard(Media* media, QWidget *parent)
 
 MediaCard::~MediaCard()
 {
-    // CORREZIONE: Non cancellare il media pointer, poiché non lo possediamo
+    // CORREZIONE: Non cancellamo m_media perché non ne siamo proprietari
+    // Il Media* è gestito dalla Collezione
 }
 
 QString MediaCard::getId() const
@@ -304,10 +304,12 @@ void MediaCard::setupLayout()
 {
     try {
         m_mainLayout = new QVBoxLayout(this);
-        if (m_mainLayout) {
-            m_mainLayout->setContentsMargins(8, 8, 8, 8);
-            m_mainLayout->setSpacing(4);
+        if (!m_mainLayout) {
+            throw std::runtime_error("Impossibile creare layout principale");
         }
+        
+        m_mainLayout->setContentsMargins(8, 8, 8, 8);
+        m_mainLayout->setSpacing(4);
         
         // Header con tipo e immagine
         m_headerLayout = new QHBoxLayout();
@@ -401,16 +403,6 @@ void MediaCard::setupTypeSpecificContent()
             m_mainLayout->addLayout(m_contentLayout);
             m_mainLayout->addStretch();
             m_mainLayout->addLayout(m_buttonLayout);
-        }
-        
-        // Aggiungi contenuto specifico per tipo in modo semplice
-        QString type = m_media->getTypeDisplayName();
-        if (type == "Libro") {
-            setupLibroContent();
-        } else if (type == "Film") {
-            setupFilmContent();
-        } else if (type == "Articolo") {
-            setupArticoloContent();
         }
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupTypeSpecificContent:" << e.what();

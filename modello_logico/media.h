@@ -1,70 +1,119 @@
-#ifndef MEDIA_H
-#define MEDIA_H
+#ifndef MEDIACARD_H
+#define MEDIACARD_H
 
-#include <QString>
-#include <QJsonObject>
-#include <QDate>
-#include <memory>
+#include <QWidget>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFrame>
+#include <QPushButton>
+#include <QPixmap>
 
-// Forward declarations per evitare dipendenze circolari
-class QWidget;
-class MediaCard;
+class Media;
 
 /**
- * @brief Classe base astratta per tutti i tipi di media
+ * @brief Widget card per visualizzare un media nella collezione
  * 
- * Implementa il pattern Template Method per le operazioni comuni
- * e definisce l'interfaccia per il polimorfismo
+ * Ogni card mostra le informazioni principali del media
+ * con un design responsivo e interattivo
  */
-class Media
+class MediaCard : public QFrame
 {
-public:
-    Media(const QString& titolo, int anno, const QString& descrizione);
-    virtual ~Media() = default;
-    
-    // Rimuovi copy constructor e assignment operator per evitare problemi con unique_ptr
-    Media(const Media&) = delete;
-    Media& operator=(const Media&) = delete;
-    
-    // Metodi accessori comuni
-    QString getTitolo() const;
-    int getAnno() const;
-    QString getDescrizione() const;
-    QString getId() const;
-    
-    void setTitolo(const QString& titolo);
-    void setAnno(int anno);
-    void setDescrizione(const QString& descrizione);
-    
-    // Metodi virtuali puri per il polimorfismo non banale
-    virtual std::unique_ptr<Media> clone() const = 0;
-    virtual QJsonObject toJson() const = 0;
-    virtual void fromJson(const QJsonObject& json) = 0;
-    virtual QString getDisplayInfo() const = 0;
-    virtual QString getTypeDisplayName() const = 0;
-    
-    // Pattern Template Method per la validazione
-    bool isValid() const;
-    
-    // Metodi per la ricerca e filtri
-    virtual bool matchesFilter(const QString& searchText) const;
-    virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
+    Q_OBJECT
 
-    // RIMOSSO: createCard() - non più necessario
+public:
+    explicit MediaCard(Media* media, QWidget *parent = nullptr);
+    virtual ~MediaCard();
+    
+    // Accessori
+    QString getId() const;
+    Media* getMedia() const;
+    
+    // Gestione selezione
+    void setSelected(bool selected);
+    bool isSelected() const;
+    
+    // Aggiornamento contenuto
+    void updateContent();
+
+signals:
+    void selezionato(const QString& id);
+    void doppioClick(const QString& id);
+    void contestualMenu(const QString& id, const QPoint& position);
 
 protected:
-    // Template method steps - da implementare nelle classi derivate
-    virtual bool validateSpecificFields() const = 0;
-    virtual QString getSearchableText() const = 0;
-    
-    // Attributi comuni protetti
-    QString m_id;
-    QString m_titolo;
-    int m_anno;
-    QString m_descrizione;
-    
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
+    void enterEvent(QEnterEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+
+private slots:
+    void onEditClicked();
+    void onDeleteClicked();
+    void onDetailsClicked();
+
 private:
-    static QString generateId();
+    void setupUI();
+    void setupLayout();
+    void updateStyleSheet();
+    void setupTypeSpecificContent();
+    
+    // Creazione elementi UI specifici per tipo
+    void setupLibroContent();
+    void setupFilmContent();
+    void setupArticoloContent();
+    
+    // Gestione immagini
+    QPixmap getTypeIcon() const;
+    QPixmap loadMediaImage() const;
+    
+    // Utility
+    QString truncateText(const QString& text, int maxLength) const;
+    QString formatDisplayInfo() const;
+    
+    // Membri privati
+    Media* m_media;  // CORREZIONE: uso Media* invece di unique_ptr
+    bool m_selected;
+    bool m_hovered;
+    
+    // Widgets UI - inizializzati a nullptr automaticamente
+    QVBoxLayout* m_mainLayout;
+    QHBoxLayout* m_headerLayout;
+    QVBoxLayout* m_contentLayout;
+    QHBoxLayout* m_buttonLayout;
+    
+    // Elementi UI comuni
+    QLabel* m_typeLabel;
+    QLabel* m_titleLabel;
+    QLabel* m_yearLabel;
+    QLabel* m_descriptionLabel;
+    QLabel* m_imageLabel;
+    QLabel* m_infoLabel;
+    
+    // Bottoni azione
+    QPushButton* m_editButton;
+    QPushButton* m_deleteButton;
+    QPushButton* m_detailsButton;
+    
+    // Costanti per il design
+    static const int CARD_WIDTH = 280;
+    static const int CARD_HEIGHT = 200;
+    static const int IMAGE_SIZE = 48;
+    static const int BORDER_RADIUS = 8;
+    static const int SHADOW_OFFSET = 2;
+    
+    // Colori per i tipi di media
+    static const QString COLOR_LIBRO;
+    static const QString COLOR_FILM;
+    static const QString COLOR_ARTICOLO;
+    static const QString COLOR_DEFAULT;
+    
+    // Stili CSS
+    static const QString STYLE_NORMAL;
+    static const QString STYLE_SELECTED;
+    static const QString STYLE_HOVERED;
 };
 
-#endif // MEDIA_H
+#endif // MEDIACARD_H
