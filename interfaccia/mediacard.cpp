@@ -49,10 +49,9 @@ const QString MediaCard::STYLE_HOVERED =
     "    box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
     "}";
 
-// CORREZIONE: Cambia il costruttore per accettare un puntatore raw
 MediaCard::MediaCard(Media* media, QWidget *parent)
     : QFrame(parent)
-    , m_media(media)  // CORREZIONE: Assegna direttamente il puntatore
+    , m_media(media)
     , m_selected(false)
     , m_hovered(false)
     , m_mainLayout(nullptr)
@@ -87,7 +86,7 @@ MediaCard::MediaCard(Media* media, QWidget *parent)
 
 MediaCard::~MediaCard()
 {
-    // CORREZIONE: Non cancellare il media pointer, poiché non lo possediamo
+    // Non cancellare il media pointer, poiché non lo possediamo
 }
 
 QString MediaCard::getId() const
@@ -208,21 +207,6 @@ void MediaCard::paintEvent(QPaintEvent *event)
     }
 }
 
-void MediaCard::onEditClicked()
-{
-    emit selezionato(getId());
-}
-
-void MediaCard::onDeleteClicked()
-{
-    emit selezionato(getId());
-}
-
-void MediaCard::onDetailsClicked()
-{
-    emit doppioClick(getId());
-}
-
 void MediaCard::setupUI()
 {
     if (!m_media) return;
@@ -254,45 +238,7 @@ void MediaCard::setupUI()
         m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
         m_infoLabel->setWordWrap(true);
         
-        // Configurazione bottoni (nascosti per default, mostrati solo al hover)
-        m_editButton = new QPushButton("✏", this);
-        m_deleteButton = new QPushButton("🗑", this);
-        m_detailsButton = new QPushButton("👁", this);
-        
-        if (m_editButton && m_deleteButton && m_detailsButton) {
-            m_editButton->setFixedSize(24, 24);
-            m_deleteButton->setFixedSize(24, 24);
-            m_detailsButton->setFixedSize(24, 24);
-            
-            m_editButton->setToolTip("Modifica");
-            m_deleteButton->setToolTip("Elimina");
-            m_detailsButton->setToolTip("Dettagli");
-            
-            QString buttonStyle = 
-                "QPushButton {"
-                "    border: none;"
-                "    border-radius: 12px;"
-                "    background-color: rgba(255,255,255,180);"
-                "    font-size: 12px;"
-                "}"
-                "QPushButton:hover {"
-                "    background-color: rgba(33,150,243,200);"
-                "    color: white;"
-                "}";
-            
-            m_editButton->setStyleSheet(buttonStyle);
-            m_deleteButton->setStyleSheet(buttonStyle);
-            m_detailsButton->setStyleSheet(buttonStyle);
-            
-            // I bottoni sono inizialmente nascosti
-            m_editButton->setVisible(false);
-            m_deleteButton->setVisible(false);
-            m_detailsButton->setVisible(false);
-            
-            connect(m_editButton, &QPushButton::clicked, this, &MediaCard::onEditClicked);
-            connect(m_deleteButton, &QPushButton::clicked, this, &MediaCard::onDeleteClicked);
-            connect(m_detailsButton, &QPushButton::clicked, this, &MediaCard::onDetailsClicked);
-        }
+        // RIMOSSO: Non creiamo più i bottoni di azione
         
         setupTypeSpecificContent();
     } catch (const std::exception& e) {
@@ -321,13 +267,6 @@ void MediaCard::setupLayout()
             m_contentLayout->setContentsMargins(0, 0, 0, 0);
             m_contentLayout->setSpacing(2);
         }
-        
-        // Area bottoni (in overlay)
-        m_buttonLayout = new QHBoxLayout();
-        if (m_buttonLayout) {
-            m_buttonLayout->setContentsMargins(0, 0, 0, 0);
-            m_buttonLayout->addStretch();
-        }
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupLayout:" << e.what();
     }
@@ -340,16 +279,8 @@ void MediaCard::updateStyleSheet()
             setStyleSheet(STYLE_SELECTED);
         } else if (m_hovered) {
             setStyleSheet(STYLE_HOVERED);
-            // Mostra i bottoni quando si fa hover
-            if (m_editButton) m_editButton->setVisible(true);
-            if (m_deleteButton) m_deleteButton->setVisible(true);
-            if (m_detailsButton) m_detailsButton->setVisible(true);
         } else {
             setStyleSheet(STYLE_NORMAL);
-            // Nascondi i bottoni quando non c'è hover
-            if (m_editButton) m_editButton->setVisible(false);
-            if (m_deleteButton) m_deleteButton->setVisible(false);
-            if (m_detailsButton) m_detailsButton->setVisible(false);
         }
     } catch (const std::exception& e) {
         qWarning() << "Errore in updateStyleSheet:" << e.what();
@@ -361,18 +292,15 @@ void MediaCard::setupTypeSpecificContent()
     if (!m_media || !m_mainLayout) return;
     
     try {
-        // Layout semplificato - aggiungi solo i widget essenziali
+        // Layout semplificato - aggiungi solo i widget essenziali per visualizzare le informazioni
         if (m_headerLayout && m_typeLabel && m_imageLabel) {
             // Pulisci e ricostruisci solo se necessario
             while (m_mainLayout->count() > 0) {
                 QLayoutItem* item = m_mainLayout->takeAt(0);
-                if (item && item->layout()) {
-                    // Non cancellare i layout, solo rimuovili
-                }
                 delete item;
             }
             
-            // Ricostruisci layout semplice
+            // Ricostruisci layout semplice senza bottoni
             m_headerLayout = new QHBoxLayout();
             m_headerLayout->addWidget(m_typeLabel);
             m_headerLayout->addStretch();
@@ -390,17 +318,10 @@ void MediaCard::setupTypeSpecificContent()
             if (m_descriptionLabel) m_contentLayout->addWidget(m_descriptionLabel);
             if (m_infoLabel) m_contentLayout->addWidget(m_infoLabel);
             
-            m_buttonLayout = new QHBoxLayout();
-            m_buttonLayout->addStretch();
-            if (m_detailsButton) m_buttonLayout->addWidget(m_detailsButton);
-            if (m_editButton) m_buttonLayout->addWidget(m_editButton);
-            if (m_deleteButton) m_buttonLayout->addWidget(m_deleteButton);
-            
-            // Aggiungi al layout principale
+            // Aggiungi al layout principale - SENZA i bottoni
             m_mainLayout->addLayout(m_headerLayout);
             m_mainLayout->addLayout(m_contentLayout);
-            m_mainLayout->addStretch();
-            m_mainLayout->addLayout(m_buttonLayout);
+            m_mainLayout->addStretch(); // Riempi lo spazio rimanente
         }
         
         // Aggiungi contenuto specifico per tipo in modo semplice
@@ -419,17 +340,17 @@ void MediaCard::setupTypeSpecificContent()
 
 void MediaCard::setupLibroContent()
 {
-    // Implementazione semplificata
+    // Implementazione semplificata - solo visualizzazione dati
 }
 
 void MediaCard::setupFilmContent()
 {
-    // Implementazione semplificata
+    // Implementazione semplificata - solo visualizzazione dati
 }
 
 void MediaCard::setupArticoloContent()
 {
-    // Implementazione semplificata
+    // Implementazione semplificata - solo visualizzazione dati
 }
 
 QPixmap MediaCard::getTypeIcon() const

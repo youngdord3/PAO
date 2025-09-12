@@ -16,14 +16,13 @@ class Media;
  * @brief Widget card per visualizzare un media nella collezione
  * 
  * Ogni card mostra le informazioni principali del media
- * con un design responsivo e interattivo
+ * con un design responsivo e interattivo - SENZA BOTTONI DI AZIONE
  */
 class MediaCard : public QFrame
 {
     Q_OBJECT
 
 public:
-    // CORREZIONE: Cambia il costruttore per prendere un puntatore raw invece di unique_ptr
     explicit MediaCard(Media* media, QWidget *parent = nullptr);
     virtual ~MediaCard();
     
@@ -51,18 +50,13 @@ protected:
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
-private slots:
-    void onEditClicked();
-    void onDeleteClicked();
-    void onDetailsClicked();
-
 private:
     void setupUI();
     void setupLayout();
     void updateStyleSheet();
     void setupTypeSpecificContent();
     
-    // Creazione elementi UI specifici per tipo
+    // Creazione elementi UI specifici per tipo (solo visualizzazione)
     void setupLibroContent();
     void setupFilmContent();
     void setupArticoloContent();
@@ -75,18 +69,18 @@ private:
     QString truncateText(const QString& text, int maxLength) const;
     QString formatDisplayInfo() const;
     
-    // CORREZIONE: Usa puntatore raw invece di unique_ptr
+    // Puntatore al media
     Media* m_media;
     bool m_selected;
     bool m_hovered;
     
-    // Widgets UI - inizializzati a nullptr automaticamente
+    // Widgets UI per layout
     QVBoxLayout* m_mainLayout;
     QHBoxLayout* m_headerLayout;
     QVBoxLayout* m_contentLayout;
-    QHBoxLayout* m_buttonLayout;
+    QHBoxLayout* m_buttonLayout; // Tenuto per compatibilità ma non usato
     
-    // Elementi UI comuni
+    // Elementi UI per visualizzazione dati
     QLabel* m_typeLabel;
     QLabel* m_titleLabel;
     QLabel* m_yearLabel;
@@ -94,10 +88,10 @@ private:
     QLabel* m_imageLabel;
     QLabel* m_infoLabel;
     
-    // Bottoni azione
-    QPushButton* m_editButton;
-    QPushButton* m_deleteButton;
-    QPushButton* m_detailsButton;
+    // RIMOSSO: I puntatori ai bottoni di azione
+    QPushButton* m_editButton;     // Mantenuto per compatibilità (nullptr)
+    QPushButton* m_deleteButton;   // Mantenuto per compatibilità (nullptr)
+    QPushButton* m_detailsButton;  // Mantenuto per compatibilità (nullptr)
     
     // Costanti per il design
     static const int CARD_WIDTH = 280;
