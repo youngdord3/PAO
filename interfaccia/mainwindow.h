@@ -162,7 +162,21 @@ private:
     static const int CARD_WIDTH = 280;
     static const int CARD_HEIGHT = 200;
     static const int CARD_MARGIN = 10;
-    static const int FILTER_WIDTH = 250;
+    static const int FILTER_WIDTH = 270;
+    
+    // Dimensioni dei componenti filtri
+    static const int SEARCH_GROUP_HEIGHT = 100;
+    static const int FILTER_GROUP_HEIGHT = 280;
+    static const int STATS_GROUP_HEIGHT = 120;
+    static const int ACTIONS_GROUP_HEIGHT = 180;
+    
+    static const int INPUT_HEIGHT = 35;
+    static const int BUTTON_HEIGHT = 35;
+    static const int SMALL_BUTTON_HEIGHT = 30;
+    
+    static const int SPINBOX_WIDTH = 70;
+    static const int LABEL_WIDTH_SMALL = 25;
+    static const int CLEAR_BUTTON_WIDTH = 40; 
 };
 
 #endif // MAINWINDOW_H
