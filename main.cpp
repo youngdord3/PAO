@@ -27,96 +27,143 @@ int main(int argc, char *argv[])
     QString appDir = QApplication::applicationDirPath();
     QDir::setCurrent(appDir);
     
-    // Carica CSS tema scuro - Prova prima dalle risorse, poi dal file system
-    QString cssContent;
-    QFile styleFile(":/styles/styles.css");
+    // CSS BASE MINIMO - EMBEDDED
+    QString cssContent = R"(
+/* CSS BASE MINIMALE - Biblioteca Manager */
+
+/* TUTTO BIANCO SU NERO */
+QMainWindow, QWidget {
+    background-color: black;
+    color: white;
+}
+
+/* CONTAINER */
+QGroupBox {
+    border: 1px solid gray;
+    margin-top: 10px;
+    padding-top: 5px;
+}
+
+QGroupBox::title {
+    color: white;
+    padding: 2px;
+}
+
+/* FORM CONTROLS */
+QLineEdit, QTextEdit, QSpinBox, QComboBox, QDateEdit {
+    border: 1px solid gray;
+    background-color: black;
+    color: white;
+    padding: 5px;
+}
+
+QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QComboBox:focus, QDateEdit:focus {
+    border: 1px solid white;
+}
+
+/* BUTTONS */
+QPushButton {
+    background-color: gray;
+    border: 1px solid white;
+    color: white;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background-color: white;
+    color: black;
+}
+
+QPushButton:disabled {
+    background-color: darkgray;
+    color: gray;
+}
+
+/* TOOLBAR */
+QToolBar {
+    background-color: black;
+    border: 1px solid gray;
+}
+
+QToolButton {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 5px;
+}
+
+QToolButton:hover {
+    background-color: gray;
+}
+
+/* LISTS */
+QListWidget {
+    border: 1px solid gray;
+    background-color: black;
+    color: white;
+}
+
+QListWidget::item:selected {
+    background-color: gray;
+}
+
+/* SCROLLBARS */
+QScrollBar {
+    background-color: black;
+}
+
+QScrollBar::handle {
+    background-color: gray;
+}
+
+/* MEDIA CARDS */
+MediaCard {
+    background-color: black;
+    border: 1px solid gray;
+    color: white;
+}
+
+MediaCard[selected="true"] {
+    border: 2px solid white;
+}
+
+/* COMBO DROPDOWN */
+QComboBox QAbstractItemView {
+    background-color: black;
+    color: white;
+    border: 1px solid gray;
+}
+
+/* PROGRESS */
+QProgressBar {
+    border: 1px solid gray;
+    background-color: black;
+}
+
+QProgressBar::chunk {
+    background-color: white;
+}
+
+/* MENUS */
+QMenuBar {
+    background-color: black;
+    color: white;
+}
+
+QMenu {
+    background-color: black;
+    color: white;
+    border: 1px solid gray;
+}
+
+QMenu::item:selected {
+    background-color: gray;
+}
+    )";
     
-    if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
-        // Caricamento dalle risorse riuscito
-        QTextStream stream(&styleFile);
-        cssContent = stream.readAll();
-        qDebug() << "CSS caricato dalle risorse Qt";
-    } else {
-        // Fallback: prova a caricare dal file system
-        qWarning() << "Risorse Qt non disponibili, tento caricamento da file system";
-        
-        QFile fallbackStyleFile("styles/styles.css");
-        if (fallbackStyleFile.open(QFile::ReadOnly | QFile::Text)) {
-            QTextStream stream(&fallbackStyleFile);
-            cssContent = stream.readAll();
-            qDebug() << "CSS caricato dal file system";
-        } else {
-            // Ultimo tentativo: CSS di base embedded
-            qWarning() << "File CSS non trovato, uso stili di base";
-            cssContent = R"(
-                QMainWindow {
-                    background-color: #121212;
-                    color: #E1E1E1;
-                }
-                QWidget {
-                    background-color: #121212;
-                    color: #E1E1E1;
-                }
-                QGroupBox {
-                    border: 2px solid #404040;
-                    border-radius: 8px;
-                    margin-top: 10px;
-                    padding-top: 10px;
-                    background-color: #1E1E1E;
-                    color: #E1E1E1;
-                }
-                QGroupBox::title {
-                    color: #BB86FC;
-                    padding: 0 5px;
-                    background-color: #121212;
-                }
-                QPushButton {
-                    background-color: #BB86FC;
-                    border: none;
-                    border-radius: 6px;
-                    color: #121212;
-                    padding: 8px 16px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #D4B3FF;
-                }
-                QPushButton:disabled {
-                    background-color: #404040;
-                    color: #777777;
-                }
-                QLineEdit, QTextEdit, QSpinBox, QComboBox {
-                    border: 2px solid #404040;
-                    border-radius: 6px;
-                    padding: 8px;
-                    background-color: #2D2D2D;
-                    color: #E1E1E1;
-                }
-                QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QComboBox:focus {
-                    border-color: #BB86FC;
-                }
-                MediaCard {
-                    background-color: #1E1E1E;
-                    border: 2px solid #404040;
-                    border-radius: 8px;
-                    color: #E1E1E1;
-                }
-                MediaCard[selected="true"] {
-                    background-color: #2A1B3D;
-                    border: 2px solid #BB86FC;
-                }
-                MediaCard[mediaType="libro"] { border-left: 4px solid #4CAF50; }
-                MediaCard[mediaType="film"] { border-left: 4px solid #03DAC6; }
-                MediaCard[mediaType="articolo"] { border-left: 4px solid #FF9800; }
-            )";
-        }
-    }
-    
-    // Applica gli stili
-    if (!cssContent.isEmpty()) {
-        app.setStyleSheet(cssContent);
-        qDebug() << "Stili CSS applicati con successo";
-    }
+    // Applica gli stili CSS base embedded
+    app.setStyleSheet(cssContent);
+    qDebug() << "CSS Base applicato";
     
     try {
         // Crea e mostra finestra principale
