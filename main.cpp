@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     QDir::setCurrent(appDir);
     
     // Carica CSS
-    QFile cssFile(":/styles/styles.css");
+    QFile cssFile(":/styles/styles/styles.css");
     if (cssFile.open(QIODevice::ReadOnly)) {
         QTextStream stream(&cssFile);
         QString cssContent = stream.readAll();
