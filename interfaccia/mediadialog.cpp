@@ -287,12 +287,18 @@ void MediaDialog::onValidazioneChanged()
         
         if (valid) {
             m_validationLabel->setText("✓ Tutti i campi sono validi");
-            m_validationLabel->setStyleSheet("color: green;");
+            m_validationLabel->setProperty("valid", true);
         } else {
             QStringList errors = getValidationErrors();
             m_validationLabel->setText("⚠ Errori: " + QString::number(errors.size()));
-            m_validationLabel->setStyleSheet("color: red;");
+            m_validationLabel->setProperty("valid", false);
         }
+        
+        m_validationLabel->style()->unpolish(m_validationLabel);
+        m_validationLabel->style()->polish(m_validationLabel);
+        
+        m_validationLabel->update();
+        
     } catch (const std::exception& e) {
         qWarning() << "Errore nella validazione:" << e.what();
     }
@@ -718,15 +724,14 @@ void MediaDialog::setupButtons()
         m_okButton->setDefault(true);
     }
     
-    if (m_helpButton) {
-        m_buttonLayout->addWidget(m_helpButton);
-    }
-    m_buttonLayout->addStretch();
-    if (m_cancelButton) {
-        m_buttonLayout->addWidget(m_cancelButton);
-    }
     if (m_okButton) {
-        m_buttonLayout->addWidget(m_okButton);
+        m_okButton->setObjectName("okButton");
+    }
+    if (m_cancelButton) {
+        m_cancelButton->setObjectName("cancelButton");
+    }
+    if (m_helpButton) {
+        m_helpButton->setObjectName("helpButton");
     }
     
     m_mainLayout->addLayout(m_buttonLayout);

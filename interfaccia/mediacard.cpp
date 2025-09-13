@@ -11,42 +11,6 @@
 #include <QStyle>
 #include <QPixmap>
 
-// Costanti statiche
-const QString MediaCard::COLOR_LIBRO = "#4CAF50";     // Verde
-const QString MediaCard::COLOR_FILM = "#2196F3";      // Blu
-const QString MediaCard::COLOR_ARTICOLO = "#FF9800";  // Arancione
-const QString MediaCard::COLOR_DEFAULT = "#9E9E9E";   // Grigio
-
-const QString MediaCard::STYLE_NORMAL = 
-    "MediaCard {"
-    "    background-color: white;"
-    "    border: 1px solid #E0E0E0;"
-    "    border-radius: 8px;"
-    "    margin: 2px;"
-    "}"
-    "MediaCard:hover {"
-    "    border: 2px solid #2196F3;"
-    "    box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
-    "}";
-
-const QString MediaCard::STYLE_SELECTED = 
-    "MediaCard {"
-    "    background-color: #E3F2FD;"
-    "    border: 2px solid #2196F3;"
-    "    border-radius: 8px;"
-    "    margin: 2px;"
-    "    box-shadow: 0 2px 8px rgba(33,150,243,0.3);"
-    "}";
-
-const QString MediaCard::STYLE_HOVERED = 
-    "MediaCard {"
-    "    background-color: #F5F5F5;"
-    "    border: 2px solid #2196F3;"
-    "    border-radius: 8px;"
-    "    margin: 2px;"
-    "    box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
-    "}";
-
 MediaCard::MediaCard(Media* media, QWidget *parent)
     : QFrame(parent)
     , m_media(media)
@@ -55,7 +19,6 @@ MediaCard::MediaCard(Media* media, QWidget *parent)
     , m_mainLayout(nullptr)
     , m_headerLayout(nullptr)
     , m_contentLayout(nullptr)
-    , m_buttonLayout(nullptr)
     , m_typeLabel(nullptr)
     , m_titleLabel(nullptr)
     , m_yearLabel(nullptr)
@@ -71,9 +34,15 @@ MediaCard::MediaCard(Media* media, QWidget *parent)
     setFixedSize(CARD_WIDTH, CARD_HEIGHT);
     setFrameStyle(QFrame::StyledPanel);
     
+    // Imposta il tipo di media come proprietà per il CSS
+    QString mediaType = m_media->getTypeDisplayName().toLower();
+    setProperty("mediaType", mediaType);
+    
+    // Imposta stato iniziale
+    setProperty("selected", false);
+    
     try {
         setupUI();
-        updateStyleSheet();
     } catch (const std::exception& e) {
         qWarning() << "Errore nella creazione MediaCard:" << e.what();
     }
@@ -98,7 +67,11 @@ void MediaCard::setSelected(bool selected)
 {
     if (m_selected != selected) {
         m_selected = selected;
-        updateStyleSheet();
+        setProperty("selected", selected);
+        
+        // Forza il refresh dello stile
+        style()->unpolish(this);
+        style()->polish(this);
         update();
     }
 }
@@ -133,7 +106,6 @@ void MediaCard::updateContent()
             m_imageLabel->setPixmap(getTypeIcon());
         }
         
-        setupTypeSpecificContent();
     } catch (const std::exception& e) {
         qWarning() << "Errore nell'aggiornamento contenuto MediaCard:" << e.what();
     }
@@ -165,14 +137,12 @@ void MediaCard::contextMenuEvent(QContextMenuEvent *event)
 void MediaCard::enterEvent(QEnterEvent *event)
 {
     m_hovered = true;
-    updateStyleSheet();
     QFrame::enterEvent(event);
 }
 
 void MediaCard::leaveEvent(QEvent *event)
 {
     m_hovered = false;
-    updateStyleSheet();
     QFrame::leaveEvent(event);
 }
 
@@ -180,24 +150,8 @@ void MediaCard::paintEvent(QPaintEvent *event)
 {
     QFrame::paintEvent(event);
     
-    // Disegna una barra colorata in alto per identificare il tipo
-    if (m_media) {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-        
-        QString color = COLOR_DEFAULT;
-        QString type = m_media->getTypeDisplayName();
-        
-        if (type == "Libro") {
-            color = COLOR_LIBRO;
-        } else if (type == "Film") {
-            color = COLOR_FILM;
-        } else if (type == "Articolo") {
-            color = COLOR_ARTICOLO;
-        }
-        
-        painter.fillRect(0, 0, width(), 4, QColor(color));
-    }
+    // Il colore della barra viene gestito dal CSS tramite border-left
+    // Non serve più disegnare manualmente
 }
 
 void MediaCard::setupUI()
@@ -207,19 +161,19 @@ void MediaCard::setupUI()
     try {
         setupLayout();
         
-        // Configurazione delle label con controlli di sicurezza
+        // Configurazione delle label con objectName per il CSS
         m_typeLabel = new QLabel(m_media->getTypeDisplayName(), this);
-        m_typeLabel->setStyleSheet("font-weight: bold; font-size: 10px; color: #666;");
+        m_typeLabel->setObjectName("typeLabel");  // Per il CSS
         
         m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25), this);
-        m_titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #333;");
+        m_titleLabel->setObjectName("titleLabel");  // Per il CSS
         m_titleLabel->setWordWrap(true);
         
         m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
-        m_yearLabel->setStyleSheet("font-size: 12px; color: #666;");
+        m_yearLabel->setObjectName("yearLabel");  // Per il CSS
         
         m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80), this);
-        m_descriptionLabel->setStyleSheet("font-size: 11px; color: #555;");
+        m_descriptionLabel->setObjectName("descriptionLabel");  // Per il CSS
         m_descriptionLabel->setWordWrap(true);
         
         m_imageLabel = new QLabel(this);
@@ -228,10 +182,11 @@ void MediaCard::setupUI()
         m_imageLabel->setPixmap(getTypeIcon());
         
         m_infoLabel = new QLabel(formatDisplayInfo(), this);
-        m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
+        m_infoLabel->setObjectName("infoLabel");  // Per il CSS
         m_infoLabel->setWordWrap(true);
         
         setupTypeSpecificContent();
+        
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupUI:" << e.what();
     }
@@ -263,21 +218,6 @@ void MediaCard::setupLayout()
     }
 }
 
-void MediaCard::updateStyleSheet()
-{
-    try {
-        if (m_selected) {
-            setStyleSheet(STYLE_SELECTED);
-        } else if (m_hovered) {
-            setStyleSheet(STYLE_HOVERED);
-        } else {
-            setStyleSheet(STYLE_NORMAL);
-        }
-    } catch (const std::exception& e) {
-        qWarning() << "Errore in updateStyleSheet:" << e.what();
-    }
-}
-
 void MediaCard::setupTypeSpecificContent()
 {
     if (!m_media || !m_mainLayout) return;
@@ -303,7 +243,9 @@ void MediaCard::setupTypeSpecificContent()
             if (m_titleLabel) m_contentLayout->addWidget(m_titleLabel);
             if (m_yearLabel) {
                 QHBoxLayout* yearLayout = new QHBoxLayout();
-                yearLayout->addWidget(new QLabel("Anno:", this));
+                QLabel* yearLabelText = new QLabel("Anno:", this);
+                yearLabelText->setObjectName("yearLabelText");
+                yearLayout->addWidget(yearLabelText);
                 yearLayout->addWidget(m_yearLabel);
                 yearLayout->addStretch();
                 m_contentLayout->addLayout(yearLayout);
@@ -322,21 +264,6 @@ void MediaCard::setupTypeSpecificContent()
     }
 }
 
-void MediaCard::setupLibroContent()
-{
-    // Implementazione semplificata - solo visualizzazione dati
-}
-
-void MediaCard::setupFilmContent()
-{
-    // Implementazione semplificata - solo visualizzazione dati
-}
-
-void MediaCard::setupArticoloContent()
-{
-    // Implementazione semplificata - solo visualizzazione dati
-}
-
 QPixmap MediaCard::getTypeIcon() const
 {
     if (!m_media) {
@@ -345,16 +272,18 @@ QPixmap MediaCard::getTypeIcon() const
     
     QString type = m_media->getTypeDisplayName();
     
-    // Crea un'icona di default semplice
+    // Crea un'icona semplice con colori del tema scuro
     QPixmap pixmap(IMAGE_SIZE, IMAGE_SIZE);
-    QString color = COLOR_DEFAULT;
+    QString color;
     
     if (type == "Libro") {
-        color = COLOR_LIBRO;
+        color = "#4CAF50";  // Verde
     } else if (type == "Film") {
-        color = COLOR_FILM;
+        color = "#03DAC6";  // Teal
     } else if (type == "Articolo") {
-        color = COLOR_ARTICOLO;
+        color = "#FF9800";  // Arancione
+    } else {
+        color = "#BB86FC";  // Viola di default
     }
     
     pixmap.fill(QColor(color));
@@ -365,11 +294,6 @@ QPixmap MediaCard::getTypeIcon() const
     painter.drawText(pixmap.rect(), Qt::AlignCenter, type.left(1).toUpper());
     
     return pixmap;
-}
-
-QPixmap MediaCard::loadMediaImage() const
-{
-    return getTypeIcon();
 }
 
 QString MediaCard::truncateText(const QString& text, int maxLength) const

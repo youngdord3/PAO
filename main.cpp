@@ -3,6 +3,8 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QFile>
+#include <QTextStream>
 #include "interfaccia/mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -24,34 +26,17 @@ int main(int argc, char *argv[])
     QString appDir = QApplication::applicationDirPath();
     QDir::setCurrent(appDir);
     
-    // Carica CSS solo se esistente
-    QString cssContent;
+    // Carica CSS tema scuro - OBBLIGATORIO
     QFile styleFile(":/styles/styles.css");
-    if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
-        QTextStream stream(&styleFile);
-        cssContent = stream.readAll();
-        app.setStyleSheet(cssContent);
-    } else {
-        // Fallback CSS inline minimo
-        cssContent = R"(
-            QMainWindow { background-color: #f5f5f5; }
-            QPushButton { 
-                background-color: #2196f3; 
-                color: white; 
-                border: none; 
-                padding: 8px 16px; 
-                border-radius: 4px; 
-            }
-            QPushButton:hover { background-color: #1976d2; }
-            QGroupBox { 
-                font-weight: bold; 
-                border: 2px solid #cccccc; 
-                border-radius: 5px; 
-                margin-top: 10px; 
-            }
-        )";
-        app.setStyleSheet(cssContent);
+    if (!styleFile.open(QFile::ReadOnly | QFile::Text)) {
+        QMessageBox::critical(nullptr, "Errore CSS", 
+                             "File CSS tema scuro non trovato!\nVerificare styles/styles.css nelle risorse.");
+        return -1;
     }
+    
+    QTextStream stream(&styleFile);
+    QString cssContent = stream.readAll();
+    app.setStyleSheet(cssContent);
     
     try {
         // Crea e mostra finestra principale

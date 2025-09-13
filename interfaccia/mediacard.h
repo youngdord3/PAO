@@ -1,3 +1,5 @@
+// interfaccia/mediacard.h - Rimuovere costanti colori hardcoded
+
 #ifndef MEDIACARD_H
 #define MEDIACARD_H
 
@@ -16,7 +18,7 @@ class Media;
  * @brief Widget card per visualizzare un media nella collezione
  * 
  * Ogni card mostra le informazioni principali del media
- * con un design responsivo e interattivo
+ * con un design responsivo e interattivo utilizzando solo CSS
  */
 class MediaCard : public QFrame
 {
@@ -53,17 +55,10 @@ protected:
 private:
     void setupUI();
     void setupLayout();
-    void updateStyleSheet();
     void setupTypeSpecificContent();
-    
-    // Creazione elementi UI specifici per tipo (solo visualizzazione)
-    void setupLibroContent();
-    void setupFilmContent();
-    void setupArticoloContent();
     
     // Gestione immagini
     QPixmap getTypeIcon() const;
-    QPixmap loadMediaImage() const;
     
     // Utility
     QString truncateText(const QString& text, int maxLength) const;
@@ -78,9 +73,8 @@ private:
     QVBoxLayout* m_mainLayout;
     QHBoxLayout* m_headerLayout;
     QVBoxLayout* m_contentLayout;
-    QHBoxLayout* m_buttonLayout;
     
-    // Elementi UI per visualizzazione dati
+    // Elementi UI per visualizzazione dati - con objectName per CSS
     QLabel* m_typeLabel;
     QLabel* m_titleLabel;
     QLabel* m_yearLabel;
@@ -88,23 +82,10 @@ private:
     QLabel* m_imageLabel;
     QLabel* m_infoLabel;
     
-    // Costanti per il design
+    // Costanti per le dimensioni
     static const int CARD_WIDTH = 280;
     static const int CARD_HEIGHT = 200;
     static const int IMAGE_SIZE = 48;
-    static const int BORDER_RADIUS = 8;
-    static const int SHADOW_OFFSET = 2;
-    
-    // Colori per i tipi di media
-    static const QString COLOR_LIBRO;
-    static const QString COLOR_FILM;
-    static const QString COLOR_ARTICOLO;
-    static const QString COLOR_DEFAULT;
-    
-    // Stili CSS
-    static const QString STYLE_NORMAL;
-    static const QString STYLE_SELECTED;
-    static const QString STYLE_HOVERED;
 };
 
 #endif // MEDIACARD_H

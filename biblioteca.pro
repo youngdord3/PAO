@@ -42,7 +42,7 @@ HEADERS += modello_logico/media.h \
            interfaccia/mediadialog.h \
            json/jsonmanager.h
 
-# File di risorse - ABILITATO
+# File di risorse 
 RESOURCES += resources.qrc
 
 # Abilitare warning per API Qt deprecate
