@@ -96,10 +96,10 @@ void MainWindow::setupToolBar()
 {
     QToolBar* toolBar = addToolBar("Principale");
     toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     
+    // Tutte le icone caricate dal resources.qrc
     QAction* nuovoAction = toolBar->addAction(QIcon(":/icons/new_icon.png"), "Nuovo");
     nuovoAction->setToolTip("Crea una nuova collezione");
     connect(nuovoAction, &QAction::triggered, this, [this]() {
@@ -129,7 +129,6 @@ void MainWindow::setupToolBar()
             mostraErrore(QString("Errore: %1").arg(e.what()));
         }
     });
-    
 }
 
 void MainWindow::setupStatusBar()
@@ -183,8 +182,11 @@ void MainWindow::setupFilterArea()
     searchLayout->addWidget(m_searchEdit);
     
     QHBoxLayout* searchButtonLayout = new QHBoxLayout();
+    // Icona ricerca dal resources.qrc
     m_searchButton = new QPushButton(QIcon(":/icons/search_icon.png"), "Cerca");
+    m_searchButton->setToolTip("Cerca tra tutti i media della collezione");
     m_clearSearchButton = new QPushButton("Cancella");
+    m_clearSearchButton->setToolTip("Cancella il testo di ricerca e mostra tutti i media");
     searchButtonLayout->addWidget(m_searchButton);
     searchButtonLayout->addWidget(m_clearSearchButton);
     searchLayout->addLayout(searchButtonLayout);
@@ -210,6 +212,7 @@ void MainWindow::setupFilterArea()
     m_tipoCombo = new QComboBox();
     m_tipoCombo->addItems({"Tutti", "Libro", "Film", "Articolo"});
     m_tipoCombo->setMaximumHeight(30);
+    m_tipoCombo->setToolTip("Filtra i media per tipo");
     filtersLayout->addWidget(m_tipoCombo);
     
     // Filtro per anno
@@ -219,10 +222,12 @@ void MainWindow::setupFilterArea()
     m_annoMinSpin->setRange(1000, 2100);
     m_annoMinSpin->setValue(1000);
     m_annoMinSpin->setMaximumHeight(30);
+    m_annoMinSpin->setToolTip("Anno minimo di pubblicazione");
     m_annoMaxSpin = new QSpinBox();
     m_annoMaxSpin->setRange(1000, 2100);
     m_annoMaxSpin->setValue(QDate::currentDate().year());
     m_annoMaxSpin->setMaximumHeight(30);
+    m_annoMaxSpin->setToolTip("Anno massimo di pubblicazione");
     annoLayout->addWidget(new QLabel("Da:"));
     annoLayout->addWidget(m_annoMinSpin);
     annoLayout->addWidget(new QLabel("A:"));
@@ -234,26 +239,31 @@ void MainWindow::setupFilterArea()
     m_autoreEdit = new QLineEdit();
     m_autoreEdit->setPlaceholderText("Nome autore...");
     m_autoreEdit->setMaximumHeight(30);
+    m_autoreEdit->setToolTip("Filtra per nome dell'autore (solo libri e articoli)");
     filtersLayout->addWidget(m_autoreEdit);
     
     filtersLayout->addWidget(new QLabel("Regista:"));
     m_registaEdit = new QLineEdit();
     m_registaEdit->setPlaceholderText("Nome regista...");
     m_registaEdit->setMaximumHeight(30);
+    m_registaEdit->setToolTip("Filtra per nome del regista (solo film)");
     filtersLayout->addWidget(m_registaEdit);
     
     filtersLayout->addWidget(new QLabel("Rivista:"));
     m_rivistaEdit = new QLineEdit();
     m_rivistaEdit->setPlaceholderText("Nome rivista...");
     m_rivistaEdit->setMaximumHeight(30);
+    m_rivistaEdit->setToolTip("Filtra per nome della rivista (solo articoli)");
     filtersLayout->addWidget(m_rivistaEdit);
     
     // Bottoni filtri
     QHBoxLayout* filterButtonLayout = new QHBoxLayout();
     m_applyFilterButton = new QPushButton("Applica"); 
     m_applyFilterButton->setMaximumHeight(30);
+    m_applyFilterButton->setToolTip("Applica tutti i filtri impostati");
     m_resetFilterButton = new QPushButton("Reset");
     m_resetFilterButton->setMaximumHeight(30);
+    m_resetFilterButton->setToolTip("Cancella tutti i filtri e mostra tutti i media");
     filterButtonLayout->addWidget(m_applyFilterButton);
     filterButtonLayout->addWidget(m_resetFilterButton);
     filtersLayout->addLayout(filterButtonLayout);
@@ -283,23 +293,21 @@ void MainWindow::setupFilterArea()
     m_actionsGroup->setMinimumHeight(180);
     QVBoxLayout* actionsLayout = new QVBoxLayout(m_actionsGroup);
     
+    // Tutti i pulsanti con icone dal resources.qrc e tooltip migliorati
     m_addButton = new QPushButton(QIcon(":/icons/add_icon.png"), "Aggiungi Media");
-    m_editButton = new QPushButton(QIcon(":/icons/edit_icon.png"), "Modifica");
-    m_removeButton = new QPushButton(QIcon(":/icons/delete_icon.png"), "Rimuovi");
-    m_detailsButton = new QPushButton(QIcon(":/icons/details_icon.png"), "Dettagli");
+    m_addButton->setToolTip("Aggiungi un nuovo media alla collezione");
     
-    if (m_editButton) {
-        m_editButton->setEnabled(false);
-        m_editButton->setToolTip("Seleziona un media per modificarlo");
-    }
-    if (m_removeButton) {
-        m_removeButton->setEnabled(false);
-        m_removeButton->setToolTip("Seleziona un media per rimuoverlo");
-    }
-    if (m_detailsButton) {
-        m_detailsButton->setEnabled(false);
-        m_detailsButton->setToolTip("Seleziona un media per visualizzarne i dettagli");
-    }
+    m_editButton = new QPushButton(QIcon(":/icons/edit_icon.png"), "Modifica");
+    m_editButton->setEnabled(false);
+    m_editButton->setToolTip("Modifica il media selezionato");
+    
+    m_removeButton = new QPushButton(QIcon(":/icons/delete_icon.png"), "Rimuovi");
+    m_removeButton->setEnabled(false);
+    m_removeButton->setToolTip("Rimuovi il media selezionato dalla collezione");
+    
+    m_detailsButton = new QPushButton(QIcon(":/icons/details_icon.png"), "Dettagli");
+    m_detailsButton->setEnabled(false);
+    m_detailsButton->setToolTip("Visualizza i dettagli completi del media selezionato");
     
     actionsLayout->addWidget(m_addButton);
     actionsLayout->addWidget(m_editButton);

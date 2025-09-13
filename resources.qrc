@@ -4,31 +4,32 @@
         <file>styles/styles.css</file>
     </qresource>
     
+    <!-- Dati di esempio -->
     <qresource prefix="/data">
         <file>data.json</file>
     </qresource>
     
     <qresource prefix="/icons">
-        <!-- Icone per tipi di media -->
+        <!-- Icone toolbar -->
+        <file alias="new_icon.png">immagini/new_icon.png</file>
+        <file alias="open_icon.png">immagini/open_icon.png</file>
+        <file alias="save_icon.png">immagini/save_icon.png</file>
+        
+        <!-- Icone pulsanti azioni -->
+        <file alias="add_icon.png">immagini/add_icon.png</file>
+        <file alias="edit_icon.png">immagini/edit_icon.png</file>
+        <file alias="delete_icon.png">immagini/delete_icon.png</file>
+        <file alias="details_icon.png">immagini/details_icon.png</file>
+        
+        <!-- Icona ricerca -->
+        <file alias="search_icon.png">immagini/search_icon.png</file>
+        
+        <!-- Icone tipi di media -->
         <file alias="libro.png">immagini/libro_icon.png</file>
         <file alias="film.png">immagini/film_icon.png</file>
         <file alias="articolo.png">immagini/articolo_icon.png</file>
         
-        <!-- Icona principale dell'applicazione -->
+        <!-- Icona applicazione -->
         <file alias="app_icon.png">immagini/app_icon.png</file>
-        
-        <!-- Icone per azioni -->
-        <file alias="add_icon.png">immagini/add_icon.png</file>
-        <file alias="edit_icon.png">immagini/edit_icon.png</file>
-        <file alias="delete_icon.png">immagini/delete_icon.png</file>
-        <file alias="search_icon.png">immagini/search_icon.png</file>
-        <file alias="details_icon.png">immagini/details_icon.png</file>
-        
-        <!-- Icone per file operations -->
-        <file alias="save_icon.png">immagini/save_icon.png</file>
-        <file alias="open_icon.png">immagini/open_icon.png</file>
-        <file alias="new_icon.png">immagini/new_icon.png</file>
-        
-        <!-- Icone di sistema -->
     </qresource>
 </RCC>

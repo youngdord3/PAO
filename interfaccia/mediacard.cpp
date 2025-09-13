@@ -270,30 +270,25 @@ QPixmap MediaCard::getTypeIcon() const
         return QPixmap();
     }
     
-    QString type = m_media->getTypeDisplayName();
+    QString type = m_media->getTypeDisplayName().toLower();
     
-    // Crea un'icona semplice con colori del tema scuro
-    QPixmap pixmap(IMAGE_SIZE, IMAGE_SIZE);
-    QString color;
-    
-    if (type == "Libro") {
-        color = "#4CAF50";  // Verde
-    } else if (type == "Film") {
-        color = "#03DAC6";  // Teal
-    } else if (type == "Articolo") {
-        color = "#FF9800";  // Arancione
-    } else {
-        color = "#BB86FC";  // Viola di default
+    // Carica l'icona appropriata dal resources.qrc
+    QIcon icon;
+    if (type == "libro") {
+        icon = QIcon(":/icons/libro.png");
+    } else if (type == "film") {
+        icon = QIcon(":/icons/film.png");
+    } else if (type == "articolo") {
+        icon = QIcon(":/icons/articolo.png");
     }
     
-    pixmap.fill(QColor(color));
+    // Se l'icona esiste nel resources.qrc, convertila in QPixmap
+    if (!icon.isNull()) {
+        return icon.pixmap(IMAGE_SIZE, IMAGE_SIZE);
+    }
     
-    QPainter painter(&pixmap);
-    painter.setPen(Qt::white);
-    painter.setFont(QFont("Arial", 16, QFont::Bold));
-    painter.drawText(pixmap.rect(), Qt::AlignCenter, type.left(1).toUpper());
-    
-    return pixmap;
+    // Se non esiste l'icona nel resources.qrc, restituisci un pixmap vuoto
+    return QPixmap();
 }
 
 QString MediaCard::truncateText(const QString& text, int maxLength) const
