@@ -9,7 +9,6 @@
 #include <QStatusBar>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QInputDialog>
 #include <QProgressBar>
 #include <QSplitter>
 #include <QGroupBox>
@@ -26,7 +25,6 @@
 #include <QCloseEvent>
 #include <QResizeEvent>
 #include <QSettings>
-#include <QStandardPaths>
 #include <QTimer>
 #include <QDebug>
 
@@ -363,25 +361,29 @@ void MainWindow::updateLayout()
 
 void MainWindow::refreshMediaCards()
 {
-    clearMediaCards();
+    if (!m_mediaLayout) return;
     
     try {
+        for (MediaCard* card : m_mediaCards) {
+            if (card) {
+                card->setVisible(false);
+            }
+        }
+        
         std::vector<Media*> media;
         
-        // Prima applica la ricerca testuale
+        // Applica ricerca
         QString searchText = m_searchEdit->text().trimmed();
         if (searchText.isEmpty()) {
-            // Se non c'è testo di ricerca, prendi tutti i media
             const auto& allMedia = m_collezione->getAllMedia();
             for (const auto& m : allMedia) {
                 media.push_back(m.get());
             }
         } else {
-            // Applica la ricerca testuale
             media = m_collezione->searchMedia(searchText);
         }
         
-        // Poi applica i filtri sui risultati della ricerca
+        // Applica filtri
         auto filtro = creaFiltroCorrente();
         if (filtro) {
             std::vector<Media*> filteredMedia;
@@ -393,21 +395,36 @@ void MainWindow::refreshMediaCards()
             media = filteredMedia;
         }
         
-        for (Media* mediaPtr : media) {
-            if (mediaPtr) {
-                try {
-                    MediaCard* card = new MediaCard(mediaPtr, m_mediaContainer);
-                    m_mediaCards.push_back(card);
-                    
-                    // Connessioni per selezione
-                    connect(card, &MediaCard::selezionato,
-                            this, &MainWindow::onCardSelezionata);
-                    connect(card, &MediaCard::doppioClick,
-                            this, &MainWindow::onCardDoubleClic);
-                    
-                } catch (const std::exception& e) {
-                    qWarning() << "Errore nella creazione MediaCard:" << e.what();
+        // Riusa le card esistenti o crea nuove
+        for (size_t i = 0; i < media.size(); ++i) {
+            MediaCard* card = nullptr;
+            
+            if (i < m_mediaCards.size()) {
+                // Riusa card esistente
+                card = m_mediaCards[i];
+                // Aggiorna il media se diverso
+                if (card->getMedia() != media[i]) {
+                    m_mediaLayout->removeWidget(card);
+                    card->deleteLater();
+                    card = new MediaCard(media[i], m_mediaContainer);
+                    m_mediaCards[i] = card;
                 }
+            } else {
+                // Crea nuova card
+                card = new MediaCard(media[i], m_mediaContainer);
+                m_mediaCards.push_back(card);
+            }
+            
+            if (card) {
+                card->setVisible(true);
+                connect(card, &MediaCard::selezionato, this, &MainWindow::onCardSelezionata);
+                connect(card, &MediaCard::doppioClick, this, &MainWindow::onCardDoubleClic);
+            }
+        }
+        
+        for (size_t i = media.size(); i < m_mediaCards.size(); ++i) {
+            if (m_mediaCards[i]) {
+                m_mediaCards[i]->setVisible(false);
             }
         }
         

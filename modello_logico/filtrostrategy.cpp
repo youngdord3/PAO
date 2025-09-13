@@ -89,7 +89,6 @@ bool FiltroComposto::matches(const Media* media) const
 {
     if (!media || m_filtri.empty()) return true;
     
-    // AND logic: tutti i filtri devono essere soddisfatti
     for (const auto& filtro : m_filtri) {
         if (!filtro->matches(media)) {
             return false;
@@ -221,18 +220,14 @@ std::unique_ptr<FiltroStrategy> FiltroFactory::createLibriRecentiFiltro(int anni
 
 std::unique_ptr<FiltroStrategy> FiltroFactory::createFilmLunghiFiltro()
 {
-    // Filtro custom per film lunghi (implementazione semplificata)
     auto filtroComposto = std::make_unique<FiltroComposto>();
     filtroComposto->addFiltro(std::make_unique<FiltroTipo>("Film"));
-    // Nota: per un filtro più specifico sulla durata si potrebbe estendere il sistema
     return filtroComposto;
 }
 
 std::unique_ptr<FiltroStrategy> FiltroFactory::createArticoliPeerReviewedFiltro()
 {
-    // Filtro custom per articoli peer-reviewed (implementazione semplificata)
     auto filtroComposto = std::make_unique<FiltroComposto>();
     filtroComposto->addFiltro(std::make_unique<FiltroTipo>("Articolo"));
-    // Nota: per un filtro più specifico sul peer-review si potrebbe estendere il sistema
     return filtroComposto;
 }

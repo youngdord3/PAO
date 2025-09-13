@@ -22,7 +22,6 @@ public:
     Media(const QString& titolo, int anno, const QString& descrizione);
     virtual ~Media() = default;
     
-    // Rimuovi copy constructor e assignment operator per evitare problemi con unique_ptr
     Media(const Media&) = delete;
     Media& operator=(const Media&) = delete;
     
@@ -35,7 +34,7 @@ public:
     void setTitolo(const QString& titolo);
     void setAnno(int anno);
     void setDescrizione(const QString& descrizione);
-    void setId(const QString& id) { m_id = id; }  // QUESTO METODO È GIÀ PRESENTE E PUBBLICO
+    void setId(const QString& id) { m_id = id; }
     
     // Metodi virtuali
     virtual std::unique_ptr<Media> clone() const = 0;

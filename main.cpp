@@ -1,48 +1,63 @@
 #include <QApplication>
 #include <QStyleFactory>
 #include <QDir>
-#include <QStandardPaths>
-#include <QDebug>
-#include <QFile>
-#include <QTextStream>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include "interfaccia/mainwindow.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     
-    // Impostazione di uno stile moderno
-    app.setStyle(QStyleFactory::create("Fusion"));
+    // Setup applicazione base
+    app.setApplicationName("Biblioteca Manager");
+    app.setApplicationVersion("1.0");
+    app.setOrganizationName("Library Systems");
     
-    // Setup di percorsi e directory di lavoro
+    // Imposta stile moderno se disponibile
+    QStringList availableStyles = QStyleFactory::keys();
+    if (availableStyles.contains("Fusion")) {
+        app.setStyle(QStyleFactory::create("Fusion"));
+    }
+    
+    // Setup directory di lavoro
     QString appDir = QApplication::applicationDirPath();
     QDir::setCurrent(appDir);
     
-    // Carica gli stili CSS dalle risorse
+    // Carica CSS solo se esistente
+    QString cssContent;
     QFile styleFile(":/styles/styles.css");
     if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream stream(&styleFile);
-        QString styleSheet = stream.readAll();
-        app.setStyleSheet(styleSheet);
+        cssContent = stream.readAll();
+        app.setStyleSheet(cssContent);
     } else {
-        qWarning() << "Impossibile caricare il file CSS dalle risorse";
-        // Prova a caricare dal filesystem come fallback
-        QFile fallbackFile("styles/styles.css");
-        if (fallbackFile.open(QFile::ReadOnly | QFile::Text)) {
-            QTextStream stream(&fallbackFile);
-            QString styleSheet = stream.readAll();
-            app.setStyleSheet(styleSheet);
-        } else {
-            qWarning() << "Nessun file CSS trovato - usando stili di default";
-        }
+        // Fallback CSS inline minimo
+        cssContent = R"(
+            QMainWindow { background-color: #f5f5f5; }
+            QPushButton { 
+                background-color: #2196f3; 
+                color: white; 
+                border: none; 
+                padding: 8px 16px; 
+                border-radius: 4px; 
+            }
+            QPushButton:hover { background-color: #1976d2; }
+            QGroupBox { 
+                font-weight: bold; 
+                border: 2px solid #cccccc; 
+                border-radius: 5px; 
+                margin-top: 10px; 
+            }
+        )";
+        app.setStyleSheet(cssContent);
     }
     
     try {
-        // Creazione e visualizzazione della finestra principale
+        // Crea e mostra finestra principale
         MainWindow window;
         
-        // Imposta l'icona dell'applicazione se disponibile
+        // Imposta icona solo se disponibile
         QIcon appIcon(":/icons/app_icon.png");
         if (!appIcon.isNull()) {
             window.setWindowIcon(appIcon);
@@ -50,26 +65,11 @@ int main(int argc, char *argv[])
         }
         
         window.show();
-        
-        // Avvio del ciclo degli eventi
-        int result = app.exec();
-        
-        return result;
+        return app.exec();
         
     } catch (const std::exception& e) {
-        qCritical() << "Errore critico durante l'avvio:" << e.what();
-        
-        // Mostra un messaggio di errore all'utente
         QMessageBox::critical(nullptr, "Errore Critico", 
-                             QString("Si è verificato un errore critico:\n%1").arg(e.what()));
-        
+                             QString("Errore durante l'avvio: %1").arg(e.what()));
         return -1;
-    } catch (...) {
-        qCritical() << "Errore critico sconosciuto durante l'avvio";
-        
-        QMessageBox::critical(nullptr, "Errore Critico", 
-                             "Si è verificato un errore critico sconosciuto durante l'avvio dell'applicazione.");
-        
-        return -2;
     }
 }

@@ -16,7 +16,7 @@ class Media;
  * @brief Widget card per visualizzare un media nella collezione
  * 
  * Ogni card mostra le informazioni principali del media
- * con un design responsivo e interattivo - SENZA BOTTONI DI AZIONE
+ * con un design responsivo e interattivo
  */
 class MediaCard : public QFrame
 {
@@ -78,7 +78,7 @@ private:
     QVBoxLayout* m_mainLayout;
     QHBoxLayout* m_headerLayout;
     QVBoxLayout* m_contentLayout;
-    QHBoxLayout* m_buttonLayout; // Tenuto per compatibilità ma non usato
+    QHBoxLayout* m_buttonLayout;
     
     // Elementi UI per visualizzazione dati
     QLabel* m_typeLabel;
@@ -87,11 +87,6 @@ private:
     QLabel* m_descriptionLabel;
     QLabel* m_imageLabel;
     QLabel* m_infoLabel;
-    
-    // RIMOSSO: I puntatori ai bottoni di azione
-    QPushButton* m_editButton;     // Mantenuto per compatibilità (nullptr)
-    QPushButton* m_deleteButton;   // Mantenuto per compatibilità (nullptr)
-    QPushButton* m_detailsButton;  // Mantenuto per compatibilità (nullptr)
     
     // Costanti per il design
     static const int CARD_WIDTH = 280;

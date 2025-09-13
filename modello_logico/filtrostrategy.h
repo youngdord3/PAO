@@ -10,7 +10,6 @@ class Media;
  * @brief Pattern Strategy per i filtri di ricerca
  * 
  * Permette di implementare diversi algoritmi di filtro
- * in modo intercambiabile
  */
 class FiltroStrategy
 {
@@ -69,7 +68,7 @@ private:
 };
 
 /**
- * @brief Filtro composto che combina più filtri con AND
+ * @brief Filtro composto che combina più filtri
  */
 class FiltroComposto : public FiltroStrategy
 {

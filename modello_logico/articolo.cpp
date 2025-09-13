@@ -275,7 +275,6 @@ QString Articolo::getImpactInfo() const
 int Articolo::getEstimatedReadingTime() const
 {
     int pageCount = calculatePageCount();
-    // Stima: 2-3 minuti per pagina per articoli accademici
     return pageCount * 3;
 }
 
@@ -376,16 +375,14 @@ QString Articolo::getSearchableText() const
 
 bool Articolo::isValidDoi(const QString& doi) const
 {
-    if (doi.isEmpty()) return true; // DOI opzionale
+    if (doi.isEmpty()) return true;
     
-    // Pattern base per DOI: 10.xxxx/xxxxx
     QRegularExpression doiPattern("^10\\.\\d{4,}/\\S+$");
     return doiPattern.match(doi).hasMatch();
 }
 
 int Articolo::calculatePageCount() const
 {
-    // Estrae il numero di pagine da stringhe come "123-130" o "45"
     QRegularExpression pageRange("(\\d+)-(\\d+)");
     QRegularExpressionMatch match = pageRange.match(m_pagine);
     
@@ -395,8 +392,7 @@ int Articolo::calculatePageCount() const
         return end - start + 1;
     }
     
-    // Se è solo un numero, assume 1 pagina
     bool ok;
     m_pagine.toInt(&ok);
-    return ok ? 1 : 10; // Default per stime
+    return ok ? 1 : 10;
 }

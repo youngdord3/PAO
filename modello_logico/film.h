@@ -71,8 +71,6 @@ public:
     QString getTypeDisplayName() const override;
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
     
-    // RIMOSSO: createCard() - non più necessario
-    
     // Metodi specifici per film
     bool isLongMovie() const;
     QString getDurataFormatted() const;

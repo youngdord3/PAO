@@ -56,8 +56,6 @@ public:
     QString getTypeDisplayName() const override;
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
     
-    // RIMOSSO: createCard() - non più necessario
-    
     // Metodi specifici per libro
     bool isLongBook() const;
     QString getReadingTimeEstimate() const;

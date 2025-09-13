@@ -95,7 +95,6 @@ std::unique_ptr<Media> Film::clone() const
                                         m_attori, m_durata, m_genere, m_classificazione, 
                                         m_casa_produzione);
     
-    // ✅ CORREZIONE: Usa setId() invece dell'accesso diretto
     cloned->setId(this->getId());
     
     return cloned;
@@ -205,11 +204,11 @@ bool Film::isAdultContent() const
 QString Film::getRating() const
 {
     // Sistema di rating basato su genere e classificazione
-    int rating = 5; // Base rating
+    int rating = 5;
     
     if (m_genere == Documentario || m_genere == Dramma) rating += 1;
     if (m_classificazione == G || m_classificazione == PG) rating += 1;
-    if (m_durata > 90 && m_durata < 150) rating += 1; // Durata ottimale
+    if (m_durata > 90 && m_durata < 150) rating += 1;
     
     return QString("%1/10").arg(qMin(rating, 10));
 }

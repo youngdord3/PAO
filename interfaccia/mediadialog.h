@@ -16,7 +16,7 @@
 #include <QTabWidget>
 #include <QListWidget>
 #include <QScrollArea>
-#include <QTimer>  // AGGIUNTO per QTimer::singleShot
+#include <QTimer>
 #include <memory>
 
 class Media;
@@ -39,7 +39,7 @@ public:
     // Costruttore per modifica media esistente
     explicit MediaDialog(Media* media, QWidget *parent = nullptr, bool readOnly = false);
     
-    // CORREZIONE: Distruttore esplicito per cleanup
+    // Distruttore esplicito per cleanup
     ~MediaDialog();
     
     // Ottieni il media creato/modificato
@@ -81,7 +81,7 @@ private:
     void populateComboBoxes();
     void enableForm(bool enabled);
     
-    // NUOVI METODI per gestione sicura della memoria
+    // Gestione sicura della memoria
     void setupConnections();
     void disconnectGroupWidgets(QGroupBox* group);
     void resetSpecificPointers();

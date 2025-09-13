@@ -220,7 +220,7 @@ QStringList Collezione::getValidationErrors() const
     return errors;
 }
 
-// Iterator implementation
+// Iterator
 Collezione::Iterator::Iterator(const std::vector<std::unique_ptr<Media>>& collection, size_t index)
     : m_collection(collection), m_index(index)
 {

@@ -50,7 +50,7 @@ public:
     bool isValidCollection() const;
     QStringList getValidationErrors() const;
     
-    // Iterator pattern per attraversamento sicuro
+    // Iterator pattern
     class Iterator {
     public:
         Iterator(const std::vector<std::unique_ptr<Media>>& collection, size_t index);

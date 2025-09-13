@@ -6,7 +6,6 @@
 #include <QJsonObject>
 #include <QDate>
 
-// MediaFactory implementation
 std::unique_ptr<Media> MediaFactory::createMedia(const QString& tipo)
 {
     QString normalizedType = normalizeTypeName(tipo);
@@ -194,7 +193,7 @@ bool MediaFactory::validateJsonStructure(const QJsonObject& json, const QStringL
     return true;
 }
 
-// LibroFactory implementation
+// LibroFactory
 std::unique_ptr<Media> LibroFactory::create(const QString& titolo, int anno, 
                                           const QString& descrizione, const QString& autore)
 {
@@ -229,7 +228,7 @@ QStringList LibroFactory::getOptionalFields()
     return {"editore", "isbn", "genere"};
 }
 
-// FilmFactory implementation
+// FilmFactory
 std::unique_ptr<Media> FilmFactory::create(const QString& titolo, int anno, 
                                          const QString& descrizione, const QString& regista)
 {
@@ -266,7 +265,7 @@ QStringList FilmFactory::getOptionalFields()
     return {"genere", "classificazione", "casa_produzione"};
 }
 
-// ArticoloFactory implementation
+// ArticoloFactory
 std::unique_ptr<Media> ArticoloFactory::create(const QString& titolo, int anno, 
                                               const QString& descrizione, const QStringList& autori)
 {

@@ -95,7 +95,6 @@ MediaDialog::MediaDialog(Media* media, QWidget *parent, bool readOnly)
 
 MediaDialog::~MediaDialog()
 {
-    // Pulisce esplicitamente i puntatori per evitare accessi invalidi
     m_mainLayout = nullptr;
     m_formLayout = nullptr;
     m_baseGroup = nullptr;
@@ -197,7 +196,6 @@ void MediaDialog::onAggiungiAutoreClicked()
         
         QString autore = m_nuovoAutoreEdit->text().trimmed();
         if (!autore.isEmpty()) {
-            // Controlla duplicati nella lista AUTORI
             for (int i = 0; i < m_autoriList->count(); ++i) {
                 if (m_autoriList->item(i)->text() == autore) {
                     QMessageBox::information(this, "Info", "Autore già presente nella lista");
@@ -205,7 +203,7 @@ void MediaDialog::onAggiungiAutoreClicked()
                 }
             }
             
-            m_autoriList->addItem(autore);  // Aggiunge alla lista AUTORI
+            m_autoriList->addItem(autore);
             m_nuovoAutoreEdit->clear();
             m_nuovoAutoreEdit->setFocus();
             onValidazioneChanged();
@@ -222,7 +220,7 @@ void MediaDialog::onRimuoviAutoreClicked()
         
         int row = m_autoriList->currentRow();
         if (row >= 0) {
-            QListWidgetItem* item = m_autoriList->takeItem(row);  // Rimuove dalla lista AUTORI
+            QListWidgetItem* item = m_autoriList->takeItem(row);
             if (item) {
                 delete item;
                 onValidazioneChanged();
@@ -235,7 +233,6 @@ void MediaDialog::onRimuoviAutoreClicked()
     }
 }
 
-// ============ METODI PER I FILM (Attori) ============
 void MediaDialog::onAggiungiAttoreClicked()
 {
     try {
@@ -243,7 +240,6 @@ void MediaDialog::onAggiungiAttoreClicked()
         
         QString attore = m_nuovoAttoreEdit->text().trimmed();
         if (!attore.isEmpty()) {
-            // Controlla duplicati nella lista ATTORI
             for (int i = 0; i < m_attoriList->count(); ++i) {
                 if (m_attoriList->item(i)->text() == attore) {
                     QMessageBox::information(this, "Info", "Attore già presente nella lista");
@@ -251,7 +247,7 @@ void MediaDialog::onAggiungiAttoreClicked()
                 }
             }
             
-            m_attoriList->addItem(attore);  // Aggiunge alla lista ATTORI
+            m_attoriList->addItem(attore);
             m_nuovoAttoreEdit->clear();
             m_nuovoAttoreEdit->setFocus();
             onValidazioneChanged();
@@ -268,7 +264,7 @@ void MediaDialog::onRimuoviAttoreClicked()
         
         int row = m_attoriList->currentRow();
         if (row >= 0) {
-            QListWidgetItem* item = m_attoriList->takeItem(row);  // Rimuove dalla lista ATTORI
+            QListWidgetItem* item = m_attoriList->takeItem(row);
             if (item) {
                 delete item;
                 onValidazioneChanged();
@@ -298,7 +294,6 @@ void MediaDialog::onValidazioneChanged()
             m_validationLabel->setStyleSheet("color: red;");
         }
     } catch (const std::exception& e) {
-        // Non mostrare errore per la validazione, solo log
         qWarning() << "Errore nella validazione:" << e.what();
     }
 }
@@ -308,7 +303,6 @@ void MediaDialog::setupUI()
     setFixedSize(DIALOG_WIDTH, DIALOG_HEIGHT);
     setModal(true);
     
-    // CORREZIONE 5: Verifica che il layout principale non esista già
     if (m_mainLayout) {
         delete m_mainLayout;
     }
@@ -346,14 +340,12 @@ void MediaDialog::setupUI()
     setupBaseForm();
     setupButtons();
     
-    // Validation label
     m_validationLabel = new QLabel();
     if (m_validationLabel) {
         m_validationLabel->setWordWrap(true);
         m_mainLayout->addWidget(m_validationLabel);
     }
     
-    // CORREZIONE 6: Connessioni con controlli di sicurezza e disconnect preventivi
     setupConnections();
 }
 
@@ -998,7 +990,7 @@ void MediaDialog::enableForm(bool enabled)
         
         if (m_readOnly) {
             if (m_tipoCombo) m_tipoCombo->setEnabled(false);
-            if (m_cancelButton) m_cancelButton->setVisible(false); // NASCONDE il bottone Cancel in modalità sola lettura
+            if (m_cancelButton) m_cancelButton->setVisible(false);
             if (m_helpButton) m_helpButton->setVisible(false);
         }
     } catch (const std::exception& e) {
@@ -1026,7 +1018,6 @@ std::unique_ptr<Media> MediaDialog::createLibro() const
         auto libro = std::make_unique<Libro>(titolo, anno, descrizione, autore, 
                                            editore, pagine, isbn, genere);
         
-        // ✅ CORREZIONE: Usa setId() se stiamo modificando
         if (m_isEditing && m_mediaOriginale) {
             libro->setId(m_mediaOriginale->getId());
         }
@@ -1068,7 +1059,6 @@ std::unique_ptr<Media> MediaDialog::createFilm() const
         auto film = std::make_unique<Film>(titolo, anno, descrizione, regista, attori, 
                                          durata, genere, classificazione, casaProduzione);
         
-        // ✅ CORREZIONE: Usa setId() se stiamo modificando
         if (m_isEditing && m_mediaOriginale) {
             film->setId(m_mediaOriginale->getId());
         }
@@ -1112,7 +1102,6 @@ std::unique_ptr<Media> MediaDialog::createArticolo() const
                                                  volume, numero, pagine, categoria, tipoRivista,
                                                  dataPubblicazione, doi);
         
-        // ✅ CORREZIONE: Usa setId() se stiamo modificando
         if (m_isEditing && m_mediaOriginale) {
             articolo->setId(m_mediaOriginale->getId());
         }

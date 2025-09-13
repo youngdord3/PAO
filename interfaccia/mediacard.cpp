@@ -5,13 +5,11 @@
 #include "modello_logico/articolo.h"
 #include <QMouseEvent>
 #include <QContextMenuEvent>
-#include <QMenu>
 #include <QPainter>
 #include <QStyleOption>
 #include <QApplication>
 #include <QStyle>
 #include <QPixmap>
-#include <QFileInfo>
 
 // Costanti statiche
 const QString MediaCard::COLOR_LIBRO = "#4CAF50";     // Verde
@@ -64,9 +62,6 @@ MediaCard::MediaCard(Media* media, QWidget *parent)
     , m_descriptionLabel(nullptr)
     , m_imageLabel(nullptr)
     , m_infoLabel(nullptr)
-    , m_editButton(nullptr)
-    , m_deleteButton(nullptr)
-    , m_detailsButton(nullptr)
 {
     if (!m_media) {
         qWarning() << "MediaCard creata con media nullo!";
@@ -134,8 +129,6 @@ void MediaCard::updateContent()
         if (m_infoLabel) {
             m_infoLabel->setText(formatDisplayInfo());
         }
-        
-        // Aggiorna l'icona del tipo
         if (m_imageLabel) {
             m_imageLabel->setPixmap(getTypeIcon());
         }
@@ -238,8 +231,6 @@ void MediaCard::setupUI()
         m_infoLabel->setStyleSheet("font-size: 10px; color: #777;");
         m_infoLabel->setWordWrap(true);
         
-        // RIMOSSO: Non creiamo più i bottoni di azione
-        
         setupTypeSpecificContent();
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupUI:" << e.what();
@@ -292,21 +283,23 @@ void MediaCard::setupTypeSpecificContent()
     if (!m_media || !m_mainLayout) return;
     
     try {
-        // Layout semplificato - aggiungi solo i widget essenziali per visualizzare le informazioni
-        if (m_headerLayout && m_typeLabel && m_imageLabel) {
-            // Pulisci e ricostruisci solo se necessario
-            while (m_mainLayout->count() > 0) {
-                QLayoutItem* item = m_mainLayout->takeAt(0);
-                delete item;
+        if (!m_headerLayout) {
+            m_headerLayout = new QHBoxLayout();
+        }
+        if (!m_contentLayout) {
+            m_contentLayout = new QVBoxLayout();
+        }
+        
+        // Pulisci solo se necessario
+        if (m_mainLayout->count() == 0) {
+            // Header: tipo + icona
+            if (m_typeLabel && m_imageLabel) {
+                m_headerLayout->addWidget(m_typeLabel);
+                m_headerLayout->addStretch();
+                m_headerLayout->addWidget(m_imageLabel);
             }
             
-            // Ricostruisci layout semplice senza bottoni
-            m_headerLayout = new QHBoxLayout();
-            m_headerLayout->addWidget(m_typeLabel);
-            m_headerLayout->addStretch();
-            m_headerLayout->addWidget(m_imageLabel);
-            
-            m_contentLayout = new QVBoxLayout();
+            // Informazioni principali
             if (m_titleLabel) m_contentLayout->addWidget(m_titleLabel);
             if (m_yearLabel) {
                 QHBoxLayout* yearLayout = new QHBoxLayout();
@@ -318,21 +311,12 @@ void MediaCard::setupTypeSpecificContent()
             if (m_descriptionLabel) m_contentLayout->addWidget(m_descriptionLabel);
             if (m_infoLabel) m_contentLayout->addWidget(m_infoLabel);
             
-            // Aggiungi al layout principale - SENZA i bottoni
+            // Assembla layout finale
             m_mainLayout->addLayout(m_headerLayout);
             m_mainLayout->addLayout(m_contentLayout);
-            m_mainLayout->addStretch(); // Riempi lo spazio rimanente
+            m_mainLayout->addStretch();
         }
         
-        // Aggiungi contenuto specifico per tipo in modo semplice
-        QString type = m_media->getTypeDisplayName();
-        if (type == "Libro") {
-            setupLibroContent();
-        } else if (type == "Film") {
-            setupFilmContent();
-        } else if (type == "Articolo") {
-            setupArticoloContent();
-        }
     } catch (const std::exception& e) {
         qWarning() << "Errore in setupTypeSpecificContent:" << e.what();
     }
@@ -402,8 +386,7 @@ QString MediaCard::formatDisplayInfo() const
     
     try {
         QString info = m_media->getDisplayInfo();
-        
-        // Prendi solo le prime due righe delle informazioni
+
         QStringList lines = info.split('\n');
         if (lines.size() > 2) {
             return lines.mid(0, 2).join('\n') + "...";

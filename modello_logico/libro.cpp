@@ -78,7 +78,6 @@ std::unique_ptr<Media> Libro::clone() const
     auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
                                          m_editore, m_pagine, m_isbn, m_genere);
     
-    // ✅ CORREZIONE: Usa setId() invece dell'accesso diretto
     cloned->setId(this->getId());
     
     return cloned;
@@ -213,7 +212,6 @@ bool Libro::isValidIsbn(const QString& isbn) const
 {
     if (isbn.isEmpty()) return true; // ISBN opzionale
     
-    // Regex per ISBN-10 o ISBN-13
     QRegularExpression isbn10("^\\d{9}[\\dX]$");
     QRegularExpression isbn13("^\\d{13}$");
     

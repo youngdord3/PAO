@@ -44,7 +44,6 @@ void Media::setDescrizione(const QString& descrizione)
 
 bool Media::isValid() const
 {
-    // Template Method: validazione base + validazione specifica
     bool basicValid = !m_titolo.isEmpty() && 
                      m_anno > 0 && 
                      m_anno <= QDate::currentDate().year();

@@ -17,7 +17,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <QCheckBox>
-#include <vector>  // AGGIUNTO: per std::vector
+#include <vector>
 #include <memory>
 
 class Collezione;
