@@ -171,11 +171,13 @@ void MainWindow::setupFilterArea()
     m_filterWidget = new QWidget();
     m_filterWidget->setMaximumWidth(FILTER_WIDTH);
     m_filterWidget->setMinimumWidth(200);
+    m_filterWidget->setMinimumHeight(700); 
     
     QVBoxLayout* filterLayout = new QVBoxLayout(m_filterWidget);
     
     // Gruppo ricerca
     m_searchGroup = new QGroupBox("Ricerca");
+    m_searchGroup->setMinimumHeight(100);
     QVBoxLayout* searchLayout = new QVBoxLayout(m_searchGroup);
     
     m_searchEdit = new QLineEdit();
@@ -200,12 +202,16 @@ void MainWindow::setupFilterArea()
     
     // Gruppo filtri
     m_filterGroup = new QGroupBox("Filtri");
+    m_filterGroup->setMinimumHeight(280);
+    m_filterGroup->setMaximumHeight(280);
     QVBoxLayout* filtersLayout = new QVBoxLayout(m_filterGroup);
+    filtersLayout->setSpacing(4);
     
     // Filtro per tipo
     filtersLayout->addWidget(new QLabel("Tipo:"));
     m_tipoCombo = new QComboBox();
     m_tipoCombo->addItems({"Tutti", "Libro", "Film", "Articolo"});
+    m_tipoCombo->setMaximumHeight(30);
     filtersLayout->addWidget(m_tipoCombo);
     
     // Filtro per anno
@@ -214,9 +220,11 @@ void MainWindow::setupFilterArea()
     m_annoMinSpin = new QSpinBox();
     m_annoMinSpin->setRange(1000, 2100);
     m_annoMinSpin->setValue(1000);
+    m_annoMinSpin->setMaximumHeight(30);
     m_annoMaxSpin = new QSpinBox();
     m_annoMaxSpin->setRange(1000, 2100);
     m_annoMaxSpin->setValue(QDate::currentDate().year());
+    m_annoMaxSpin->setMaximumHeight(30);
     annoLayout->addWidget(new QLabel("Da:"));
     annoLayout->addWidget(m_annoMinSpin);
     annoLayout->addWidget(new QLabel("A:"));
@@ -227,22 +235,27 @@ void MainWindow::setupFilterArea()
     filtersLayout->addWidget(new QLabel("Autore:"));
     m_autoreEdit = new QLineEdit();
     m_autoreEdit->setPlaceholderText("Nome autore...");
+    m_autoreEdit->setMaximumHeight(30);
     filtersLayout->addWidget(m_autoreEdit);
     
     filtersLayout->addWidget(new QLabel("Regista:"));
     m_registaEdit = new QLineEdit();
     m_registaEdit->setPlaceholderText("Nome regista...");
+    m_registaEdit->setMaximumHeight(30);
     filtersLayout->addWidget(m_registaEdit);
     
     filtersLayout->addWidget(new QLabel("Rivista:"));
     m_rivistaEdit = new QLineEdit();
     m_rivistaEdit->setPlaceholderText("Nome rivista...");
+    m_rivistaEdit->setMaximumHeight(30);
     filtersLayout->addWidget(m_rivistaEdit);
     
     // Bottoni filtri
     QHBoxLayout* filterButtonLayout = new QHBoxLayout();
     m_applyFilterButton = new QPushButton("Applica"); 
+    m_applyFilterButton->setMaximumHeight(30);
     m_resetFilterButton = new QPushButton("Reset");
+    m_resetFilterButton->setMaximumHeight(30);
     filterButtonLayout->addWidget(m_applyFilterButton);
     filterButtonLayout->addWidget(m_resetFilterButton);
     filtersLayout->addLayout(filterButtonLayout);
@@ -254,6 +267,7 @@ void MainWindow::setupFilterArea()
     
     // Gruppo statistiche
     m_statisticheGroup = new QGroupBox("Statistiche");
+    m_statisticheGroup->setMinimumHeight(120);
     QVBoxLayout* statsLayout = new QVBoxLayout(m_statisticheGroup);
     
     m_totalLabel = new QLabel("Totale: 0");
@@ -268,6 +282,7 @@ void MainWindow::setupFilterArea()
     
     // Gruppo azioni
     m_actionsGroup = new QGroupBox("Azioni");
+    m_actionsGroup->setMinimumHeight(180);
     QVBoxLayout* actionsLayout = new QVBoxLayout(m_actionsGroup);
     
     m_addButton = new QPushButton(QIcon(":/icons/add_icon.png"), "Aggiungi Media");
