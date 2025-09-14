@@ -834,30 +834,8 @@ void MainWindow::setupEditPanel()
         
         m_editHeaderLabel->setStyleSheet("font-size: 18px; font-weight: bold; color: #1976D2; padding: 5px;");
         
-        QPushButton* closeButton = new QPushButton("✕");
-        if (!closeButton) {
-            throw std::runtime_error("Impossibile creare close button");
-        }
-        
-        closeButton->setFixedSize(32, 32);
-        closeButton->setStyleSheet(
-            "QPushButton { "
-            "background-color: #f44336; "
-            "color: white; "
-            "border: none; "
-            "border-radius: 16px; "
-            "font-weight: bold; "
-            "font-size: 14px; "
-            "}"
-            "QPushButton:hover { background-color: #d32f2f; }"
-        );
-        
-        // Connessione sicura
-        connect(closeButton, &QPushButton::clicked, this, &MainWindow::hideEditPanel);
-        
         headerLayout->addWidget(m_editHeaderLabel);
         headerLayout->addStretch();
-        headerLayout->addWidget(closeButton);
         
         editLayout->addLayout(headerLayout);
         
@@ -902,7 +880,7 @@ void MainWindow::setupEditPanel()
         QHBoxLayout* buttonLayout = new QHBoxLayout();
         
         m_editHelpButton = new QPushButton("Aiuto");
-        m_editAnnullaButton = new QPushButton("Annulla");
+        m_editAnnullaButton = new QPushButton("Chiudi");
         m_editSalvaButton = new QPushButton("Salva");
         
         if (m_editSalvaButton) {
@@ -974,9 +952,19 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             m_editHeaderLabel->setText(title);
         }
         
-        // Aggiorna il testo del pulsante
+        // Aggiorna il testo dei pulsanti
         if (m_editSalvaButton) {
             m_editSalvaButton->setText(readOnly ? "Chiudi" : (isNew ? "Crea" : "Salva"));
+        }
+        
+        // Aggiorna il testo del pulsante Annulla/Chiudi
+        if (m_editAnnullaButton) {
+            if (readOnly) {
+                m_editAnnullaButton->setVisible(false); // Nascondi "Chiudi" quando c'è già "Chiudi" in Salva
+            } else {
+                m_editAnnullaButton->setVisible(true);
+                m_editAnnullaButton->setText("Annulla");
+            }
         }
         
         // Se è nuovo, resetta il form
