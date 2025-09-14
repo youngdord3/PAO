@@ -51,44 +51,112 @@ MainWindow::MainWindow(QWidget *parent)
     , m_editIsNew(false)
     , m_editTipoCorrente("")
     , m_editValidationEnabled(true)
+    // Inizializza tutti i puntatori a nullptr
+    , m_centralWidget(nullptr)
+    , m_splitter(nullptr)
+    , m_filterWidget(nullptr)
+    , m_mediaScrollArea(nullptr)
+    , m_mediaContainer(nullptr)
+    , m_mediaLayout(nullptr)
+    , m_editContentContainer(nullptr)
+    , m_editScrollArea(nullptr)
+    , m_editHeaderLabel(nullptr)
+    , m_editFormLayout(nullptr)
+    , m_editBaseGroup(nullptr)
+    , m_editLibroGroup(nullptr)
+    , m_editFilmGroup(nullptr)
+    , m_editArticoloGroup(nullptr)
+    // Inizializza tutti i widget specifici a nullptr
+    , m_editTipoCombo(nullptr)
+    , m_editTitoloEdit(nullptr)
+    , m_editAnnoSpin(nullptr)
+    , m_editDescrizioneEdit(nullptr)
+    , m_editAutoreEdit(nullptr)
+    , m_editEditoreEdit(nullptr)
+    , m_editPagineSpin(nullptr)
+    , m_editIsbnEdit(nullptr)
+    , m_editGenereLibroCombo(nullptr)
+    , m_editRegistaEdit(nullptr)
+    , m_editAttoriList(nullptr)
+    , m_editNuovoAttoreEdit(nullptr)
+    , m_editAggiungiAttoreBtn(nullptr)
+    , m_editRimuoviAttoreBtn(nullptr)
+    , m_editDurataSpin(nullptr)
+    , m_editGenereFilmCombo(nullptr)
+    , m_editClassificazioneCombo(nullptr)
+    , m_editCasaProduzioneEdit(nullptr)
+    , m_editAutoriList(nullptr)
+    , m_editNuovoAutoreEdit(nullptr)
+    , m_editAggiungiAutoreBtn(nullptr)
+    , m_editRimuoviAutoreBtn(nullptr)
+    , m_editRivisteEdit(nullptr)
+    , m_editVolumeEdit(nullptr)
+    , m_editNumeroEdit(nullptr)
+    , m_editPagineEdit(nullptr)
+    , m_editCategoriaCombo(nullptr)
+    , m_editTipoRivistaCombo(nullptr)
+    , m_editDataPubblicazioneEdit(nullptr)
+    , m_editDoiEdit(nullptr)
+    , m_editSalvaButton(nullptr)
+    , m_editAnnullaButton(nullptr)
+    , m_editHelpButton(nullptr)
+    , m_editValidationLabel(nullptr)
 {
     setWindowTitle("Biblioteca Manager");
     setMinimumSize(800, 600);
     resize(1200, 800);
     
-    setupUI();  // Questo chiamerà setupEditPanel() internamente
-    
-    // Connessioni con la collezione
-    connect(m_collezione.get(), &Collezione::mediaAdded,
-            this, &MainWindow::onMediaAggiunto);
-    connect(m_collezione.get(), &Collezione::mediaRemoved,
-            this, &MainWindow::onMediaRimosso);
-    connect(m_collezione.get(), &Collezione::mediaUpdated,
-            this, &MainWindow::onMediaModificato);
-    connect(m_collezione.get(), &Collezione::collectionLoaded,
-            this, &MainWindow::onCollezioneCaricata);
-    
-    // Carica file di default se esiste
-    QString defaultFile = "data.json";
-    if (!QFile::exists(defaultFile)) {
-        defaultFile = "../data.json";
-    }
-    
-    if (QFile::exists(defaultFile)) {
-        if (m_collezione->loadFromFile(defaultFile)) {
-            m_fileCorrente = defaultFile;
-            refreshMediaCards();
+    try {
+        setupUI();
+        
+        // Connessioni con la collezione
+        connect(m_collezione.get(), &Collezione::mediaAdded,
+                this, &MainWindow::onMediaAggiunto);
+        connect(m_collezione.get(), &Collezione::mediaRemoved,
+                this, &MainWindow::onMediaRimosso);
+        connect(m_collezione.get(), &Collezione::mediaUpdated,
+                this, &MainWindow::onMediaModificato);
+        connect(m_collezione.get(), &Collezione::collectionLoaded,
+                this, &MainWindow::onCollezioneCaricata);
+        
+        // Carica file di default se esiste
+        QString defaultFile = "data.json";
+        if (!QFile::exists(defaultFile)) {
+            defaultFile = "../data.json";
         }
+        
+        if (QFile::exists(defaultFile)) {
+            if (m_collezione->loadFromFile(defaultFile)) {
+                m_fileCorrente = defaultFile;
+                refreshMediaCards();
+            }
+        }
+        
+        caricaImpostazioni();
+        aggiornaStatistiche();
+        aggiornaStatusBar();
+        
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Errore Inizializzazione", 
+                             QString("Errore durante l'inizializzazione: %1").arg(e.what()));
     }
-    
-    caricaImpostazioni();
-    aggiornaStatistiche();
-    aggiornaStatusBar();
 }
 
 MainWindow::~MainWindow()
 {
-    salvaImpostazioni();
+    try {
+        // Pulisci le connessioni prima della distruzione
+        if (m_collezione) {
+            disconnect(m_collezione.get(), nullptr, this, nullptr);
+        }
+        
+        // Pulisci le card prima di distruggere il layout
+        clearMediaCards();
+        
+        salvaImpostazioni();
+    } catch (...) {
+        // Ignore exceptions in destructor
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -211,47 +279,62 @@ void MainWindow::setupMainArea()
 
 void MainWindow::setupEditBaseForm()
 {
-    if (!m_editFormLayout) return;
-    
-    m_editBaseGroup = new QGroupBox("Informazioni Base");
-    if (!m_editBaseGroup) return;
-    
-    QFormLayout* baseLayout = new QFormLayout(m_editBaseGroup);
-    baseLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-    
-    // Tipo
-    m_editTipoCombo = new QComboBox();
-    if (m_editTipoCombo) {
-        m_editTipoCombo->addItems({"Libro", "Film", "Articolo"});
-        baseLayout->addRow("Tipo:", m_editTipoCombo);
+    if (!m_editFormLayout) {
+        qWarning() << "EditFormLayout non inizializzato";
+        return;
     }
     
-    // Titolo
-    m_editTitoloEdit = new QLineEdit();
-    if (m_editTitoloEdit) {
-        m_editTitoloEdit->setMaxLength(200);
-        m_editTitoloEdit->setPlaceholderText("Inserire il titolo...");
-        baseLayout->addRow("Titolo*:", m_editTitoloEdit);
+    try {
+        m_editBaseGroup = new QGroupBox("Informazioni Base");
+        if (!m_editBaseGroup) {
+            throw std::runtime_error("Impossibile creare base group");
+        }
+        
+        QFormLayout* baseLayout = new QFormLayout(m_editBaseGroup);
+        if (!baseLayout) {
+            throw std::runtime_error("Impossibile creare base layout");
+        }
+        
+        baseLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+        
+        // Tipo
+        m_editTipoCombo = new QComboBox();
+        if (m_editTipoCombo) {
+            m_editTipoCombo->addItems({"Libro", "Film", "Articolo"});
+            baseLayout->addRow("Tipo:", m_editTipoCombo);
+        }
+        
+        // Titolo
+        m_editTitoloEdit = new QLineEdit();
+        if (m_editTitoloEdit) {
+            m_editTitoloEdit->setMaxLength(200);
+            m_editTitoloEdit->setPlaceholderText("Inserire il titolo...");
+            baseLayout->addRow("Titolo*:", m_editTitoloEdit);
+        }
+        
+        // Anno
+        m_editAnnoSpin = new QSpinBox();
+        if (m_editAnnoSpin) {
+            m_editAnnoSpin->setRange(1000, QDate::currentDate().year() + 10);
+            m_editAnnoSpin->setValue(QDate::currentDate().year());
+            baseLayout->addRow("Anno*:", m_editAnnoSpin);
+        }
+        
+        // Descrizione
+        m_editDescrizioneEdit = new QTextEdit();
+        if (m_editDescrizioneEdit) {
+            m_editDescrizioneEdit->setMaximumHeight(80);
+            m_editDescrizioneEdit->setPlaceholderText("Inserire una breve descrizione...");
+            baseLayout->addRow("Descrizione:", m_editDescrizioneEdit);
+        }
+        
+        m_editFormLayout->addWidget(m_editBaseGroup);
+        
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupEditBaseForm:" << e.what();
     }
-    
-    // Anno
-    m_editAnnoSpin = new QSpinBox();
-    if (m_editAnnoSpin) {
-        m_editAnnoSpin->setRange(1000, QDate::currentDate().year() + 10);
-        m_editAnnoSpin->setValue(QDate::currentDate().year());
-        baseLayout->addRow("Anno*:", m_editAnnoSpin);
-    }
-    
-    // Descrizione
-    m_editDescrizioneEdit = new QTextEdit();
-    if (m_editDescrizioneEdit) {
-        m_editDescrizioneEdit->setMaximumHeight(80);
-        m_editDescrizioneEdit->setPlaceholderText("Inserire una breve descrizione...");
-        baseLayout->addRow("Descrizione:", m_editDescrizioneEdit);
-    }
-    
-    m_editFormLayout->addWidget(m_editBaseGroup);
 }
+
 
 void MainWindow::setupEditLibroForm()
 {
@@ -506,30 +589,41 @@ void MainWindow::setupEditArticoloForm()
 
 void MainWindow::setupEditConnections()
 {
-    if (m_editTitoloEdit) {
-        connect(m_editTitoloEdit, &QLineEdit::textChanged, this, [this]() {
-            QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
-        });
-    }
-    
-    if (m_editAnnoSpin) {
-        connect(m_editAnnoSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
-                this, [this]() {
+    try {
+        if (m_editTitoloEdit) {
+            connect(m_editTitoloEdit, &QLineEdit::textChanged, this, [this]() {
+                if (m_editValidationEnabled) {
                     QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
-                });
-    }
-    
-    if (m_editDescrizioneEdit) {
-        connect(m_editDescrizioneEdit, &QTextEdit::textChanged, this, [this]() {
-            QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
-        });
-    }
-    
-    if (m_editTipoCombo) {
-        connect(m_editTipoCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
-                this, &MainWindow::onEditTipoChanged);
+                }
+            });
+        }
+        
+        if (m_editAnnoSpin) {
+            connect(m_editAnnoSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
+                    this, [this]() {
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                        }
+                    });
+        }
+        
+        if (m_editDescrizioneEdit) {
+            connect(m_editDescrizioneEdit, &QTextEdit::textChanged, this, [this]() {
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                }
+            });
+        }
+        
+        if (m_editTipoCombo) {
+            connect(m_editTipoCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                    this, &MainWindow::onEditTipoChanged);
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in setupEditConnections:" << e.what();
     }
 }
+
 
 void MainWindow::setupEditSpecificConnections()
 {
@@ -621,11 +715,10 @@ void MainWindow::clearEditSpecificForm()
     try {
         if (!m_editFormLayout) return;
         
-        // Disconnetti e rimuovi i gruppi specifici esistenti
+        // Disconnetti TUTTI i widget prima di rimuoverli
         if (m_editLibroGroup) {
             disconnectEditGroupWidgets(m_editLibroGroup);
             m_editFormLayout->removeWidget(m_editLibroGroup);
-            m_editLibroGroup->setParent(nullptr);  // AGGIUNGI QUESTA RIGA
             m_editLibroGroup->deleteLater();
             m_editLibroGroup = nullptr;
         }
@@ -633,7 +726,6 @@ void MainWindow::clearEditSpecificForm()
         if (m_editFilmGroup) {
             disconnectEditGroupWidgets(m_editFilmGroup);
             m_editFormLayout->removeWidget(m_editFilmGroup);
-            m_editFilmGroup->setParent(nullptr);   // AGGIUNGI QUESTA RIGA
             m_editFilmGroup->deleteLater();
             m_editFilmGroup = nullptr;
         }
@@ -641,13 +733,15 @@ void MainWindow::clearEditSpecificForm()
         if (m_editArticoloGroup) {
             disconnectEditGroupWidgets(m_editArticoloGroup);
             m_editFormLayout->removeWidget(m_editArticoloGroup);
-            m_editArticoloGroup->setParent(nullptr);  // AGGIUNGI QUESTA RIGA
             m_editArticoloGroup->deleteLater();
             m_editArticoloGroup = nullptr;
         }
         
         // Reset tutti i puntatori specifici
         resetEditSpecificPointers();
+        
+        // Forza il processamento degli eventi per completare la cancellazione
+        QApplication::processEvents();
         
     } catch (const std::exception& e) {
         qWarning() << "Errore in clearEditSpecificForm:" << e.what();
@@ -658,12 +752,16 @@ void MainWindow::disconnectEditGroupWidgets(QGroupBox* group)
 {
     if (!group) return;
     
-    // Trova tutti i widget figli e disconnettili
-    QList<QWidget*> widgets = group->findChildren<QWidget*>();
-    for (QWidget* widget : widgets) {
-        if (widget) {
-            disconnect(widget, nullptr, this, nullptr);
+    try {
+        // Trova tutti i widget figli e disconnettili da questo oggetto
+        QList<QWidget*> widgets = group->findChildren<QWidget*>();
+        for (QWidget* widget : widgets) {
+            if (widget) {
+                disconnect(widget, nullptr, this, nullptr);
+            }
         }
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in disconnectEditGroupWidgets:" << e.what();
     }
 }
 
@@ -704,99 +802,164 @@ void MainWindow::resetEditSpecificPointers()
 
 void MainWindow::setupEditPanel()
 {
-    m_editPanel = new QWidget();
-    m_editPanel->setVisible(false);
-    m_editPanel->setObjectName("editPanel");
+    // Verifica che il container principale esista
+    if (!m_editContentContainer) {
+        qWarning() << "Container principale non inizializzato";
+        return;
+    }
     
-    QVBoxLayout* editLayout = new QVBoxLayout(m_editPanel);
-    editLayout->setContentsMargins(10, 10, 10, 10);
-    editLayout->setSpacing(10);
-    
-    // Header del pannello
-    QHBoxLayout* headerLayout = new QHBoxLayout();
-    m_editHeaderLabel = new QLabel("Modifica Media");
-    m_editHeaderLabel->setStyleSheet("font-size: 18px; font-weight: bold; color: #1976D2; padding: 5px;");
-    
-    QPushButton* closeButton = new QPushButton("✕");
-    closeButton->setFixedSize(32, 32);
-    closeButton->setStyleSheet(
-        "QPushButton { "
-        "background-color: #f44336; "
-        "color: white; "
-        "border: none; "
-        "border-radius: 16px; "
-        "font-weight: bold; "
-        "font-size: 14px; "
-        "}"
-        "QPushButton:hover { background-color: #d32f2f; }"
-    );
-    connect(closeButton, &QPushButton::clicked, this, &MainWindow::hideEditPanel);
-    
-    headerLayout->addWidget(m_editHeaderLabel);
-    headerLayout->addStretch();
-    headerLayout->addWidget(closeButton);
-    
-    editLayout->addLayout(headerLayout);
-    
-    // Scroll area per il form
-    m_editScrollArea = new QScrollArea();
-    m_editScrollArea->setWidgetResizable(true);
-    m_editScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    m_editScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    
-    QWidget* formWidget = new QWidget();
-    m_editFormLayout = new QVBoxLayout(formWidget);
-    m_editFormLayout->setContentsMargins(10, 10, 10, 10);
-    m_editFormLayout->setSpacing(15);
-    
-    setupEditBaseForm();
-    
-    m_editScrollArea->setWidget(formWidget);
-    editLayout->addWidget(m_editScrollArea);
-    
-    // Validation label
-    m_editValidationLabel = new QLabel();
-    m_editValidationLabel->setWordWrap(true);
-    m_editValidationLabel->setMinimumHeight(25);
-    editLayout->addWidget(m_editValidationLabel);
-    
-    // Bottoni del pannello
-    QHBoxLayout* buttonLayout = new QHBoxLayout();
-    
-    m_editHelpButton = new QPushButton("Aiuto");
-    m_editAnnullaButton = new QPushButton("Annulla");
-    m_editSalvaButton = new QPushButton("Salva");
-    m_editSalvaButton->setDefault(true);
-    
-    m_editHelpButton->setObjectName("helpButton");
-    m_editAnnullaButton->setObjectName("cancelButton");
-    m_editSalvaButton->setObjectName("okButton");
-    
-    connect(m_editHelpButton, &QPushButton::clicked, [this]() {
-        QMessageBox::information(this, "Aiuto", 
-            "I campi contrassegnati con * sono obbligatori.\n\n"
-            "Tipo: Seleziona il tipo di media da creare.\n"
-            "Titolo: Nome del media (obbligatorio).\n"
-            "Anno: Anno di pubblicazione (obbligatorio).\n"
-            "Descrizione: Breve descrizione del contenuto.\n\n"
-            "Ogni tipo di media ha campi specifici aggiuntivi.");
-    });
-    connect(m_editAnnullaButton, &QPushButton::clicked, this, &MainWindow::onEditAnnullaClicked);
-    connect(m_editSalvaButton, &QPushButton::clicked, this, &MainWindow::onEditSalvaClicked);
-    
-    buttonLayout->addStretch();
-    buttonLayout->addWidget(m_editHelpButton);
-    buttonLayout->addWidget(m_editAnnullaButton);
-    buttonLayout->addWidget(m_editSalvaButton);
-    
-    editLayout->addLayout(buttonLayout);
-    
-    setupEditConnections();
+    try {
+        m_editPanel = new QWidget();
+        if (!m_editPanel) {
+            throw std::runtime_error("Impossibile creare editPanel");
+        }
+        
+        m_editPanel->setVisible(false);
+        m_editPanel->setObjectName("editPanel");
+        
+        QVBoxLayout* editLayout = new QVBoxLayout(m_editPanel);
+        if (!editLayout) {
+            throw std::runtime_error("Impossibile creare layout editPanel");
+        }
+        
+        editLayout->setContentsMargins(10, 10, 10, 10);
+        editLayout->setSpacing(10);
+        
+        // Header del pannello
+        QHBoxLayout* headerLayout = new QHBoxLayout();
+        m_editHeaderLabel = new QLabel("Modifica Media");
+        if (!m_editHeaderLabel) {
+            throw std::runtime_error("Impossibile creare header label");
+        }
+        
+        m_editHeaderLabel->setStyleSheet("font-size: 18px; font-weight: bold; color: #1976D2; padding: 5px;");
+        
+        QPushButton* closeButton = new QPushButton("✕");
+        if (!closeButton) {
+            throw std::runtime_error("Impossibile creare close button");
+        }
+        
+        closeButton->setFixedSize(32, 32);
+        closeButton->setStyleSheet(
+            "QPushButton { "
+            "background-color: #f44336; "
+            "color: white; "
+            "border: none; "
+            "border-radius: 16px; "
+            "font-weight: bold; "
+            "font-size: 14px; "
+            "}"
+            "QPushButton:hover { background-color: #d32f2f; }"
+        );
+        
+        // Connessione sicura
+        connect(closeButton, &QPushButton::clicked, this, &MainWindow::hideEditPanel);
+        
+        headerLayout->addWidget(m_editHeaderLabel);
+        headerLayout->addStretch();
+        headerLayout->addWidget(closeButton);
+        
+        editLayout->addLayout(headerLayout);
+        
+        // Scroll area per il form
+        m_editScrollArea = new QScrollArea();
+        if (!m_editScrollArea) {
+            throw std::runtime_error("Impossibile creare scroll area");
+        }
+        
+        m_editScrollArea->setWidgetResizable(true);
+        m_editScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        m_editScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        
+        QWidget* formWidget = new QWidget();
+        if (!formWidget) {
+            throw std::runtime_error("Impossibile creare form widget");
+        }
+        
+        m_editFormLayout = new QVBoxLayout(formWidget);
+        if (!m_editFormLayout) {
+            throw std::runtime_error("Impossibile creare form layout");
+        }
+        
+        m_editFormLayout->setContentsMargins(10, 10, 10, 10);
+        m_editFormLayout->setSpacing(15);
+        
+        // Chiama setupEditBaseForm DOPO aver creato m_editFormLayout
+        setupEditBaseForm();
+        
+        m_editScrollArea->setWidget(formWidget);
+        editLayout->addWidget(m_editScrollArea);
+        
+        // Validation label
+        m_editValidationLabel = new QLabel();
+        if (m_editValidationLabel) {
+            m_editValidationLabel->setWordWrap(true);
+            m_editValidationLabel->setMinimumHeight(25);
+            editLayout->addWidget(m_editValidationLabel);
+        }
+        
+        // Bottoni del pannello
+        QHBoxLayout* buttonLayout = new QHBoxLayout();
+        
+        m_editHelpButton = new QPushButton("Aiuto");
+        m_editAnnullaButton = new QPushButton("Annulla");
+        m_editSalvaButton = new QPushButton("Salva");
+        
+        if (m_editSalvaButton) {
+            m_editSalvaButton->setDefault(true);
+        }
+        
+        // Connessioni sicure
+        if (m_editHelpButton) {
+            connect(m_editHelpButton, &QPushButton::clicked, [this]() {
+                QMessageBox::information(this, "Aiuto", 
+                    "I campi contrassegnati con * sono obbligatori.\n\n"
+                    "Tipo: Seleziona il tipo di media da creare.\n"
+                    "Titolo: Nome del media (obbligatorio).\n"
+                    "Anno: Anno di pubblicazione (obbligatorio).\n"
+                    "Descrizione: Breve descrizione del contenuto.\n\n"
+                    "Ogni tipo di media ha campi specifici aggiuntivi.");
+            });
+        }
+        
+        if (m_editAnnullaButton) {
+            connect(m_editAnnullaButton, &QPushButton::clicked, this, &MainWindow::onEditAnnullaClicked);
+        }
+        
+        if (m_editSalvaButton) {
+            connect(m_editSalvaButton, &QPushButton::clicked, this, &MainWindow::onEditSalvaClicked);
+        }
+        
+        buttonLayout->addStretch();
+        if (m_editHelpButton) buttonLayout->addWidget(m_editHelpButton);
+        if (m_editAnnullaButton) buttonLayout->addWidget(m_editAnnullaButton);
+        if (m_editSalvaButton) buttonLayout->addWidget(m_editSalvaButton);
+        
+        editLayout->addLayout(buttonLayout);
+        
+        // Imposta connessioni base DOPO aver creato tutti i widget
+        setupEditConnections();
+        
+    } catch (const std::exception& e) {
+        mostraErrore(QString("Errore nella creazione pannello edit: %1").arg(e.what()));
+        
+        // Cleanup in caso di errore
+        if (m_editPanel) {
+            m_editPanel->deleteLater();
+            m_editPanel = nullptr;
+        }
+    }
 }
 
 void MainWindow::showEditPanel(bool isNew, bool readOnly)
 {
     try {
+        // Verifica che il pannello sia stato creato correttamente
+        if (!m_editPanel || !m_mediaScrollArea || !m_editContentContainer) {
+            mostraErrore("Pannello di editing non inizializzato correttamente");
+            return;
+        }
+        
         m_editIsNew = isNew;
         m_editReadOnly = readOnly;
         
@@ -828,7 +991,8 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             if (m_editAnnoSpin) m_editAnnoSpin->setValue(QDate::currentDate().year());
             if (m_editDescrizioneEdit) m_editDescrizioneEdit->clear();
             
-            onEditTipoChanged();
+            // Trigger cambio tipo per creare il form specifico
+            QTimer::singleShot(10, this, &MainWindow::onEditTipoChanged);
         }
         
         enableEditForm(!readOnly);
@@ -850,6 +1014,11 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
 void MainWindow::hideEditPanel()
 {
     try {
+        // Verifica che i widget esistano
+        if (!m_editPanel || !m_mediaScrollArea) {
+            return;
+        }
+        
         // Mostra l'area media e nascondi il pannello edit
         m_editPanel->setVisible(false);
         m_mediaScrollArea->setVisible(true);
@@ -862,7 +1031,7 @@ void MainWindow::hideEditPanel()
         m_editValidationEnabled = true;
         
         // Refresh delle card per aggiornare eventuali modifiche
-        refreshMediaCards();
+        QTimer::singleShot(50, this, &MainWindow::refreshMediaCards);
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nella chiusura pannello: %1").arg(e.what()));
@@ -1378,17 +1547,27 @@ void MainWindow::loadEditMediaData(Media* media)
 void MainWindow::onEditTipoChanged()
 {
     try {
-        if (!m_editTipoCombo) return;
+        if (!m_editTipoCombo) {
+            qWarning() << "TipoCombo non inizializzato";
+            return;
+        }
         
         QString nuovoTipo = m_editTipoCombo->currentText();
         
         if (nuovoTipo != m_editTipoCorrente) {
             m_editTipoCorrente = nuovoTipo;
+            
+            // Disconnetti temporaneamente la validazione per evitare crash
+            m_editValidationEnabled = false;
+            
             setupEditTypeSpecificForm();
             updateEditFormVisibility();
             
-            // Aspetta che il form sia configurato prima di validare
-            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+            // Riabilita la validazione dopo un breve delay
+            QTimer::singleShot(200, this, [this]() {
+                m_editValidationEnabled = true;
+                onEditValidationChanged();
+            });
         }
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nel cambio tipo: %1").arg(e.what()));
@@ -1445,30 +1624,36 @@ void MainWindow::onEditAnnullaClicked()
 void MainWindow::onEditValidationChanged()
 {
     try {
-        if (!m_editValidationEnabled || !m_editSalvaButton || !m_editValidationLabel) return;
+        if (!m_editValidationEnabled || !m_editSalvaButton || !m_editValidationLabel) {
+            return;
+        }
         
         // Controlla che i widget del tipo corrente siano inizializzati
         if (!areEditCurrentTypeWidgetsReady()) {
-            m_editSalvaButton->setEnabled(true);
-            m_editValidationLabel->setText("Configurazione in corso...");
+            if (m_editSalvaButton) m_editSalvaButton->setEnabled(true);
+            if (m_editValidationLabel) m_editValidationLabel->setText("Configurazione in corso...");
             return;
         }
         
         bool valid = validateEditInput();
-        m_editSalvaButton->setEnabled(valid || m_editReadOnly);
-        
-        if (valid) {
-            m_editValidationLabel->setText("✓ Tutti i campi sono validi");
-            m_editValidationLabel->setProperty("valid", true);
-        } else {
-            QStringList errors = getEditValidationErrors();
-            m_editValidationLabel->setText("⚠ Errori: " + QString::number(errors.size()));
-            m_editValidationLabel->setProperty("valid", false);
+        if (m_editSalvaButton) {
+            m_editSalvaButton->setEnabled(valid || m_editReadOnly);
         }
         
-        m_editValidationLabel->style()->unpolish(m_editValidationLabel);
-        m_editValidationLabel->style()->polish(m_editValidationLabel);
-        m_editValidationLabel->update();
+        if (m_editValidationLabel) {
+            if (valid) {
+                m_editValidationLabel->setText("✓ Tutti i campi sono validi");
+                m_editValidationLabel->setProperty("valid", true);
+            } else {
+                QStringList errors = getEditValidationErrors();
+                m_editValidationLabel->setText("⚠ Errori: " + QString::number(errors.size()));
+                m_editValidationLabel->setProperty("valid", false);
+            }
+            
+            m_editValidationLabel->style()->unpolish(m_editValidationLabel);
+            m_editValidationLabel->style()->polish(m_editValidationLabel);
+            m_editValidationLabel->update();
+        }
         
     } catch (const std::exception& e) {
         qWarning() << "Errore nella validazione:" << e.what();
@@ -1818,6 +2003,7 @@ std::unique_ptr<Media> MainWindow::createEditArticolo()
 void MainWindow::aggiungiMedia()
 {
     try {
+        qDebug() << "Apertura pannello per nuovo media";
         m_editingMediaId.clear();
         showEditPanel(true, false); // isNew = true, readOnly = false
     } catch (const std::exception& e) {
@@ -1828,6 +2014,8 @@ void MainWindow::aggiungiMedia()
 void MainWindow::modificaMedia()
 {
     try {
+        qDebug() << "Apertura pannello per modifica media:" << m_selezionato_id;
+        
         if (m_selezionato_id.isEmpty()) {
             mostraInfo("Seleziona un media da modificare");
             return;
@@ -1841,7 +2029,11 @@ void MainWindow::modificaMedia()
         
         m_editingMediaId = m_selezionato_id;
         showEditPanel(false, false); // isNew = false, readOnly = false
-        loadEditMediaData(media);
+        
+        // Carica i dati DOPO aver mostrato il pannello
+        QTimer::singleShot(100, [this, media]() {
+            loadEditMediaData(media);
+        });
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nella modifica: %1").arg(e.what()));
@@ -1907,6 +2099,8 @@ void MainWindow::rimuoviMedia()
 void MainWindow::visualizzaDettagli()
 {
     try {
+        qDebug() << "Apertura pannello per dettagli media:" << m_selezionato_id;
+        
         if (m_selezionato_id.isEmpty()) {
             mostraInfo("Seleziona un media per visualizzare i dettagli");
             return;
@@ -1920,7 +2114,11 @@ void MainWindow::visualizzaDettagli()
         
         m_editingMediaId = m_selezionato_id;
         showEditPanel(false, true); // isNew = false, readOnly = true
-        loadEditMediaData(media);
+        
+        // Carica i dati DOPO aver mostrato il pannello
+        QTimer::singleShot(100, [this, media]() {
+            loadEditMediaData(media);
+        });
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nella visualizzazione: %1").arg(e.what()));
