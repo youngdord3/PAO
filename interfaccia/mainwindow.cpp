@@ -82,7 +82,19 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
-    updateLayout();
+    
+    // Aggiungi un timer per evitare troppi aggiornamenti durante il resize
+    static QTimer* resizeTimer = nullptr;
+    if (!resizeTimer) {
+        resizeTimer = new QTimer(this);
+        resizeTimer->setSingleShot(true);
+        resizeTimer->setInterval(100); // 100ms delay
+        connect(resizeTimer, &QTimer::timeout, [this]() {
+            updateLayout();
+        });
+    }
+    
+    resizeTimer->start();
 }
 
 void MainWindow::setupUI()
@@ -174,29 +186,36 @@ void MainWindow::setupFilterArea()
     
     // Gruppo ricerca
     m_searchGroup = new QGroupBox("Ricerca");
-    m_searchGroup->setMinimumHeight(100);
+    m_searchGroup->setMinimumHeight(80);
     QVBoxLayout* searchLayout = new QVBoxLayout(m_searchGroup);
-    
+
+    QHBoxLayout* searchInputLayout = new QHBoxLayout();
+
     m_searchEdit = new QLineEdit();
     m_searchEdit->setPlaceholderText("Cerca nei media...");
-    searchLayout->addWidget(m_searchEdit);
-    
-    QHBoxLayout* searchButtonLayout = new QHBoxLayout();
-    // Icona ricerca dal resources.qrc
-    m_searchButton = new QPushButton(QIcon(":/icons/search_icon.png"), "Cerca");
-    m_searchButton->setToolTip("Cerca tra tutti i media della collezione");
+    m_searchEdit->setMinimumHeight(25);
+    searchInputLayout->addWidget(m_searchEdit);
+
     m_clearSearchButton = new QPushButton("Cancella");
     m_clearSearchButton->setToolTip("Cancella il testo di ricerca e mostra tutti i media");
-    searchButtonLayout->addWidget(m_searchButton);
-    searchButtonLayout->addWidget(m_clearSearchButton);
-    searchLayout->addLayout(searchButtonLayout);
-    
-    // Connessioni per la ricerca
-    connect(m_searchEdit, &QLineEdit::textChanged, this, &MainWindow::cercaMedia);
+    m_clearSearchButton->setMaximumWidth(80);
+    m_clearSearchButton->setMinimumHeight(25);
+    m_clearSearchButton->setEnabled(false);
+    searchInputLayout->addWidget(m_clearSearchButton);
+
+    searchLayout->addLayout(searchInputLayout);
+
+    // Connessioni
+    connect(m_searchEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+        m_clearSearchButton->setEnabled(!text.isEmpty());
+        cercaMedia();
+    });
+
     connect(m_searchEdit, &QLineEdit::returnPressed, this, &MainWindow::cercaMedia);
-    connect(m_searchButton, &QPushButton::clicked, this, &MainWindow::cercaMedia);
+
     connect(m_clearSearchButton, &QPushButton::clicked, this, [this]() {
         m_searchEdit->clear();
+        m_clearSearchButton->setEnabled(false);
         cercaMedia();
     });
     
@@ -350,32 +369,51 @@ void MainWindow::setupMediaArea()
 
 void MainWindow::updateLayout()
 {
-    if (!m_mediaLayout) return;
+    if (!m_mediaLayout || !m_mediaScrollArea) return;
     
     // Calcola il numero di colonne in base alla larghezza disponibile
     int containerWidth = m_mediaScrollArea->viewport()->width();
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    for (int i = 0; i < m_mediaCards.size(); ++i) {
-        int row = i / columns;
-        int col = i % columns;
-        m_mediaLayout->addWidget(m_mediaCards[i], row, col);
+    // IMPORTANTE: Rimuovi tutti i widget dal layout prima di riorganizzarli
+    for (MediaCard* card : m_mediaCards) {
+        if (card) {
+            m_mediaLayout->removeWidget(card);
+        }
     }
     
-    // Stretch per spingere le card in alto
-    m_mediaLayout->setRowStretch(m_mediaLayout->rowCount(), 1);
+    // Rimuovi eventuali stretch esistenti
+    QLayoutItem* item;
+    while ((item = m_mediaLayout->takeAt(0)) != nullptr) {
+        delete item;
+    }
+    
+    // Riposiziona tutte le card nel layout
+    for (int i = 0; i < m_mediaCards.size(); ++i) {
+        MediaCard* card = m_mediaCards[i];
+        if (card) {
+            int row = i / columns;
+            int col = i % columns;
+            m_mediaLayout->addWidget(card, row, col);
+        }
+    }
+    
+    // Aggiungi stretch finale per spingere le card in alto
+    int totalRows = (m_mediaCards.size() + columns - 1) / columns;
+    m_mediaLayout->setRowStretch(totalRows, 1);
+    
+    // Forza un update del container
+    m_mediaContainer->updateGeometry();
+    m_mediaScrollArea->update();
 }
 
 void MainWindow::refreshMediaCards() {
     if (!m_mediaLayout) return;
     
     try {
-        for (MediaCard* card : m_mediaCards) {
-            if (card) {
-                card->setVisible(false);
-            }
-        }
+        // Prima pulisci completamente le card esistenti
+        clearMediaCards();
         
         std::vector<Media*> media;
         
@@ -421,6 +459,7 @@ void MainWindow::refreshMediaCards() {
             }
         }
         
+        // Applica il layout DOPO aver creato tutte le card
         updateLayout();
         aggiornaStatistiche();
         
@@ -431,16 +470,26 @@ void MainWindow::refreshMediaCards() {
 
 void MainWindow::clearMediaCards()
 {
+    // IMPORTANTE: Prima disconnetti tutti i segnali
     for (MediaCard* card : m_mediaCards) {
         if (card) {
+            disconnect(card, nullptr, this, nullptr);
             m_mediaLayout->removeWidget(card);
             card->deleteLater();
         }
     }
+    
+    // Pulisci il vettore
     m_mediaCards.clear();
     
+    // Rimuovi eventuali elementi residui dal layout
+    QLayoutItem* item;
+    while ((item = m_mediaLayout->takeAt(0)) != nullptr) {
+        delete item;
+    }
+    
     m_selezionato_id.clear();
-    aggiornaStatusBar();
+    aggiornaStatoBottoni();
 }
 
 

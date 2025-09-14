@@ -126,7 +126,6 @@ private:
     // Area filtri
     QGroupBox* m_searchGroup;
     QLineEdit* m_searchEdit;
-    QPushButton* m_searchButton;
     QPushButton* m_clearSearchButton;
     
     QGroupBox* m_filterGroup;
