@@ -5,8 +5,10 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <QFormLayout>
 #include <QScrollArea>
 #include <QLineEdit>
+#include <QTextEdit>
 #include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
@@ -17,6 +19,11 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QListWidget>
+#include <QDateEdit>
+#include <QTimer>
+#include <QMessageBox>
+#include <QDate>
 #include <vector>
 #include <memory>
 
@@ -48,7 +55,6 @@ private slots:
     void nuovaCollezione();
     void apriCollezione();
     void salvaCollezione();
-    void salvaCollezioneCome();
     
     // Gestione media
     void aggiungiMedia();
@@ -71,6 +77,18 @@ private slots:
     void onCardSelezionata(const QString& id);
     void onCardDoubleClic(const QString& id);
 
+    // Nuovi slots per il pannello integrato
+    void showEditPanel(bool isNew = false, bool readOnly = false);
+    void hideEditPanel();
+    void onEditTipoChanged();
+    void onEditSalvaClicked();
+    void onEditAnnullaClicked();
+    void onEditValidationChanged();
+    void onEditAggiungiAutoreClicked();
+    void onEditRimuoviAutoreClicked();
+    void onEditAggiungiAttoreClicked();
+    void onEditRimuoviAttoreClicked();
+
 private:
     // Setup interfaccia
     void setupUI();
@@ -79,6 +97,7 @@ private:
     void setupMainArea();
     void setupFilterArea();
     void setupMediaArea();
+    void setupEditPanel();
     
     // Gestione layout
     void updateLayout();
@@ -88,6 +107,30 @@ private:
     // Filtri e ricerca
     void applicaRicercaCorrente();
     std::unique_ptr<FiltroStrategy> creaFiltroCorrente();
+    
+    // Setup pannello edit
+    void setupEditBaseForm();
+    void setupEditLibroForm();
+    void setupEditFilmForm();
+    void setupEditArticoloForm();
+    void clearEditSpecificForm();
+    void setupEditTypeSpecificForm();
+    void setupEditConnections();
+    void setupEditSpecificConnections();
+    void disconnectEditGroupWidgets(QGroupBox* group);
+    void resetEditSpecificPointers();
+    
+    // Gestione dati pannello edit
+    void loadEditMediaData(Media* media);
+    void updateEditFormVisibility();
+    bool validateEditInput();
+    QStringList getEditValidationErrors();
+    std::unique_ptr<Media> createEditMedia();
+    std::unique_ptr<Media> createEditLibro();
+    std::unique_ptr<Media> createEditFilm();
+    std::unique_ptr<Media> createEditArticolo();
+    void enableEditForm(bool enabled);
+    bool areEditCurrentTypeWidgetsReady() const;
     
     // Utility
     void aggiornaStatistiche();
@@ -149,6 +192,67 @@ private:
     
     QList<MediaCard*> m_mediaCards;
     
+    // Pannello di modifica integrato
+    QWidget* m_editPanel;
+    QWidget* m_editContentContainer;
+    QScrollArea* m_editScrollArea;
+    QLabel* m_editHeaderLabel;
+    bool m_editPanelVisible;
+    QString m_editingMediaId;
+    bool m_editReadOnly;
+    bool m_editIsNew;
+    QString m_editTipoCorrente;
+    
+    // Widgets del form di modifica
+    QVBoxLayout* m_editFormLayout;
+    QGroupBox* m_editBaseGroup;
+    QComboBox* m_editTipoCombo;
+    QLineEdit* m_editTitoloEdit;
+    QSpinBox* m_editAnnoSpin;
+    QTextEdit* m_editDescrizioneEdit;
+    
+    // Form libro
+    QGroupBox* m_editLibroGroup;
+    QLineEdit* m_editAutoreEdit;
+    QLineEdit* m_editEditoreEdit;
+    QSpinBox* m_editPagineSpin;
+    QLineEdit* m_editIsbnEdit;
+    QComboBox* m_editGenereLibroCombo;
+    
+    // Form film
+    QGroupBox* m_editFilmGroup;
+    QLineEdit* m_editRegistaEdit;
+    QListWidget* m_editAttoriList;
+    QLineEdit* m_editNuovoAttoreEdit;
+    QPushButton* m_editAggiungiAttoreBtn;
+    QPushButton* m_editRimuoviAttoreBtn;
+    QSpinBox* m_editDurataSpin;
+    QComboBox* m_editGenereFilmCombo;
+    QComboBox* m_editClassificazioneCombo;
+    QLineEdit* m_editCasaProduzioneEdit;
+    
+    // Form articolo
+    QGroupBox* m_editArticoloGroup;
+    QListWidget* m_editAutoriList;
+    QLineEdit* m_editNuovoAutoreEdit;
+    QPushButton* m_editAggiungiAutoreBtn;
+    QPushButton* m_editRimuoviAutoreBtn;
+    QLineEdit* m_editRivisteEdit;
+    QLineEdit* m_editVolumeEdit;
+    QLineEdit* m_editNumeroEdit;
+    QLineEdit* m_editPagineEdit;
+    QComboBox* m_editCategoriaCombo;
+    QComboBox* m_editTipoRivistaCombo;
+    QDateEdit* m_editDataPubblicazioneEdit;
+    QLineEdit* m_editDoiEdit;
+    
+    // Bottoni del pannello
+    QPushButton* m_editSalvaButton;
+    QPushButton* m_editAnnullaButton;
+    QPushButton* m_editHelpButton;
+    QLabel* m_editValidationLabel;
+    bool m_editValidationEnabled;
+    
     // Dimensioni e layout
     static const int CARD_WIDTH = 280;
     static const int CARD_HEIGHT = 200;
@@ -167,7 +271,11 @@ private:
     
     static const int SPINBOX_WIDTH = 70;
     static const int LABEL_WIDTH_SMALL = 25;
-    static const int CLEAR_BUTTON_WIDTH = 40; 
+    static const int CLEAR_BUTTON_WIDTH = 40;
+    
+    // Costanti pannello edit
+    static const int EDIT_PANEL_WIDTH = 600;
+    static const int MAX_DESCRIZIONE_LENGTH = 500;
 };
 
 #endif // MAINWINDOW_H

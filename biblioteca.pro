@@ -26,7 +26,6 @@ SOURCES += main.cpp \
            interfaccia/mainwindow.cpp \
            interfaccia/mediacard.cpp \
            interfaccia/mediafactory.cpp \
-           interfaccia/mediadialog.cpp \
            json/jsonmanager.cpp
 
 # File header
@@ -39,7 +38,6 @@ HEADERS += modello_logico/media.h \
            interfaccia/mainwindow.h \
            interfaccia/mediacard.h \
            interfaccia/mediafactory.h \
-           interfaccia/mediadialog.h \
            json/jsonmanager.h
 
 # File di risorse 
