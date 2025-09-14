@@ -103,6 +103,10 @@ private:
     void updateLayout();
     void refreshMediaCards();
     void clearMediaCards();
+
+    // Metodi helper per gestire i controlli di gestione
+    void hideManagementControls();
+    void showManagementControls();
     
     // Filtri e ricerca
     void applicaRicercaCorrente();
