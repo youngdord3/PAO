@@ -734,6 +734,19 @@ void MediaDialog::setupButtons()
         m_helpButton->setObjectName("helpButton");
     }
     
+    // CORREZIONE: Aggiungi i bottoni al layout orizzontale
+    m_buttonLayout->addStretch();  // Spinge i bottoni a destra
+    if (m_helpButton) {
+        m_buttonLayout->addWidget(m_helpButton);
+    }
+    if (m_cancelButton) {
+        m_buttonLayout->addWidget(m_cancelButton);
+    }
+    if (m_okButton) {
+        m_buttonLayout->addWidget(m_okButton);
+    }
+    
+    // CORREZIONE: Aggiungi il layout dei bottoni al layout principale
     m_mainLayout->addLayout(m_buttonLayout);
     
     // Connessioni bottoni
