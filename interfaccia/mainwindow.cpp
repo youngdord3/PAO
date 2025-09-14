@@ -936,6 +936,13 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             return;
         }
         
+        // RESET COMPLETO dello stato del pannello quando cambia modalità
+        bool wasVisible = m_editPanelVisible;
+        if (wasVisible && ((m_editIsNew != isNew) || (m_editReadOnly != readOnly))) {
+            // Se il pannello era visibile ma cambia modalità, reset completo
+            resetEditPanelState();
+        }
+        
         m_editIsNew = isNew;
         m_editReadOnly = readOnly;
         
@@ -953,9 +960,16 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             m_editHeaderLabel->setText(title);
         }
         
+        // RESET STATO VALIDAZIONE prima di aggiornare i pulsanti
+        if (m_editValidationLabel) {
+            m_editValidationLabel->setText("");
+            m_editValidationLabel->setVisible(false);
+        }
+        
         // Aggiorna il testo dei pulsanti
         if (m_editSalvaButton) {
             m_editSalvaButton->setText(readOnly ? "Chiudi" : (isNew ? "Crea" : "Salva"));
+            m_editSalvaButton->setEnabled(true); // Sempre abilitato inizialmente
         }
         
         // Aggiorna il testo del pulsante Annulla/Chiudi
@@ -965,6 +979,7 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             } else {
                 m_editAnnullaButton->setVisible(true);
                 m_editAnnullaButton->setText("Annulla");
+                m_editAnnullaButton->setEnabled(true);
             }
         }
         
@@ -1001,18 +1016,30 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
                 
                 // Riabilita la validazione DOPO che tutto è inizializzato
                 QTimer::singleShot(100, this, [this, readOnly]() {
-                    m_editValidationEnabled = true;
-                    enableEditForm(!readOnly);
-                    
-                    // Valida immediatamente per aggiornare lo stato
-                    QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                    if (!readOnly) {
+                        m_editValidationEnabled = true;
+                        enableEditForm(true);
+                        
+                        // Valida immediatamente per aggiornare lo stato
+                        QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                    } else {
+                        // In modalità read-only non abilitare mai la validazione
+                        m_editValidationEnabled = false;
+                        enableEditForm(false);
+                    }
                 });
             });
         } else {
-            // Per modifica/visualizzazione, riabilita dopo il caricamento dati
-            QTimer::singleShot(200, this, [this]() {
-                m_editValidationEnabled = true;
-            });
+            // Per modifica/visualizzazione
+            if (!readOnly) {
+                // Modalità modifica - riabilita validazione dopo caricamento dati
+                QTimer::singleShot(200, this, [this]() {
+                    m_editValidationEnabled = true;
+                });
+            } else {
+                // Modalità read-only - NON abilitare mai la validazione
+                m_editValidationEnabled = false;
+            }
         }
         
         // Focus sul primo campo se non è read-only
@@ -1026,6 +1053,43 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nell'apertura pannello: %1").arg(e.what()));
+    }
+}
+
+void MainWindow::resetEditPanelState()
+{
+    try {
+        // Disabilita validazione
+        m_editValidationEnabled = false;
+        
+        // Reset stato bottoni
+        if (m_editSalvaButton) {
+            m_editSalvaButton->setEnabled(true);
+            m_editSalvaButton->setText("Salva");
+        }
+        
+        if (m_editAnnullaButton) {
+            m_editAnnullaButton->setEnabled(true);
+            m_editAnnullaButton->setVisible(true);
+            m_editAnnullaButton->setText("Annulla");
+        }
+        
+        // Reset label validazione
+        if (m_editValidationLabel) {
+            m_editValidationLabel->setText("");
+            m_editValidationLabel->setVisible(false);
+            m_editValidationLabel->setStyleSheet("");
+        }
+        
+        // Reset ID editing
+        m_editingMediaId.clear();
+        
+        // Reset flags
+        m_editIsNew = false;
+        m_editReadOnly = false;
+        
+    } catch (const std::exception& e) {
+        qWarning() << "Errore in resetEditPanelState:" << e.what();
     }
 }
 
@@ -1650,25 +1714,14 @@ void MainWindow::onEditAnnullaClicked()
 void MainWindow::onEditValidationChanged()
 {
     try {
-        if (!m_editValidationEnabled || !m_editSalvaButton || !m_editValidationLabel) {
-            return;
-        }
-        
-        // NON mostrare validazione in modalità read-only (dettagli)
-        if (m_editReadOnly) {
-            if (m_editValidationLabel) {
-                m_editValidationLabel->setText("");
-                m_editValidationLabel->setVisible(false);
-            }
-            if (m_editSalvaButton) {
-                m_editSalvaButton->setEnabled(true);
-            }
+        // NON fare nulla se non siamo in modalità edit o se la validazione è disabilitata
+        if (!m_editValidationEnabled || m_editReadOnly || !m_editSalvaButton || !m_editValidationLabel) {
             return;
         }
         
         // Controlla che i widget del tipo corrente siano inizializzati
         if (!areEditCurrentTypeWidgetsReady()) {
-            // NASCONDI il messaggio "Configurazione in corso" se i widget non sono pronti
+            // NASCONDI il messaggio se i widget non sono pronti
             if (m_editSalvaButton) m_editSalvaButton->setEnabled(false);
             if (m_editValidationLabel) {
                 m_editValidationLabel->setText("");
@@ -1682,7 +1735,7 @@ void MainWindow::onEditValidationChanged()
         
         bool valid = validateEditInput();
         if (m_editSalvaButton) {
-            m_editSalvaButton->setEnabled(valid || m_editReadOnly);
+            m_editSalvaButton->setEnabled(valid);
         }
         
         if (m_editValidationLabel) {
@@ -1809,24 +1862,31 @@ void MainWindow::enableEditForm(bool enabled)
             m_editScrollArea->setEnabled(enabled);
         }
         
-        // In modalità read-only, blocca il tipo ma non in modalità edit normale
-        if (m_editTipoCombo) {
-            if (m_editReadOnly) {
-                m_editTipoCombo->setEnabled(false);
-            } else {
-                // Assicurati che il combo sia abilitato in modalità edit
-                m_editTipoCombo->setEnabled(enabled);
-            }
-        }
-        
+        // In modalità read-only, forza SEMPRE tutti i controlli a disabilitati
         if (m_editReadOnly) {
+            if (m_editTipoCombo) m_editTipoCombo->setEnabled(false);
             if (m_editAnnullaButton) m_editAnnullaButton->setVisible(false);
             if (m_editHelpButton) m_editHelpButton->setVisible(false);
+            if (m_editSalvaButton) {
+                m_editSalvaButton->setText("Chiudi");
+                m_editSalvaButton->setEnabled(true); // Sempre abilitato per chiudere
+            }
             
-            // Nascondi i controlli di gestione in modalità read-only
+            // Nascondi i controlli di gestione
             hideManagementControls();
+            
+            // NASCONDI SEMPRE la validazione in read-only
+            if (m_editValidationLabel) {
+                m_editValidationLabel->setText("");
+                m_editValidationLabel->setVisible(false);
+            }
         } else {
-            // In modalità edit, mostra i controlli di gestione se esistono
+            // Modalità edit normale
+            if (m_editTipoCombo) {
+                m_editTipoCombo->setEnabled(enabled);
+            }
+            
+            // Mostra i controlli di gestione se appropriati
             showManagementControls();
         }
     } catch (const std::exception& e) {

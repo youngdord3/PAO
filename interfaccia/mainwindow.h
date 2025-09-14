@@ -123,6 +123,7 @@ private:
     void setupEditSpecificConnections();
     void disconnectEditGroupWidgets(QGroupBox* group);
     void resetEditSpecificPointers();
+    void resetEditPanelState();
     
     // Gestione dati pannello edit
     void loadEditMediaData(Media* media);
