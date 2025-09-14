@@ -71,7 +71,6 @@ private:
     
     // Gestione dati
     void loadMediaData();
-    void saveMediaData();
     bool validateInput();
     QStringList getValidationErrors();
     bool areCurrentTypeWidgetsReady() const;
@@ -80,7 +79,6 @@ private:
     // Utility
     void clearSpecificForm();
     void updateFormVisibility();
-    void populateComboBoxes();
     void enableForm(bool enabled);
     
     // Gestione sicura della memoria

@@ -42,12 +42,10 @@ public:
 signals:
     void selezionato(const QString& id);
     void doppioClick(const QString& id);
-    void contestualMenu(const QString& id, const QPoint& position);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
-    void contextMenuEvent(QContextMenuEvent *event) override;
     void enterEvent(QEnterEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;

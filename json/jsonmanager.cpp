@@ -71,32 +71,6 @@ std::vector<std::unique_ptr<Media>> JsonManager::loadCollection(const QString& f
     return collection;
 }
 
-bool JsonManager::saveMedia(const Media* media, const QString& filename) const
-{
-    if (!media) {
-        setError("Media nullo");
-        return false;
-    }
-    
-    QJsonObject mediaObj = media->toJson();
-    QJsonDocument doc(mediaObj);
-    
-    return writeJsonToFile(doc, filename);
-}
-
-std::unique_ptr<Media> JsonManager::loadMedia(const QString& filename) const
-{
-    clearError();
-    
-    QJsonDocument doc = readJsonFromFile(filename);
-    if (doc.isNull()) {
-        return nullptr;
-    }
-    
-    QJsonObject mediaObj = doc.object();
-    return createMediaFromJson(mediaObj);
-}
-
 bool JsonManager::exportToJson(const std::vector<std::unique_ptr<Media>>& collection, 
                               const QString& filename, bool prettyFormat) const
 {
@@ -151,19 +125,6 @@ std::vector<std::unique_ptr<Media>> JsonManager::importFromJson(const QString& f
     return loadCollection(filename);
 }
 
-bool JsonManager::isValidJsonFile(const QString& filename) const
-{
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly)) {
-        return false;
-    }
-    
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    
-    return error.error == QJsonParseError::NoError;
-}
-
 QStringList JsonManager::validateJsonStructure(const QJsonDocument& doc) const
 {
     QStringList errors;
@@ -210,34 +171,6 @@ QString JsonManager::getLastError() const
 void JsonManager::clearError() const
 {
     m_lastError.clear();
-}
-
-bool JsonManager::createBackup(const QString& originalFile) const
-{
-    if (!QFile::exists(originalFile)) {
-        setError("File originale non trovato");
-        return false;
-    }
-    
-    QString backupName = originalFile + ".backup." + 
-                        QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
-    
-    return QFile::copy(originalFile, backupName);
-}
-
-bool JsonManager::restoreFromBackup(const QString& backupFile, const QString& targetFile) const
-{
-    if (!QFile::exists(backupFile)) {
-        setError("File di backup non trovato");
-        return false;
-    }
-    
-    // Rimuovi il file target se esiste
-    if (QFile::exists(targetFile)) {
-        QFile::remove(targetFile);
-    }
-    
-    return QFile::copy(backupFile, targetFile);
 }
 
 // Private methods

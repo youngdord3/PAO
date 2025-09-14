@@ -49,8 +49,6 @@ private slots:
     void apriCollezione();
     void salvaCollezione();
     void salvaCollezioneCome();
-    void esportaCSV();
-    void esci();
     
     // Gestione media
     void aggiungiMedia();
@@ -62,8 +60,6 @@ private slots:
     void cercaMedia();
     void applicaFiltri();
     void resetFiltri();
-    void filtraPerTipo();
-    void filtraPerAnno();
     
     // Slots per notifiche dalla collezione
     void onMediaAggiunto(const QString& id);
@@ -102,12 +98,10 @@ private:
     void salvaImpostazioni();
     void caricaImpostazioni();
     bool verificaModifiche();
-    void resetInterfaccia();
     
     // Gestione errori
     void mostraErrore(const QString& errore);
     void mostraInfo(const QString& info);
-    bool confermaAzione(const QString& messaggio);
     
     // Membri privati
     std::unique_ptr<Collezione> m_collezione;

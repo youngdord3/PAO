@@ -113,14 +113,7 @@ public:
     static std::unique_ptr<FiltroStrategy> createAutoreFiltro(const QString& autore);
     static std::unique_ptr<FiltroStrategy> createRegistaFiltro(const QString& regista);
     static std::unique_ptr<FiltroStrategy> createRivistaFiltro(const QString& rivista);
-    static std::unique_ptr<FiltroStrategy> createGenereLibroFiltro(const QString& genere);
-    static std::unique_ptr<FiltroStrategy> createGenereFilmFiltro(const QString& genere);
-    static std::unique_ptr<FiltroStrategy> createCategoriaArticoloFiltro(const QString& categoria);
     
-    // Filtri composti comuni
-    static std::unique_ptr<FiltroStrategy> createLibriRecentiFiltro(int anni = 5);
-    static std::unique_ptr<FiltroStrategy> createFilmLunghiFiltro();
-    static std::unique_ptr<FiltroStrategy> createArticoliPeerReviewedFiltro();
 };
 
 #endif // FILTROSTRATEGY_H

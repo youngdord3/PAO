@@ -25,16 +25,10 @@ public:
     static std::unique_ptr<Media> createMediaFromJson(const QJsonObject& json);
     static std::unique_ptr<Media> createDefaultMedia(const QString& tipo);
     
-    // Factory methods per template/prototipi
-    static std::unique_ptr<Media> createLibroTemplate();
-    static std::unique_ptr<Media> createFilmTemplate();
-    static std::unique_ptr<Media> createArticoloTemplate();
-    
     // Utility per la gestione dei tipi
     static QStringList getSupportedTypes();
     static bool isValidType(const QString& tipo);
     static QString getTypeDisplayName(const QString& tipo);
-    static QString getTypeDescription(const QString& tipo);
     
     // Validazione e diagnostica
     static bool validateMediaData(const QJsonObject& json, QString& error);

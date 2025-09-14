@@ -223,66 +223,6 @@ bool Articolo::matchesCriteria(const QString& criteria, const QString& value) co
     return false;
 }
 
-bool Articolo::isPeerReviewed() const
-{
-    return m_tipo_rivista == Accademica || m_tipo_rivista == Specialistica;
-}
-
-QString Articolo::getCitationFormat() const
-{
-    QString citation = m_autori.join(", ");
-    citation += QString(" (%1). ").arg(m_anno);
-    citation += QString("%1. ").arg(m_titolo);
-    citation += QString("%1").arg(m_rivista);
-    
-    if (!m_volume.isEmpty()) {
-        citation += QString(", %1").arg(m_volume);
-        if (!m_numero.isEmpty()) {
-            citation += QString("(%1)").arg(m_numero);
-        }
-    }
-    
-    if (!m_pagine.isEmpty()) {
-        citation += QString(", %1").arg(m_pagine);
-    }
-    
-    if (!m_doi.isEmpty()) {
-        citation += QString(". DOI: %1").arg(m_doi);
-    }
-    
-    return citation;
-}
-
-bool Articolo::isRecent() const
-{
-    return QDate::currentDate().year() - m_anno <= 5;
-}
-
-QString Articolo::getImpactInfo() const
-{
-    QString impact = "Impatto: ";
-    
-    if (isPeerReviewed()) {
-        impact += "Alto (Peer-reviewed)";
-    } else if (m_tipo_rivista == Divulgativa) {
-        impact += "Medio (Divulgativo)";
-    } else {
-        impact += "Variabile";
-    }
-    
-    if (isRecent()) {
-        impact += " - Recente";
-    }
-    
-    return impact;
-}
-
-int Articolo::getEstimatedReadingTime() const
-{
-    int pageCount = calculatePageCount();
-    return pageCount * 3;
-}
-
 QString Articolo::categoriaToString(Categoria categoria)
 {
     switch (categoria) {

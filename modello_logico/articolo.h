@@ -81,14 +81,6 @@ public:
     QString getTypeDisplayName() const override;
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
     
-    
-    // Metodi specifici per articolo
-    bool isPeerReviewed() const;
-    QString getCitationFormat() const;
-    bool isRecent() const; // Pubblicato negli ultimi 5 anni
-    QString getImpactInfo() const;
-    int getEstimatedReadingTime() const; // Basato sul numero di pagine
-    
     // Utility statiche
     static QString categoriaToString(Categoria categoria);
     static Categoria stringToCategoria(const QString& str);

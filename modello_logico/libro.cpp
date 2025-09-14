@@ -144,25 +144,6 @@ bool Libro::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-bool Libro::isLongBook() const
-{
-    return m_pagine > 400;
-}
-
-QString Libro::getReadingTimeEstimate() const
-{
-    // Stima: 1 pagina al minuto (velocità media di lettura)
-    int minutes = m_pagine;
-    int hours = minutes / 60;
-    int remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-        return QString("%1h %2min").arg(hours).arg(remainingMinutes);
-    } else {
-        return QString("%1min").arg(remainingMinutes);
-    }
-}
-
 QString Libro::genereToString(Genere genere)
 {
     switch (genere) {

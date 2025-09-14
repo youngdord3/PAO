@@ -56,10 +56,6 @@ public:
     QString getTypeDisplayName() const override;
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
     
-    // Metodi specifici per libro
-    bool isLongBook() const;
-    QString getReadingTimeEstimate() const;
-    
     // Utility statiche
     static QString genereToString(Genere genere);
     static Genere stringToGenere(const QString& str);

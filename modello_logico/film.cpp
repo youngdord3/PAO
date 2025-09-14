@@ -184,11 +184,6 @@ bool Film::matchesCriteria(const QString& criteria, const QString& value) const
     return false;
 }
 
-bool Film::isLongMovie() const
-{
-    return m_durata > 150; // Film lunghi sopra le 2.5 ore
-}
-
 QString Film::getDurataFormatted() const
 {
     int ore = m_durata / 60;
@@ -199,23 +194,6 @@ QString Film::getDurataFormatted() const
     } else {
         return QString("%1min").arg(minuti);
     }
-}
-
-bool Film::isAdultContent() const
-{
-    return m_classificazione == R || m_classificazione == NC17;
-}
-
-QString Film::getRating() const
-{
-    // Sistema di rating basato su genere e classificazione
-    int rating = 5;
-    
-    if (m_genere == Documentario || m_genere == Dramma) rating += 1;
-    if (m_classificazione == G || m_classificazione == PG) rating += 1;
-    if (m_durata > 90 && m_durata < 150) rating += 1;
-    
-    return QString("%1/10").arg(qMin(rating, 10));
 }
 
 QString Film::genereToString(Genere genere)

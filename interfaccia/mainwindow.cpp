@@ -586,7 +586,19 @@ void MainWindow::salvaCollezione()
 {
     try {
         if (m_fileCorrente.isEmpty()) {
-            salvaCollezioneCome();
+            QString fileName = QFileDialog::getSaveFileName(this,
+                "Salva Collezione", "collezione.json", "File JSON (*.json)");
+            
+            if (!fileName.isEmpty()) {
+                if (m_collezione->saveToFile(fileName)) {
+                    m_fileCorrente = fileName;
+                    m_modificato = false;
+                    setWindowTitle(QString("Biblioteca Manager - [%1]").arg(QFileInfo(fileName).baseName()));
+                    mostraInfo("Collezione salvata");
+                } else {
+                    mostraErrore("Impossibile salvare il file");
+                }
+            }
         } else {
             if (m_collezione->saveToFile(m_fileCorrente)) {
                 m_modificato = false;
@@ -619,25 +631,6 @@ void MainWindow::salvaCollezioneCome()
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nel salvataggio: %1").arg(e.what()));
     }
-}
-
-void MainWindow::esportaCSV()
-{
-    try {
-        QString fileName = QFileDialog::getSaveFileName(this,
-            "Esporta CSV", "collezione.csv", "File CSV (*.csv)");
-        
-        if (!fileName.isEmpty()) {
-            mostraInfo("CSV esportato con successo");
-        }
-    } catch (const std::exception& e) {
-        mostraErrore(QString("Errore nell'esportazione: %1").arg(e.what()));
-    }
-}
-
-void MainWindow::esci()
-{
-    close();
 }
 
 void MainWindow::aggiungiMedia()
@@ -842,16 +835,6 @@ void MainWindow::resetFiltri()
     }
 }
 
-void MainWindow::filtraPerTipo()
-{
-    applicaFiltri();
-}
-
-void MainWindow::filtraPerAnno()
-{
-    applicaFiltri();
-}
-
 void MainWindow::onMediaAggiunto(const QString& id)
 {
     Q_UNUSED(id)
@@ -994,18 +977,6 @@ bool MainWindow::verificaModifiche()
     }
 }
 
-void MainWindow::resetInterfaccia()
-{
-    try {
-        m_searchEdit->clear();
-        resetFiltri();
-        m_selezionato_id.clear();
-        refreshMediaCards();
-    } catch (const std::exception& e) {
-        mostraErrore(QString("Errore nel reset interfaccia: %1").arg(e.what()));
-    }
-}
-
 void MainWindow::mostraErrore(const QString& errore)
 {
     QMessageBox::critical(this, "Errore", errore);
@@ -1019,10 +990,4 @@ void MainWindow::mostraInfo(const QString& info)
     QTimer::singleShot(3000, [this]() {
         m_statusLabel->setText("Pronto");
     });
-}
-
-bool MainWindow::confermaAzione(const QString& messaggio)
-{
-    return QMessageBox::question(this, "Conferma", messaggio,
-                                QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
 }

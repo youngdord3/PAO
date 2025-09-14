@@ -27,10 +27,6 @@ public:
                        const QString& filename) const;
     std::vector<std::unique_ptr<Media>> loadCollection(const QString& filename) const;
     
-    // Salvataggio e caricamento di singoli media
-    bool saveMedia(const Media* media, const QString& filename) const;
-    std::unique_ptr<Media> loadMedia(const QString& filename) const;
-    
     // Esportazione in diversi formati
     bool exportToJson(const std::vector<std::unique_ptr<Media>>& collection, 
                      const QString& filename, bool prettyFormat = true) const;
@@ -41,16 +37,11 @@ public:
     std::vector<std::unique_ptr<Media>> importFromJson(const QString& filename) const;
     
     // Validazione
-    bool isValidJsonFile(const QString& filename) const;
     QStringList validateJsonStructure(const QJsonDocument& doc) const;
     
     // Utility
     QString getLastError() const;
     void clearError() const;
-    
-    // Backup e recovery
-    bool createBackup(const QString& originalFile) const;
-    bool restoreFromBackup(const QString& backupFile, const QString& targetFile) const;
 
 private:
     mutable QString m_lastError;

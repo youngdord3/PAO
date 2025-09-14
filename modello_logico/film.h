@@ -72,11 +72,8 @@ public:
     bool matchesCriteria(const QString& criteria, const QString& value) const override;
     
     // Metodi specifici per film
-    bool isLongMovie() const;
     QString getDurataFormatted() const;
-    bool isAdultContent() const;
-    QString getRating() const;
-    
+
     // Utility statiche
     static QString genereToString(Genere genere);
     static Genere stringToGenere(const QString& str);

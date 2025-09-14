@@ -4,7 +4,6 @@
 #include "modello_logico/film.h"
 #include "modello_logico/articolo.h"
 #include <QMouseEvent>
-#include <QContextMenuEvent>
 #include <QPainter>
 #include <QStyleOption>
 #include <QApplication>
@@ -126,12 +125,6 @@ void MediaCard::mouseDoubleClickEvent(QMouseEvent *event)
         emit doppioClick(getId());
     }
     QFrame::mouseDoubleClickEvent(event);
-}
-
-void MediaCard::contextMenuEvent(QContextMenuEvent *event)
-{
-    emit contestualMenu(getId(), event->globalPos());
-    QFrame::contextMenuEvent(event);
 }
 
 void MediaCard::enterEvent(QEnterEvent *event)

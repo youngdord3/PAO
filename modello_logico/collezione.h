@@ -30,9 +30,6 @@ public:
     bool updateMedia(const QString& id, std::unique_ptr<Media> updatedMedia);
     Media* findMedia(const QString& id) const;
     
-    // Metodo per creare una nuova collezione vuota
-    void createNew();
-    
     // Accesso alla collezione
     const std::vector<std::unique_ptr<Media>>& getAllMedia() const;
     std::vector<Media*> getMediaByType(const QString& type) const;

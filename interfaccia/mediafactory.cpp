@@ -51,21 +51,6 @@ std::unique_ptr<Media> MediaFactory::createDefaultMedia(const QString& tipo)
     return createMedia(tipo);
 }
 
-std::unique_ptr<Media> MediaFactory::createLibroTemplate()
-{
-    return LibroFactory::createTemplate();
-}
-
-std::unique_ptr<Media> MediaFactory::createFilmTemplate()
-{
-    return FilmFactory::createTemplate();
-}
-
-std::unique_ptr<Media> MediaFactory::createArticoloTemplate()
-{
-    return ArticoloFactory::createTemplate();
-}
-
 QStringList MediaFactory::getSupportedTypes()
 {
     return {"Libro", "Film", "Articolo"};
@@ -86,21 +71,6 @@ QString MediaFactory::getTypeDisplayName(const QString& tipo)
     if (normalizedType == "articolo") return "Articolo";
     
     return "Sconosciuto";
-}
-
-QString MediaFactory::getTypeDescription(const QString& tipo)
-{
-    QString normalizedType = normalizeTypeName(tipo);
-    
-    if (normalizedType == "libro") {
-        return "Opere letterarie, saggi, manuali e pubblicazioni cartacee";
-    } else if (normalizedType == "film") {
-        return "Pellicole cinematografiche, documentari e opere audiovisive";
-    } else if (normalizedType == "articolo") {
-        return "Articoli di riviste, pubblicazioni accademiche e scientifiche";
-    }
-    
-    return "Tipo di media non riconosciuto";
 }
 
 bool MediaFactory::validateMediaData(const QJsonObject& json, QString& error)

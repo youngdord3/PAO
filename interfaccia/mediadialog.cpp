@@ -42,7 +42,6 @@ MediaDialog::MediaDialog(QWidget *parent)
     
     try {
         setupUI();
-        populateComboBoxes();
         onTipoChanged();
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Errore", QString("Errore nell'inizializzazione: %1").arg(e.what()));
@@ -85,7 +84,6 @@ MediaDialog::MediaDialog(Media* media, QWidget *parent, bool readOnly)
     
     try {
         setupUI();
-        populateComboBoxes();
         loadMediaData();
         enableForm(!readOnly);
     } catch (const std::exception& e) {
@@ -968,12 +966,6 @@ void MediaDialog::updateFormVisibility()
 {
     // Il form è già configurato correttamente dal setupTipoSpecificForm
     onValidazioneChanged();
-}
-
-void MediaDialog::populateComboBoxes()
-{
-    // I combo box vengono popolati durante la creazione dei form specifici
-    // Questo metodo può essere usato per aggiornamenti futuri
 }
 
 void MediaDialog::enableForm(bool enabled)
