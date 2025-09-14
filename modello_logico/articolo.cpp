@@ -132,7 +132,7 @@ std::unique_ptr<Media> Articolo::clone() const
                                             m_rivista, m_volume, m_numero, m_pagine, 
                                             m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);
 
-    // IMPORTANTE: Mantiene l'ID originale per il clone
+    // Mantiene l'ID originale per il clone
     cloned->setId(this->getId());
     
     return cloned;

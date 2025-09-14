@@ -51,7 +51,7 @@ bool Collezione::updateMedia(const QString& id, std::unique_ptr<Media> updatedMe
         return false;
     }
     
-    // IMPORTANTE: Assicuriamoci che l'ID rimanga lo stesso
+    // Assicurati che l'ID rimanga lo stesso
     updatedMedia->setId(id);
     
     auto it = findMediaIterator(id);
@@ -162,7 +162,7 @@ bool Collezione::loadFromFile(const QString& filename)
         clear();
         m_media = std::move(loadedMedia);
         
-        // IMPORTANTE: Aggiorna i contatori degli ID in base ai media caricati
+        // Aggiorna i contatori degli ID in base ai media caricati
         updateIdCountersFromCollection();
         
         emit collectionLoaded(static_cast<int>(m_media.size()));

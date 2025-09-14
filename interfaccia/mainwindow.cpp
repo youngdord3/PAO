@@ -380,7 +380,7 @@ void MainWindow::updateLayout()
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
     
-    // IMPORTANTE: Rimuovi tutti i widget dal layout prima di riorganizzarli
+    // Rimuovi tutti i widget dal layout prima di riorganizzarli
     for (MediaCard* card : m_mediaCards) {
         if (card) {
             m_mediaLayout->removeWidget(card);
@@ -463,7 +463,7 @@ void MainWindow::refreshMediaCards() {
             }
         }
         
-        // Applica il layout DOPO aver creato tutte le card
+        // Applica il layout dopo aver creato tutte le card
         updateLayout();
         aggiornaStatistiche();
         
@@ -474,7 +474,7 @@ void MainWindow::refreshMediaCards() {
 
 void MainWindow::clearMediaCards()
 {
-    // IMPORTANTE: Prima disconnetti tutti i segnali
+    // Prima disconnetti tutti i segnali
     for (MediaCard* card : m_mediaCards) {
         if (card) {
             disconnect(card, nullptr, this, nullptr);

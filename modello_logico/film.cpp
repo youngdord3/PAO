@@ -99,7 +99,7 @@ std::unique_ptr<Media> Film::clone() const
                                         m_attori, m_durata, m_genere, m_classificazione, 
                                         m_casa_produzione);
     
-    // IMPORTANTE: Mantiene l'ID originale per il clone
+    // Mantieni l'ID originale per il clone
     cloned->setId(this->getId());
     
     return cloned;

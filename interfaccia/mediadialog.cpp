@@ -158,7 +158,7 @@ void MediaDialog::onTipoChanged()
             setupTipoSpecificForm();
             updateFormVisibility();
             
-            // CORREZIONE: Aspetta che il form sia completamente configurato prima di validare
+            // Aspetta che il form sia completamente configurato prima di validare
             QTimer::singleShot(100, this, &MediaDialog::onValidazioneChanged);
         }
     } catch (const std::exception& e) {
@@ -247,7 +247,7 @@ void MediaDialog::onValidazioneChanged()
     try {
         if (!m_validationEnabled || !m_okButton || !m_validationLabel) return;
         
-        // CORREZIONE: Controlla che i widget del tipo corrente siano inizializzati
+        // Controlla che i widget del tipo corrente siano inizializzati
         if (!areCurrentTypeWidgetsReady()) {
             // Se i widget non sono pronti, attiva il pulsante ma non mostrare errori
             m_okButton->setEnabled(true);
@@ -422,7 +422,7 @@ void MediaDialog::setupTipoSpecificForm()
             setupArticoloForm();
         }
         
-        // CORREZIONE: Setup connessioni DOPO aver creato i widget
+        // Setup connessioni DOPO aver creato i widget
         QTimer::singleShot(10, this, &MediaDialog::setupSpecificConnections);
         
     } catch (const std::exception& e) {
@@ -710,7 +710,7 @@ void MediaDialog::setupButtons()
         m_helpButton->setObjectName("helpButton");
     }
     
-    // CORREZIONE: Aggiungi i bottoni al layout orizzontale
+    // Aggiungi i bottoni al layout orizzontale
     m_buttonLayout->addStretch();  // Spinge i bottoni a destra
     if (m_helpButton) {
         m_buttonLayout->addWidget(m_helpButton);
@@ -722,7 +722,7 @@ void MediaDialog::setupButtons()
         m_buttonLayout->addWidget(m_okButton);
     }
     
-    // CORREZIONE: Aggiungi il layout dei bottoni al layout principale
+    // Aggiungi il layout dei bottoni al layout principale
     m_mainLayout->addLayout(m_buttonLayout);
     
     // Connessioni bottoni
