@@ -44,38 +44,34 @@ MainWindow::MainWindow(QWidget *parent)
     , m_collezione(std::make_unique<Collezione>(this))
     , m_modificato(false)
     , m_selezionato_id("")
-    , m_editPanel(nullptr)
-    , m_editPanelVisible(false)
-    , m_editingMediaId("")
-    , m_editReadOnly(false)
-    , m_editIsNew(false)
-    , m_editTipoCorrente("")
-    , m_editValidationEnabled(true)
-    // Inizializza tutti i puntatori a nullptr
     , m_centralWidget(nullptr)
     , m_splitter(nullptr)
     , m_filterWidget(nullptr)
     , m_mediaScrollArea(nullptr)
     , m_mediaContainer(nullptr)
     , m_mediaLayout(nullptr)
+    , m_editPanel(nullptr)
     , m_editContentContainer(nullptr)
     , m_editScrollArea(nullptr)
     , m_editHeaderLabel(nullptr)
+    , m_editPanelVisible(false)
+    , m_editingMediaId("")
+    , m_editReadOnly(false)
+    , m_editIsNew(false)
+    , m_editTipoCorrente("")
     , m_editFormLayout(nullptr)
     , m_editBaseGroup(nullptr)
-    , m_editLibroGroup(nullptr)
-    , m_editFilmGroup(nullptr)
-    , m_editArticoloGroup(nullptr)
-    // Inizializza tutti i widget specifici a nullptr
     , m_editTipoCombo(nullptr)
     , m_editTitoloEdit(nullptr)
     , m_editAnnoSpin(nullptr)
     , m_editDescrizioneEdit(nullptr)
+    , m_editLibroGroup(nullptr)
     , m_editAutoreEdit(nullptr)
     , m_editEditoreEdit(nullptr)
     , m_editPagineSpin(nullptr)
     , m_editIsbnEdit(nullptr)
     , m_editGenereLibroCombo(nullptr)
+    , m_editFilmGroup(nullptr)
     , m_editRegistaEdit(nullptr)
     , m_editAttoriList(nullptr)
     , m_editNuovoAttoreEdit(nullptr)
@@ -85,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_editGenereFilmCombo(nullptr)
     , m_editClassificazioneCombo(nullptr)
     , m_editCasaProduzioneEdit(nullptr)
+    , m_editArticoloGroup(nullptr)
     , m_editAutoriList(nullptr)
     , m_editNuovoAutoreEdit(nullptr)
     , m_editAggiungiAutoreBtn(nullptr)
@@ -101,6 +98,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_editAnnullaButton(nullptr)
     , m_editHelpButton(nullptr)
     , m_editValidationLabel(nullptr)
+    , m_editValidationEnabled(true)
 {
     setWindowTitle("Biblioteca Manager");
     setMinimumSize(800, 600);
@@ -960,7 +958,7 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         // Aggiorna il testo del pulsante Annulla/Chiudi
         if (m_editAnnullaButton) {
             if (readOnly) {
-                m_editAnnullaButton->setVisible(false); // Nascondi "Chiudi" quando c'è già "Chiudi" in Salva
+                m_editAnnullaButton->setVisible(false);
             } else {
                 m_editAnnullaButton->setVisible(true);
                 m_editAnnullaButton->setText("Annulla");
@@ -980,10 +978,15 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             if (m_editDescrizioneEdit) m_editDescrizioneEdit->clear();
             
             // Trigger cambio tipo per creare il form specifico
-            QTimer::singleShot(10, this, &MainWindow::onEditTipoChanged);
+            QTimer::singleShot(10, this, [this, readOnly]() {
+                onEditTipoChanged();
+                QTimer::singleShot(50, this, [this, readOnly]() {
+                    enableEditForm(!readOnly);
+                });
+            });
+        } else {
+            //????
         }
-        
-        enableEditForm(!readOnly);
         
         // Focus sul primo campo se non è read-only
         if (!readOnly && m_editTitoloEdit) {
@@ -1527,6 +1530,11 @@ void MainWindow::loadEditMediaData(Media* media)
         }
         
         updateEditFormVisibility();
+        
+        QTimer::singleShot(10, this, [this]() {
+            enableEditForm(!m_editReadOnly);
+        });
+        
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nel caricamento dati: %1").arg(e.what()));
     }
@@ -1616,10 +1624,22 @@ void MainWindow::onEditValidationChanged()
             return;
         }
         
+        // NON mostrare validazione in modalità read-only (dettagli)
+        if (m_editReadOnly) {
+            if (m_editValidationLabel) {
+                m_editValidationLabel->setText("");  // Nasconde il testo di validazione
+                m_editValidationLabel->setVisible(false);  // Nasconde completamente la label
+            }
+            return;
+        }
+        
         // Controlla che i widget del tipo corrente siano inizializzati
         if (!areEditCurrentTypeWidgetsReady()) {
             if (m_editSalvaButton) m_editSalvaButton->setEnabled(true);
-            if (m_editValidationLabel) m_editValidationLabel->setText("Configurazione in corso...");
+            if (m_editValidationLabel) {
+                m_editValidationLabel->setText("Configurazione in corso...");
+                m_editValidationLabel->setVisible(true);
+            }
             return;
         }
         
@@ -1629,6 +1649,8 @@ void MainWindow::onEditValidationChanged()
         }
         
         if (m_editValidationLabel) {
+            m_editValidationLabel->setVisible(true);  // Assicurati che sia visibile in modalità edit
+            
             if (valid) {
                 m_editValidationLabel->setText("✓ Tutti i campi sono validi");
                 m_editValidationLabel->setProperty("valid", true);
@@ -1754,6 +1776,25 @@ void MainWindow::enableEditForm(bool enabled)
             if (m_editTipoCombo) m_editTipoCombo->setEnabled(false);
             if (m_editAnnullaButton) m_editAnnullaButton->setVisible(false);
             if (m_editHelpButton) m_editHelpButton->setVisible(false);
+            
+            // Nascondi il campo input e i bottoni di gestione attori per i film
+            if (m_editNuovoAttoreEdit) m_editNuovoAttoreEdit->setVisible(false);
+            if (m_editAggiungiAttoreBtn) m_editAggiungiAttoreBtn->setVisible(false);
+            if (m_editRimuoviAttoreBtn) m_editRimuoviAttoreBtn->setVisible(false);
+            
+            // Nascondi il campo input e i bottoni di gestione autori per gli articoli
+            if (m_editNuovoAutoreEdit) m_editNuovoAutoreEdit->setVisible(false);
+            if (m_editAggiungiAutoreBtn) m_editAggiungiAutoreBtn->setVisible(false);
+            if (m_editRimuoviAutoreBtn) m_editRimuoviAutoreBtn->setVisible(false);
+        } else {
+            // In modalità edit, assicurati che i campi e bottoni siano visibili se esistono
+            if (m_editNuovoAttoreEdit) m_editNuovoAttoreEdit->setVisible(true);
+            if (m_editAggiungiAttoreBtn) m_editAggiungiAttoreBtn->setVisible(true);
+            if (m_editRimuoviAttoreBtn) m_editRimuoviAttoreBtn->setVisible(true);
+            
+            if (m_editNuovoAutoreEdit) m_editNuovoAutoreEdit->setVisible(true);
+            if (m_editAggiungiAutoreBtn) m_editAggiungiAutoreBtn->setVisible(true);
+            if (m_editRimuoviAutoreBtn) m_editRimuoviAutoreBtn->setVisible(true);
         }
     } catch (const std::exception& e) {
         qWarning() << "Errore in enableEditForm:" << e.what();
