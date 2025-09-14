@@ -52,6 +52,10 @@ MainWindow::MainWindow(QWidget *parent)
     
     // Carica file di default se esiste
     QString defaultFile = "data.json";
+    if (!QFile::exists(defaultFile)) {
+        defaultFile = "../data.json";  // Prova un livello sopra (cartella principale)
+    }
+    
     if (QFile::exists(defaultFile)) {
         if (m_collezione->loadFromFile(defaultFile)) {
             m_fileCorrente = defaultFile;
