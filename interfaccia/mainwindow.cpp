@@ -746,6 +746,9 @@ void MainWindow::rimuoviMedia()
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
         
+        msgBox.button(QMessageBox::Yes)->setText("Sì");
+        msgBox.button(QMessageBox::No)->setText("No");
+        
         if (msgBox.exec() == QMessageBox::Yes) {
             QString titoloRimosso = media->getTitolo();
             
