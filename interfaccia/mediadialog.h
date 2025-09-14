@@ -74,6 +74,8 @@ private:
     void saveMediaData();
     bool validateInput();
     QStringList getValidationErrors();
+    bool areCurrentTypeWidgetsReady() const;
+    void setupSpecificConnections();
     
     // Utility
     void clearSpecificForm();

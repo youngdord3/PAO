@@ -147,6 +147,7 @@ std::unique_ptr<Media> MediaDialog::getMedia() const
     
     return nullptr;
 }
+
 void MediaDialog::onTipoChanged()
 {
     try {
@@ -158,11 +159,15 @@ void MediaDialog::onTipoChanged()
             m_tipoCorrente = nuovoTipo;
             setupTipoSpecificForm();
             updateFormVisibility();
+            
+            // CORREZIONE: Aspetta che il form sia completamente configurato prima di validare
+            QTimer::singleShot(100, this, &MediaDialog::onValidazioneChanged);
         }
     } catch (const std::exception& e) {
         QMessageBox::warning(this, "Errore", QString("Errore nel cambio tipo: %1").arg(e.what()));
     }
 }
+
 
 void MediaDialog::onAccettaClicked()
 {
@@ -206,30 +211,11 @@ void MediaDialog::onAggiungiAutoreClicked()
             m_autoriList->addItem(autore);
             m_nuovoAutoreEdit->clear();
             m_nuovoAutoreEdit->setFocus();
-            onValidazioneChanged();
+            
+            QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
         }
     } catch (const std::exception& e) {
         QMessageBox::warning(this, "Errore", QString("Errore nell'aggiunta autore: %1").arg(e.what()));
-    }
-}
-
-void MediaDialog::onRimuoviAutoreClicked()
-{
-    try {
-        if (!m_autoriList) return;
-        
-        int row = m_autoriList->currentRow();
-        if (row >= 0) {
-            QListWidgetItem* item = m_autoriList->takeItem(row);
-            if (item) {
-                delete item;
-                onValidazioneChanged();
-            }
-        } else {
-            QMessageBox::information(this, "Info", "Seleziona un autore da rimuovere");
-        }
-    } catch (const std::exception& e) {
-        QMessageBox::warning(this, "Errore", QString("Errore nella rimozione autore: %1").arg(e.what()));
     }
 }
 
@@ -250,30 +236,11 @@ void MediaDialog::onAggiungiAttoreClicked()
             m_attoriList->addItem(attore);
             m_nuovoAttoreEdit->clear();
             m_nuovoAttoreEdit->setFocus();
-            onValidazioneChanged();
+            
+            QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
         }
     } catch (const std::exception& e) {
         QMessageBox::warning(this, "Errore", QString("Errore nell'aggiunta attore: %1").arg(e.what()));
-    }
-}
-
-void MediaDialog::onRimuoviAttoreClicked()
-{
-    try {
-        if (!m_attoriList) return;
-        
-        int row = m_attoriList->currentRow();
-        if (row >= 0) {
-            QListWidgetItem* item = m_attoriList->takeItem(row);
-            if (item) {
-                delete item;
-                onValidazioneChanged();
-            }
-        } else {
-            QMessageBox::information(this, "Info", "Seleziona un attore da rimuovere");
-        }
-    } catch (const std::exception& e) {
-        QMessageBox::warning(this, "Errore", QString("Errore nella rimozione attore: %1").arg(e.what()));
     }
 }
 
@@ -281,6 +248,14 @@ void MediaDialog::onValidazioneChanged()
 {
     try {
         if (!m_validationEnabled || !m_okButton || !m_validationLabel) return;
+        
+        // CORREZIONE: Controlla che i widget del tipo corrente siano inizializzati
+        if (!areCurrentTypeWidgetsReady()) {
+            // Se i widget non sono pronti, attiva il pulsante ma non mostrare errori
+            m_okButton->setEnabled(true);
+            m_validationLabel->setText("Configurazione in corso...");
+            return;
+        }
         
         bool valid = validateInput();
         m_okButton->setEnabled(valid);
@@ -296,7 +271,6 @@ void MediaDialog::onValidazioneChanged()
         
         m_validationLabel->style()->unpolish(m_validationLabel);
         m_validationLabel->style()->polish(m_validationLabel);
-        
         m_validationLabel->update();
         
     } catch (const std::exception& e) {
@@ -360,18 +334,25 @@ void MediaDialog::setupConnections()
     // Disconnetti tutto prima di riconnettere per evitare connessioni multiple
     if (m_titoloEdit) {
         disconnect(m_titoloEdit, nullptr, this, nullptr);
-        connect(m_titoloEdit, &QLineEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
+        connect(m_titoloEdit, &QLineEdit::textChanged, this, [this]() {
+            // Delay per evitare validazioni durante la configurazione
+            QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+        });
     }
     
     if (m_annoSpin) {
         disconnect(m_annoSpin, nullptr, this, nullptr);
         connect(m_annoSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
-                this, &MediaDialog::onValidazioneChanged);
+                this, [this]() {
+                    QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+                });
     }
     
     if (m_descrizioneEdit) {
         disconnect(m_descrizioneEdit, nullptr, this, nullptr);
-        connect(m_descrizioneEdit, &QTextEdit::textChanged, this, &MediaDialog::onValidazioneChanged);
+        connect(m_descrizioneEdit, &QTextEdit::textChanged, this, [this]() {
+            QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+        });
     }
     
     if (m_tipoCombo) {
@@ -443,8 +424,8 @@ void MediaDialog::setupTipoSpecificForm()
             setupArticoloForm();
         }
         
-        // Riconnetti tutto dopo aver creato i nuovi widget
-        setupConnections();
+        // CORREZIONE: Setup connessioni DOPO aver creato i widget
+        QTimer::singleShot(10, this, &MediaDialog::setupSpecificConnections);
         
     } catch (const std::exception& e) {
         QMessageBox::warning(this, "Errore", QString("Errore nel setup form specifico: %1").arg(e.what()));
@@ -722,9 +703,6 @@ void MediaDialog::setupButtons()
     
     if (m_okButton) {
         m_okButton->setDefault(true);
-    }
-    
-    if (m_okButton) {
         m_okButton->setObjectName("okButton");
     }
     if (m_cancelButton) {
@@ -1128,5 +1106,129 @@ std::unique_ptr<Media> MediaDialog::createArticolo() const
     } catch (const std::exception& e) {
         qWarning() << "Errore in createArticolo:" << e.what();
         return nullptr;
+    }
+}
+
+bool MediaDialog::areCurrentTypeWidgetsReady() const
+{
+    if (!m_tipoCombo) return false;
+    
+    QString tipo = m_tipoCombo->currentText();
+    
+    if (tipo == "Libro") {
+        return m_libroGroup != nullptr && 
+               m_autoreEdit != nullptr && 
+               m_pagineSpin != nullptr;
+    } else if (tipo == "Film") {
+        return m_filmGroup != nullptr && 
+               m_registaEdit != nullptr && 
+               m_attoriList != nullptr && 
+               m_durataSpin != nullptr;
+    } else if (tipo == "Articolo") {
+        return m_articoloGroup != nullptr && 
+               m_autoriList != nullptr && 
+               m_rivistaEdit != nullptr && 
+               m_dataPubblicazioneEdit != nullptr;
+    }
+    
+    return false;
+}
+
+void MediaDialog::setupSpecificConnections()
+{
+    QString tipo = m_tipoCombo->currentText();
+    
+    if (tipo == "Libro") {
+        if (m_autoreEdit) {
+            connect(m_autoreEdit, &QLineEdit::textChanged, this, [this]() {
+                QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+            });
+        }
+        if (m_pagineSpin) {
+            connect(m_pagineSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
+                    this, [this]() {
+                        QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+                    });
+        }
+    } else if (tipo == "Film") {
+        if (m_registaEdit) {
+            connect(m_registaEdit, &QLineEdit::textChanged, this, [this]() {
+                QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+            });
+        }
+        if (m_durataSpin) {
+            connect(m_durataSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
+                    this, [this]() {
+                        QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+                    });
+        }
+        if (m_aggiungiAttoreBtn) {
+            connect(m_aggiungiAttoreBtn, &QPushButton::clicked, 
+                    this, &MediaDialog::onAggiungiAttoreClicked);
+        }
+        if (m_rimuoviAttoreBtn) {
+            connect(m_rimuoviAttoreBtn, &QPushButton::clicked, 
+                    this, &MediaDialog::onRimuoviAttoreClicked);
+        }
+    } else if (tipo == "Articolo") {
+        if (m_rivistaEdit) {
+            connect(m_rivistaEdit, &QLineEdit::textChanged, this, [this]() {
+                QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+            });
+        }
+        if (m_dataPubblicazioneEdit) {
+            connect(m_dataPubblicazioneEdit, &QDateEdit::dateChanged, 
+                    this, [this]() {
+                        QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+                    });
+        }
+        if (m_aggiungiAutoreBtn) {
+            connect(m_aggiungiAutoreBtn, &QPushButton::clicked, 
+                    this, &MediaDialog::onAggiungiAutoreClicked);
+        }
+        if (m_rimuoviAutoreBtn) {
+            connect(m_rimuoviAutoreBtn, &QPushButton::clicked, 
+                    this, &MediaDialog::onRimuoviAutoreClicked);
+        }
+    }
+}
+
+void MediaDialog::onRimuoviAutoreClicked()
+{
+    try {
+        if (!m_autoriList) return;
+        
+        int row = m_autoriList->currentRow();
+        if (row >= 0) {
+            QListWidgetItem* item = m_autoriList->takeItem(row);
+            if (item) {
+                delete item;
+                QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+            }
+        } else {
+            QMessageBox::information(this, "Info", "Seleziona un autore da rimuovere");
+        }
+    } catch (const std::exception& e) {
+        QMessageBox::warning(this, "Errore", QString("Errore nella rimozione autore: %1").arg(e.what()));
+    }
+}
+
+void MediaDialog::onRimuoviAttoreClicked()
+{
+    try {
+        if (!m_attoriList) return;
+        
+        int row = m_attoriList->currentRow();
+        if (row >= 0) {
+            QListWidgetItem* item = m_attoriList->takeItem(row);
+            if (item) {
+                delete item;
+                QTimer::singleShot(50, this, &MediaDialog::onValidazioneChanged);
+            }
+        } else {
+            QMessageBox::information(this, "Info", "Seleziona un attore da rimuovere");
+        }
+    } catch (const std::exception& e) {
+        QMessageBox::warning(this, "Errore", QString("Errore nella rimozione attore: %1").arg(e.what()));
     }
 }
