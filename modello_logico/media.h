@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QDate>
 #include <memory>
+#include <vector>
 
 // Forward declarations per evitare dipendenze circolari
 class QWidget;
@@ -49,6 +50,11 @@ public:
     // Metodi per la ricerca e filtri
     virtual bool matchesFilter(const QString& searchText) const;
     virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
+    
+    // Gestione ID semplici
+    static QString generateSimpleId(const QString& type);
+    static void updateCountersFromExistingIds(const std::vector<QString>& existingIds);
+    static void resetCounters(); // Nuovo metodo per resettare i contatori
 
 protected:
     // Template method steps - da implementare nelle classi derivate
@@ -62,7 +68,7 @@ protected:
     QString m_descrizione;
     
 private:
-    static QString generateId();
+    static QString generateId(); // Manteniamo per compatibilità
 };
 
 #endif // MEDIA_H

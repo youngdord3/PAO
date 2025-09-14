@@ -10,6 +10,10 @@ Film::Film(const QString& titolo, int anno, const QString& descrizione,
       m_durata(durata), m_genere(genere), m_classificazione(classificazione),
       m_casa_produzione(casa_produzione)
 {
+    // Genera ID semplice per nuovo film
+    if (m_id.isEmpty()) {
+        m_id = generateSimpleId("film");
+    }
 }
 
 Film::Film(const QJsonObject& json)
@@ -95,6 +99,7 @@ std::unique_ptr<Media> Film::clone() const
                                         m_attori, m_durata, m_genere, m_classificazione, 
                                         m_casa_produzione);
     
+    // IMPORTANTE: Mantiene l'ID originale per il clone
     cloned->setId(this->getId());
     
     return cloned;

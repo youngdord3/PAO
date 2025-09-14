@@ -545,7 +545,9 @@ void MainWindow::nuovaCollezione()
     try {
         if (!verificaModifiche()) return;
         
+        Media::resetCounters();
         m_collezione->clear();
+        
         m_fileCorrente.clear();
         m_modificato = false;
         setWindowTitle("Biblioteca Manager - [Nuova Collezione]");

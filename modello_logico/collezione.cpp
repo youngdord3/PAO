@@ -51,6 +51,9 @@ bool Collezione::updateMedia(const QString& id, std::unique_ptr<Media> updatedMe
         return false;
     }
     
+    // IMPORTANTE: Assicuriamoci che l'ID rimanga lo stesso
+    updatedMedia->setId(id);
+    
     auto it = findMediaIterator(id);
     if (it != m_media.end()) {
         *it = std::move(updatedMedia);
@@ -158,6 +161,10 @@ bool Collezione::loadFromFile(const QString& filename)
     if (!loadedMedia.empty()) {
         clear();
         m_media = std::move(loadedMedia);
+        
+        // IMPORTANTE: Aggiorna i contatori degli ID in base ai media caricati
+        updateIdCountersFromCollection();
+        
         emit collectionLoaded(static_cast<int>(m_media.size()));
         notifyChange();
         return true;
@@ -218,6 +225,22 @@ QStringList Collezione::getValidationErrors() const
     }
     
     return errors;
+}
+
+void Collezione::updateIdCountersFromCollection()
+{
+    std::vector<QString> existingIds;
+    
+    // Raccoglie tutti gli ID esistenti nella collezione
+    for (const auto& media : m_media) {
+        if (media) {
+            existingIds.push_back(media->getId());
+        }
+    }
+    
+    // Aggiorna i contatori statici nella classe Media
+    // Se la collezione è vuota, resetterà automaticamente i contatori a 1
+    Media::updateCountersFromExistingIds(existingIds);
 }
 
 // Iterator

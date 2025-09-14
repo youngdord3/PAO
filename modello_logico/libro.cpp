@@ -9,6 +9,10 @@ Libro::Libro(const QString& titolo, int anno, const QString& descrizione,
     : Media(titolo, anno, descrizione), m_autore(autore), m_editore(editore),
       m_pagine(pagine), m_isbn(isbn), m_genere(genere)
 {
+    // Genera ID semplice per nuovo libro
+    if (m_id.isEmpty()) {
+        m_id = generateSimpleId("libro");
+    }
 }
 
 Libro::Libro(const QJsonObject& json)
@@ -78,6 +82,7 @@ std::unique_ptr<Media> Libro::clone() const
     auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
                                          m_editore, m_pagine, m_isbn, m_genere);
     
+    // IMPORTANTE: Mantiene l'ID originale per il clone
     cloned->setId(this->getId());
     
     return cloned;

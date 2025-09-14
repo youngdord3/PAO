@@ -2,9 +2,15 @@
 #include <QUuid>
 #include <QDateTime>
 
+// Contatori statici per ogni tipo di media
+static int s_libroCounter = 1;
+static int s_filmCounter = 1;
+static int s_articoloCounter = 1;
+
 Media::Media(const QString& titolo, int anno, const QString& descrizione)
-    : m_id(generateId()), m_titolo(titolo), m_anno(anno), m_descrizione(descrizione)
+    : m_id(""), m_titolo(titolo), m_anno(anno), m_descrizione(descrizione)
 {
+    // L'ID verrà impostato dalle classi derivate
 }
 
 QString Media::getTitolo() const
@@ -65,5 +71,72 @@ bool Media::matchesFilter(const QString& searchText) const
 
 QString Media::generateId()
 {
+    // Fallback per UUID se chiamato direttamente
     return QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+QString Media::generateSimpleId(const QString& type)
+{
+    if (type.toLower() == "libro") {
+        return QString("libro-%1").arg(s_libroCounter++, 3, 10, QChar('0'));
+    } else if (type.toLower() == "film") {
+        return QString("film-%1").arg(s_filmCounter++, 3, 10, QChar('0'));
+    } else if (type.toLower() == "articolo") {
+        return QString("articolo-%1").arg(s_articoloCounter++, 3, 10, QChar('0'));
+    }
+    
+    // Fallback
+    return QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
+void Media::updateCountersFromExistingIds(const std::vector<QString>& existingIds)
+{
+    int maxLibro = 0;
+    int maxFilm = 0;
+    int maxArticolo = 0;
+    
+    // Se non ci sono ID esistenti (nuova collezione vuota), resetta i contatori
+    if (existingIds.empty()) {
+        s_libroCounter = 1;
+        s_filmCounter = 1;
+        s_articoloCounter = 1;
+        return;
+    }
+    
+    for (const QString& id : existingIds) {
+        if (id.startsWith("libro-")) {
+            QString numStr = id.mid(6); // Rimuove "libro-"
+            bool ok;
+            int num = numStr.toInt(&ok);
+            if (ok && num > maxLibro) {
+                maxLibro = num;
+            }
+        } else if (id.startsWith("film-")) {
+            QString numStr = id.mid(5); // Rimuove "film-"
+            bool ok;
+            int num = numStr.toInt(&ok);
+            if (ok && num > maxFilm) {
+                maxFilm = num;
+            }
+        } else if (id.startsWith("articolo-")) {
+            QString numStr = id.mid(9); // Rimuove "articolo-"
+            bool ok;
+            int num = numStr.toInt(&ok);
+            if (ok && num > maxArticolo) {
+                maxArticolo = num;
+            }
+        }
+    }
+    
+    // Imposta i contatori al valore massimo + 1
+    s_libroCounter = maxLibro + 1;
+    s_filmCounter = maxFilm + 1;
+    s_articoloCounter = maxArticolo + 1;
+}
+
+void Media::resetCounters()
+{
+    s_libroCounter = 1;
+    s_filmCounter = 1;
+    s_articoloCounter = 1;
 }

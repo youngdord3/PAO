@@ -30,6 +30,9 @@ public:
     bool updateMedia(const QString& id, std::unique_ptr<Media> updatedMedia);
     Media* findMedia(const QString& id) const;
     
+    // Metodo per creare una nuova collezione vuota
+    void createNew();
+    
     // Accesso alla collezione
     const std::vector<std::unique_ptr<Media>>& getAllMedia() const;
     std::vector<Media*> getMediaByType(const QString& type) const;
@@ -80,6 +83,7 @@ private:
     // Helper methods
     bool isIdUnique(const QString& id) const;
     void notifyChange();
+    void updateIdCountersFromCollection();
     std::vector<std::unique_ptr<Media>>::iterator findMediaIterator(const QString& id);
 };
 

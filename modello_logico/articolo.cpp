@@ -13,6 +13,10 @@ Articolo::Articolo(const QString& titolo, int anno, const QString& descrizione,
       m_volume(volume), m_numero(numero), m_pagine(pagine), m_categoria(categoria),
       m_tipo_rivista(tipo_rivista), m_data_pubblicazione(data_pubblicazione), m_doi(doi)
 {
+    // Genera ID semplice per nuovo articolo
+    if (m_id.isEmpty()) {
+        m_id = generateSimpleId("articolo");
+    }
 }
 
 Articolo::Articolo(const QJsonObject& json)
@@ -128,6 +132,7 @@ std::unique_ptr<Media> Articolo::clone() const
                                             m_rivista, m_volume, m_numero, m_pagine, 
                                             m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);
 
+    // IMPORTANTE: Mantiene l'ID originale per il clone
     cloned->setId(this->getId());
     
     return cloned;
