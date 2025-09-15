@@ -4,13 +4,9 @@
 #include "media.h"
 #include <QStringList>
 
-class MediaCard;
-class QWidget;
 
 /**
  * @brief Classe per rappresentare un film nella collezione
- * 
- * Estende Media con attributi specifici per i film
  */
 class Film : public Media
 {
@@ -46,7 +42,6 @@ public:
     
     Film(const QJsonObject& json);
     
-    // Accessori specifici
     QString getRegista() const;
     QStringList getAttori() const;
     int getDurata() const; // in minuti

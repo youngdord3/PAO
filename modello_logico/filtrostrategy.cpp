@@ -1,15 +1,7 @@
 #include "filtrostrategy.h"
 #include "media.h"
-#include "libro.h"
-#include "film.h"
-#include "articolo.h"
-#include <QDate>
 
-// FiltroTipo
-FiltroTipo::FiltroTipo(const QString& tipo) : m_tipo(tipo)
-{
-}
-
+// FiltroTipo - solo implementazioni dei metodi non-inline
 bool FiltroTipo::matches(const Media* media) const
 {
     if (!media) return false;
@@ -26,11 +18,7 @@ std::unique_ptr<FiltroStrategy> FiltroTipo::clone() const
     return std::make_unique<FiltroTipo>(m_tipo);
 }
 
-// FiltroAnno
-FiltroAnno::FiltroAnno(int annoMin, int annoMax) : m_annoMin(annoMin), m_annoMax(annoMax)
-{
-}
-
+// FiltroAnno - solo implementazioni dei metodi non-inline
 bool FiltroAnno::matches(const Media* media) const
 {
     if (!media) return false;
@@ -51,12 +39,7 @@ std::unique_ptr<FiltroStrategy> FiltroAnno::clone() const
     return std::make_unique<FiltroAnno>(m_annoMin, m_annoMax);
 }
 
-// FiltroCriterio
-FiltroCriterio::FiltroCriterio(const QString& criterio, const QString& valore)
-    : m_criterio(criterio), m_valore(valore)
-{
-}
-
+// FiltroCriterio - solo implementazioni dei metodi non-inline
 bool FiltroCriterio::matches(const Media* media) const
 {
     if (!media) return false;
@@ -73,11 +56,7 @@ std::unique_ptr<FiltroStrategy> FiltroCriterio::clone() const
     return std::make_unique<FiltroCriterio>(m_criterio, m_valore);
 }
 
-// FiltroComposto
-FiltroComposto::FiltroComposto()
-{
-}
-
+// FiltroComposto - solo metodi complessi, quelli semplici sono inline nel .h
 void FiltroComposto::addFiltro(std::unique_ptr<FiltroStrategy> filtro)
 {
     if (filtro) {
@@ -120,27 +99,7 @@ std::unique_ptr<FiltroStrategy> FiltroComposto::clone() const
     return copia;
 }
 
-size_t FiltroComposto::size() const
-{
-    return m_filtri.size();
-}
-
-bool FiltroComposto::isEmpty() const
-{
-    return m_filtri.empty();
-}
-
-void FiltroComposto::clear()
-{
-    m_filtri.clear();
-}
-
-// FiltroNegato
-FiltroNegato::FiltroNegato(std::unique_ptr<FiltroStrategy> filtro)
-    : m_filtro(std::move(filtro))
-{
-}
-
+// FiltroNegato - solo implementazioni dei metodi non-inline
 bool FiltroNegato::matches(const Media* media) const
 {
     if (!media || !m_filtro) return false;
@@ -159,7 +118,7 @@ std::unique_ptr<FiltroStrategy> FiltroNegato::clone() const
     return std::make_unique<FiltroNegato>(m_filtro->clone());
 }
 
-// FiltroFactory
+// FiltroFactory - metodi statici
 std::unique_ptr<FiltroStrategy> FiltroFactory::createTipoFiltro(const QString& tipo)
 {
     return std::make_unique<FiltroTipo>(tipo);

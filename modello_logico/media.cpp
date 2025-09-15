@@ -69,11 +69,6 @@ bool Media::matchesFilter(const QString& searchText) const
     return searchableText.contains(searchLower);
 }
 
-QString Media::generateId()
-{
-    return QUuid::createUuid().toString(QUuid::WithoutBraces);
-}
-
 QString Media::generateSimpleId(const QString& type)
 {
     if (type.toLower() == "libro") {

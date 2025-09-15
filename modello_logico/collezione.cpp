@@ -30,7 +30,6 @@ void Collezione::addMedia(std::unique_ptr<Media> media)
     m_media.push_back(std::move(media));
     
     emit mediaAdded(id);
-    notifyChange();
 }
 
 bool Collezione::removeMedia(const QString& id)
@@ -39,7 +38,6 @@ bool Collezione::removeMedia(const QString& id)
     if (it != m_media.end()) {
         m_media.erase(it);
         emit mediaRemoved(id);
-        notifyChange();
         return true;
     }
     return false;
@@ -58,7 +56,6 @@ bool Collezione::updateMedia(const QString& id, std::unique_ptr<Media> updatedMe
     if (it != m_media.end()) {
         *it = std::move(updatedMedia);
         emit mediaUpdated(id);
-        notifyChange();
         return true;
     }
     return false;
@@ -166,7 +163,6 @@ bool Collezione::loadFromFile(const QString& filename)
         updateIdCountersFromCollection();
         
         emit collectionLoaded(static_cast<int>(m_media.size()));
-        notifyChange();
         return true;
     }
     return false;
@@ -176,7 +172,6 @@ void Collezione::clear()
 {
     m_media.clear();
     emit collectionCleared();
-    notifyChange();
 }
 
 bool Collezione::isValidCollection() const
@@ -284,12 +279,6 @@ bool Collezione::isIdUnique(const QString& id) const
                        [&id](const std::unique_ptr<Media>& media) {
                            return media->getId() == id;
                        });
-}
-
-void Collezione::notifyChange()
-{
-    // Qui si potrebbero aggiungere altre notifiche o validazioni
-    // Ad esempio, salvare automaticamente in un file di backup
 }
 
 std::vector<std::unique_ptr<Media>>::iterator Collezione::findMediaIterator(const QString& id)

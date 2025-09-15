@@ -1,5 +1,4 @@
 #include "libro.h"
-#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QRegularExpression>
 

@@ -4,13 +4,8 @@
 #include "media.h"
 #include <QStringList>
 
-class MediaCard;
-class QWidget;
-
 /**
  * @brief Classe per rappresentare un libro nella collezione
- * 
- * Estende Media con attributi specifici per i libri
  */
 class Libro : public Media
 {
@@ -34,7 +29,6 @@ public:
     
     Libro(const QJsonObject& json);
     
-    // Accessori specifici
     QString getAutore() const;
     QString getEditore() const;
     int getPagine() const;

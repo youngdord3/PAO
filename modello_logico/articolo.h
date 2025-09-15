@@ -5,13 +5,8 @@
 #include <QDate>
 #include <QStringList>
 
-class MediaCard;
-class QWidget;
-
 /**
  * @brief Classe per rappresentare un articolo di rivista nella collezione
- * 
- * Estende Media con attributi specifici per gli articoli accademici/giornalistici
  */
 class Articolo : public Media
 {
@@ -50,7 +45,6 @@ public:
     
     Articolo(const QJsonObject& json);
     
-    // Accessori specifici
     QStringList getAutori() const;
     QString getRivista() const;
     QString getVolume() const;

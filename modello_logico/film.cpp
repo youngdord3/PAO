@@ -1,5 +1,4 @@
 #include "film.h"
-#include "interfaccia/mediacard.h"
 #include <QJsonObject>
 #include <QJsonArray>
 

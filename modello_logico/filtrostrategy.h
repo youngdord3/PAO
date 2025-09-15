@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <memory>
+#include <vector>
 
 class Media;
 
@@ -22,7 +23,7 @@ public:
 class FiltroTipo : public FiltroStrategy
 {
 public:
-    explicit FiltroTipo(const QString& tipo);
+    explicit FiltroTipo(const QString& tipo) : m_tipo(tipo) {}
     bool matches(const Media* media) const override;
     QString getDescription() const override;
     std::unique_ptr<FiltroStrategy> clone() const override;
@@ -35,7 +36,7 @@ private:
 class FiltroAnno : public FiltroStrategy
 {
 public:
-    FiltroAnno(int annoMin, int annoMax);
+    FiltroAnno(int annoMin, int annoMax) : m_annoMin(annoMin), m_annoMax(annoMax) {}
     bool matches(const Media* media) const override;
     QString getDescription() const override;
     std::unique_ptr<FiltroStrategy> clone() const override;
@@ -49,7 +50,8 @@ private:
 class FiltroCriterio : public FiltroStrategy
 {
 public:
-    FiltroCriterio(const QString& criterio, const QString& valore);
+    FiltroCriterio(const QString& criterio, const QString& valore) 
+        : m_criterio(criterio), m_valore(valore) {}
     bool matches(const Media* media) const override;
     QString getDescription() const override;
     std::unique_ptr<FiltroStrategy> clone() const override;
@@ -63,15 +65,15 @@ private:
 class FiltroComposto : public FiltroStrategy
 {
 public:
-    FiltroComposto();
+    FiltroComposto() = default;
     void addFiltro(std::unique_ptr<FiltroStrategy> filtro);
     bool matches(const Media* media) const override;
     QString getDescription() const override;
     std::unique_ptr<FiltroStrategy> clone() const override;
     
-    size_t size() const;
-    bool isEmpty() const;
-    void clear();
+    size_t size() const { return m_filtri.size(); }
+    bool isEmpty() const { return m_filtri.empty(); }
+    void clear() { m_filtri.clear(); }
 
 private:
     std::vector<std::unique_ptr<FiltroStrategy>> m_filtri;
@@ -81,7 +83,8 @@ private:
 class FiltroNegato : public FiltroStrategy
 {
 public:
-    explicit FiltroNegato(std::unique_ptr<FiltroStrategy> filtro);
+    explicit FiltroNegato(std::unique_ptr<FiltroStrategy> filtro) 
+        : m_filtro(std::move(filtro)) {}
     bool matches(const Media* media) const override;
     QString getDescription() const override;
     std::unique_ptr<FiltroStrategy> clone() const override;
@@ -99,7 +102,6 @@ public:
     static std::unique_ptr<FiltroStrategy> createAutoreFiltro(const QString& autore);
     static std::unique_ptr<FiltroStrategy> createRegistaFiltro(const QString& regista);
     static std::unique_ptr<FiltroStrategy> createRivistaFiltro(const QString& rivista);
-    
 };
 
 #endif

@@ -79,7 +79,6 @@ private:
     
     // Helper methods
     bool isIdUnique(const QString& id) const;
-    void notifyChange();
     void updateIdCountersFromCollection();
     std::vector<std::unique_ptr<Media>>::iterator findMediaIterator(const QString& id);
 };

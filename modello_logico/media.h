@@ -7,10 +7,6 @@
 #include <memory>
 #include <vector>
 
-// Forward declarations per evitare dipendenze circolari
-class QWidget;
-class MediaCard;
-
 /**
  * @brief Classe base astratta per tutti i tipi di media
  * 
@@ -37,24 +33,24 @@ public:
     void setDescrizione(const QString& descrizione);
     void setId(const QString& id) { m_id = id; }
     
-    // Metodi virtuali
+    // Metodi virtuali puri
     virtual std::unique_ptr<Media> clone() const = 0;
     virtual QJsonObject toJson() const = 0;
     virtual void fromJson(const QJsonObject& json) = 0;
     virtual QString getDisplayInfo() const = 0;
     virtual QString getTypeDisplayName() const = 0;
+    virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
     
-    // Pattern Template Method per la validazione
+    // Template Method per la validazione
     bool isValid() const;
     
     // Metodi per la ricerca e filtri
-    virtual bool matchesFilter(const QString& searchText) const;
-    virtual bool matchesCriteria(const QString& criteria, const QString& value) const = 0;
+    bool matchesFilter(const QString& searchText) const;
     
-    // Gestione ID semplici
+    // Gestione ID semplici con contatori
     static QString generateSimpleId(const QString& type);
     static void updateCountersFromExistingIds(const std::vector<QString>& existingIds);
-    static void resetCounters(); // Nuovo metodo per resettare i contatori
+    static void resetCounters();
 
 protected:
     // Template method steps - da implementare nelle classi derivate
@@ -66,9 +62,6 @@ protected:
     QString m_titolo;
     int m_anno;
     QString m_descrizione;
-    
-private:
-    static QString generateId(); // Manteniamo per compatibilità
 };
 
 #endif
