@@ -1934,10 +1934,9 @@ void MainWindow::scheduleValidation()
         qDebug() << "Creo validation timer";
         m_validationTimer = new QTimer(this);
         m_validationTimer->setSingleShot(true);
-        m_validationTimer->setInterval(300); 
+        m_validationTimer->setInterval(100);
         connect(m_validationTimer, &QTimer::timeout, this, [this]() {
             qDebug() << "Timer validazione scaduto";
-            m_validationPending = false;
             if (m_editValidationEnabled && 
                 !m_editTypeChanging && 
                 !m_editReadOnly &&
@@ -1948,14 +1947,8 @@ void MainWindow::scheduleValidation()
         });
     }
     
-    if (!m_validationPending) {
-        qDebug() << "Schedule validazione tra 300ms";
-        m_validationPending = true;
-        m_validationTimer->start();
-    } else {
-        qDebug() << "Restart timer validazione";
-        m_validationTimer->start();
-    }
+    qDebug() << "Schedule validazione tra 100ms";
+    m_validationTimer->start();
 }
 
 void MainWindow::onEditAggiungiAutoreClicked()
