@@ -47,10 +47,7 @@ MediaCard::MediaCard(Media* media, QWidget *parent)
     }
 }
 
-MediaCard::~MediaCard()
-{
-    // Non cancellare il media pointer, poiché non lo possediamo
-}
+MediaCard::~MediaCard(){}
 
 QString MediaCard::getId() const
 {
@@ -85,7 +82,7 @@ void MediaCard::updateContent()
     if (!m_media) return;
     
     try {
-        // Aggiorna i contenuti delle label con controlli di sicurezza
+        // Aggiorna i contenuti delle label
         if (m_titleLabel) {
             m_titleLabel->setText(truncateText(m_media->getTitolo(), 25));
         }
@@ -142,9 +139,6 @@ void MediaCard::leaveEvent(QEvent *event)
 void MediaCard::paintEvent(QPaintEvent *event)
 {
     QFrame::paintEvent(event);
-    
-    // Il colore della barra viene gestito dal CSS tramite border-left
-    // Non serve più disegnare manualmente
 }
 
 void MediaCard::setupUI()
@@ -154,19 +148,19 @@ void MediaCard::setupUI()
     try {
         setupLayout();
         
-        // Configurazione delle label con objectName per il CSS
+        // Configurazione delle label
         m_typeLabel = new QLabel(m_media->getTypeDisplayName(), this);
-        m_typeLabel->setObjectName("typeLabel");  // Per il CSS
+        m_typeLabel->setObjectName("typeLabel");
         
         m_titleLabel = new QLabel(truncateText(m_media->getTitolo(), 25), this);
-        m_titleLabel->setObjectName("titleLabel");  // Per il CSS
+        m_titleLabel->setObjectName("titleLabel");
         m_titleLabel->setWordWrap(true);
         
         m_yearLabel = new QLabel(QString::number(m_media->getAnno()), this);
-        m_yearLabel->setObjectName("yearLabel");  // Per il CSS
+        m_yearLabel->setObjectName("yearLabel");
         
         m_descriptionLabel = new QLabel(truncateText(m_media->getDescrizione(), 80), this);
-        m_descriptionLabel->setObjectName("descriptionLabel");  // Per il CSS
+        m_descriptionLabel->setObjectName("descriptionLabel");
         m_descriptionLabel->setWordWrap(true);
         
         m_imageLabel = new QLabel(this);
@@ -175,7 +169,7 @@ void MediaCard::setupUI()
         m_imageLabel->setPixmap(getTypeIcon());
         
         m_infoLabel = new QLabel(formatDisplayInfo(), this);
-        m_infoLabel->setObjectName("infoLabel");  // Per il CSS
+        m_infoLabel->setObjectName("infoLabel");
         m_infoLabel->setWordWrap(true);
         
         setupTypeSpecificContent();
@@ -194,7 +188,7 @@ void MediaCard::setupLayout()
             m_mainLayout->setSpacing(4);
         }
         
-        // Header con tipo e immagine
+        // Header con tipo
         m_headerLayout = new QHBoxLayout();
         if (m_headerLayout) {
             m_headerLayout->setContentsMargins(0, 0, 0, 0);
@@ -223,9 +217,7 @@ void MediaCard::setupTypeSpecificContent()
             m_contentLayout = new QVBoxLayout();
         }
         
-        // Pulisci solo se necessario
         if (m_mainLayout->count() == 0) {
-            // Header: tipo + icona
             if (m_typeLabel && m_imageLabel) {
                 m_headerLayout->addWidget(m_typeLabel);
                 m_headerLayout->addStretch();
@@ -264,8 +256,7 @@ QPixmap MediaCard::getTypeIcon() const
     }
     
     QString type = m_media->getTypeDisplayName().toLower();
-    
-    // Carica l'icona appropriata dal resources.qrc
+
     QIcon icon;
     if (type == "libro") {
         icon = QIcon(":/icons/libro.png");

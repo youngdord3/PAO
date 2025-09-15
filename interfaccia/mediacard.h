@@ -18,7 +18,7 @@ class Media;
  * @brief Widget card per visualizzare un media nella collezione
  * 
  * Ogni card mostra le informazioni principali del media
- * con un design responsivo e interattivo utilizzando solo CSS
+ * con un design responsivo e interattivo
  */
 class MediaCard : public QFrame
 {
@@ -86,4 +86,4 @@ private:
     static const int IMAGE_SIZE = 48;
 };
 
-#endif // MEDIACARD_H
+#endif

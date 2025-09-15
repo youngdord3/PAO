@@ -283,4 +283,4 @@ private:
     static const int MAX_DESCRIZIONE_LENGTH = 500;
 };
 
-#endif // MAINWINDOW_H
+#endif

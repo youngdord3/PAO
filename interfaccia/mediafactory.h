@@ -77,4 +77,4 @@ public:
     static QStringList getOptionalFields();
 };
 
-#endif // MEDIAFACTORY_H
+#endif

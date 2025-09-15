@@ -152,9 +152,7 @@ MainWindow::~MainWindow()
         clearMediaCards();
         
         salvaImpostazioni();
-    } catch (...) {
-        // Ignore exceptions in destructor
-    }
+    } catch (...) {}
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -171,7 +169,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
     
-    // Aggiungi un timer per evitare troppi aggiornamenti durante il resize
+    // Timer per evitare troppi aggiornamenti durante il resize
     static QTimer* resizeTimer = nullptr;
     if (!resizeTimer) {
         resizeTimer = new QTimer(this);
@@ -199,7 +197,7 @@ void MainWindow::setupToolBar()
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     
-    // Tutte le icone caricate dal resources.qrc
+    // Icone caricate dal resources.qrc
     QAction* nuovoAction = toolBar->addAction(QIcon(":/icons/new_icon.png"), "Nuovo");
     nuovoAction->setToolTip("Crea una nuova collezione");
     connect(nuovoAction, &QAction::triggered, this, [this]() {
@@ -700,7 +698,7 @@ void MainWindow::setupEditTypeSpecificForm()
             setupEditArticoloForm();
         }
         
-        // Setup connessioni DOPO aver creato i widget
+        // Setup connessioni dopo aver creato i widget
         QTimer::singleShot(10, this, &MainWindow::setupEditSpecificConnections);
         
     } catch (const std::exception& e) {
@@ -713,7 +711,7 @@ void MainWindow::clearEditSpecificForm()
     try {
         if (!m_editFormLayout) return;
         
-        // Disconnetti TUTTI i widget prima di rimuoverli
+        // Disconnetti tutti i widget prima di rimuoverli
         if (m_editLibroGroup) {
             disconnectEditGroupWidgets(m_editLibroGroup);
             m_editFormLayout->removeWidget(m_editLibroGroup);
@@ -735,7 +733,7 @@ void MainWindow::clearEditSpecificForm()
             m_editArticoloGroup = nullptr;
         }
         
-        // Reset tutti i puntatori specifici
+        // Reset di tutti puntatori specifici
         resetEditSpecificPointers();
         
         // Forza il processamento degli eventi per completare la cancellazione
@@ -751,7 +749,7 @@ void MainWindow::disconnectEditGroupWidgets(QGroupBox* group)
     if (!group) return;
     
     try {
-        // Trova tutti i widget figli e disconnettili da questo oggetto
+        // Trova tutti i widget figli e disconnettili
         QList<QWidget*> widgets = group->findChildren<QWidget*>();
         for (QWidget* widget : widgets) {
             if (widget) {
@@ -860,7 +858,6 @@ void MainWindow::setupEditPanel()
         m_editFormLayout->setContentsMargins(10, 10, 10, 10);
         m_editFormLayout->setSpacing(15);
         
-        // Chiama setupEditBaseForm DOPO aver creato m_editFormLayout
         setupEditBaseForm();
         
         m_editScrollArea->setWidget(formWidget);
@@ -913,7 +910,6 @@ void MainWindow::setupEditPanel()
         
         editLayout->addLayout(buttonLayout);
         
-        // Imposta connessioni base DOPO aver creato tutti i widget
         setupEditConnections();
         
     } catch (const std::exception& e) {
@@ -936,7 +932,7 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             return;
         }
         
-        // RESET COMPLETO dello stato del pannello quando cambia modalità
+        // Reset completo dello stato del pannello quando cambia modalità
         bool wasVisible = m_editPanelVisible;
         if (wasVisible && ((m_editIsNew != isNew) || (m_editReadOnly != readOnly))) {
             // Se il pannello era visibile ma cambia modalità, reset completo
@@ -946,7 +942,7 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         m_editIsNew = isNew;
         m_editReadOnly = readOnly;
         
-        // DISABILITA la validazione durante l'inizializzazione
+        // Disabilità la validazione durante l'inizializzazione
         m_editValidationEnabled = false;
         
         // Nascondi l'area media e mostra il pannello edit
@@ -960,7 +956,7 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             m_editHeaderLabel->setText(title);
         }
         
-        // RESET STATO VALIDAZIONE prima di aggiornare i pulsanti
+        // Reset stato validazione
         if (m_editValidationLabel) {
             m_editValidationLabel->setText("");
             m_editValidationLabel->setVisible(false);
@@ -969,10 +965,9 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         // Aggiorna il testo dei pulsanti
         if (m_editSalvaButton) {
             m_editSalvaButton->setText(readOnly ? "Chiudi" : (isNew ? "Crea" : "Salva"));
-            m_editSalvaButton->setEnabled(true); // Sempre abilitato inizialmente
+            m_editSalvaButton->setEnabled(true);
         }
         
-        // Aggiorna il testo del pulsante Annulla/Chiudi
         if (m_editAnnullaButton) {
             if (readOnly) {
                 m_editAnnullaButton->setVisible(false);
@@ -987,13 +982,13 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         if (isNew) {
             clearEditSpecificForm();
             if (m_editTipoCombo) {
-                // BLOCCA temporaneamente i segnali per evitare validazioni premature
+                // Blocco temporaneo dei segnali per evitare validazioni premature
                 m_editTipoCombo->blockSignals(true);
                 m_editTipoCombo->setCurrentIndex(0);
                 m_editTipoCombo->blockSignals(false);
             }
             
-            // Reset campi base SENZA triggering della validazione
+            // Reset campi base senza triggering della validazione
             if (m_editTitoloEdit) {
                 m_editTitoloEdit->blockSignals(true);
                 m_editTitoloEdit->clear();
@@ -1014,30 +1009,26 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             QTimer::singleShot(10, this, [this, readOnly]() {
                 onEditTipoChanged();
                 
-                // Riabilita la validazione DOPO che tutto è inizializzato
                 QTimer::singleShot(100, this, [this, readOnly]() {
                     if (!readOnly) {
                         m_editValidationEnabled = true;
                         enableEditForm(true);
                         
-                        // Valida immediatamente per aggiornare lo stato
                         QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
                     } else {
-                        // In modalità read-only non abilitare mai la validazione
                         m_editValidationEnabled = false;
                         enableEditForm(false);
                     }
                 });
             });
         } else {
-            // Per modifica/visualizzazione
             if (!readOnly) {
-                // Modalità modifica - riabilita validazione dopo caricamento dati
+                // Modalità modifica
                 QTimer::singleShot(200, this, [this]() {
                     m_editValidationEnabled = true;
                 });
             } else {
-                // Modalità read-only - NON abilitare mai la validazione
+                // Modalità read-only
                 m_editValidationEnabled = false;
             }
         }
@@ -1059,7 +1050,7 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
 void MainWindow::resetEditPanelState()
 {
     try {
-        // Disabilita validazione
+        // Disabilità validazione
         m_editValidationEnabled = false;
         
         // Reset stato bottoni
@@ -1096,12 +1087,10 @@ void MainWindow::resetEditPanelState()
 void MainWindow::hideEditPanel()
 {
     try {
-        // Verifica che i widget esistano
         if (!m_editPanel || !m_mediaScrollArea) {
             return;
         }
-        
-        // Mostra l'area media e nascondi il pannello edit
+
         m_editPanel->setVisible(false);
         m_mediaScrollArea->setVisible(true);
         m_editPanelVisible = false;
@@ -1257,7 +1246,7 @@ void MainWindow::setupFilterArea()
     m_actionsGroup->setMinimumHeight(180);
     QVBoxLayout* actionsLayout = new QVBoxLayout(m_actionsGroup);
     
-    // Tutti i pulsanti con icone dal resources.qrc e tooltip migliorati
+    // Pulsanti con icone dal resources.qrc
     m_addButton = new QPushButton(QIcon(":/icons/add_icon.png"), "Aggiungi Media");
     m_addButton->setToolTip("Aggiungi un nuovo media alla collezione");
     
@@ -1319,15 +1308,13 @@ void MainWindow::updateLayout()
     int containerWidth = m_mediaScrollArea->viewport()->width();
     int cardWidthWithMargin = CARD_WIDTH + CARD_MARGIN;
     int columns = qMax(1, (containerWidth - CARD_MARGIN) / cardWidthWithMargin);
-    
-    // Rimuovi tutti i widget dal layout prima di riorganizzarli
+
     for (MediaCard* card : m_mediaCards) {
         if (card) {
             m_mediaLayout->removeWidget(card);
         }
     }
     
-    // Rimuovi eventuali stretch esistenti
     QLayoutItem* item;
     while ((item = m_mediaLayout->takeAt(0)) != nullptr) {
         delete item;
@@ -1356,7 +1343,6 @@ void MainWindow::refreshMediaCards() {
     if (!m_mediaLayout) return;
     
     try {
-        // Prima pulisci completamente le card esistenti
         clearMediaCards();
         
         std::vector<Media*> media;
@@ -1403,7 +1389,6 @@ void MainWindow::refreshMediaCards() {
             }
         }
         
-        // Applica il layout dopo aver creato tutte le card
         updateLayout();
         aggiornaStatistiche();
         
@@ -1414,7 +1399,6 @@ void MainWindow::refreshMediaCards() {
 
 void MainWindow::clearMediaCards()
 {
-    // Prima disconnetti tutti i segnali
     for (MediaCard* card : m_mediaCards) {
         if (card) {
             disconnect(card, nullptr, this, nullptr);
@@ -1423,7 +1407,6 @@ void MainWindow::clearMediaCards()
         }
     }
     
-    // Pulisci il vettore
     m_mediaCards.clear();
     
     // Rimuovi eventuali elementi residui dal layout
@@ -1454,7 +1437,7 @@ std::unique_ptr<FiltroStrategy> MainWindow::creaFiltroCorrente()
         hasFiltri = true;
     }
     
-    // Filtro per anno (solo se diverso dal range completo)
+    // Filtro per anno
     if (m_annoMinSpin->value() > 1000 || m_annoMaxSpin->value() < QDate::currentDate().year()) {
         filtroComposto->addFiltro(FiltroFactory::createAnnoFiltro(
             m_annoMinSpin->value(), m_annoMaxSpin->value()));
@@ -1557,7 +1540,6 @@ void MainWindow::loadEditMediaData(Media* media)
     if (!media) return;
     
     try {
-        // Prima pulisci le liste se esistono
         if (m_editAttoriList) {
             m_editAttoriList->clear();
         }
@@ -1565,7 +1547,7 @@ void MainWindow::loadEditMediaData(Media* media)
             m_editAutoriList->clear();
         }
         
-        // Carica dati base
+        // Dati base
         if (m_editTitoloEdit) {
             m_editTitoloEdit->setText(media->getTitolo());
         }
@@ -1576,7 +1558,7 @@ void MainWindow::loadEditMediaData(Media* media)
             m_editDescrizioneEdit->setPlainText(media->getDescrizione());
         }
         
-        // Imposta il tipo e carica dati specifici
+        // Dati specifici
         QString tipo = media->getTypeDisplayName();
         if (m_editTipoCombo) {
             m_editTipoCombo->setCurrentText(tipo);
@@ -1585,7 +1567,7 @@ void MainWindow::loadEditMediaData(Media* media)
         
         setupEditTypeSpecificForm();
         
-        // Carica dati specifici per tipo
+        // Dati specifici per tipo
         if (tipo == "Libro") {
             Libro* libro = dynamic_cast<Libro*>(media);
             if (libro) {
@@ -1644,14 +1626,14 @@ void MainWindow::onEditTipoChanged()
         if (nuovoTipo != m_editTipoCorrente) {
             m_editTipoCorrente = nuovoTipo;
             
-            // Disconnetti temporaneamente la validazione per evitare crash
+            // Disconnetti temporaneamente la validazione
             bool wasValidationEnabled = m_editValidationEnabled;
             m_editValidationEnabled = false;
             
             setupEditTypeSpecificForm();
             updateEditFormVisibility();
             
-            // Riabilita la validazione dopo un delay più lungo
+            // Riabilita la validazione
             QTimer::singleShot(300, this, [this, wasValidationEnabled]() {
                 m_editValidationEnabled = wasValidationEnabled;
                 if (m_editValidationEnabled) {
@@ -1714,21 +1696,17 @@ void MainWindow::onEditAnnullaClicked()
 void MainWindow::onEditValidationChanged()
 {
     try {
-        // NON fare nulla se non siamo in modalità edit o se la validazione è disabilitata
         if (!m_editValidationEnabled || m_editReadOnly || !m_editSalvaButton || !m_editValidationLabel) {
             return;
         }
         
-        // Controlla che i widget del tipo corrente siano inizializzati
         if (!areEditCurrentTypeWidgetsReady()) {
-            // NASCONDI il messaggio se i widget non sono pronti
             if (m_editSalvaButton) m_editSalvaButton->setEnabled(false);
             if (m_editValidationLabel) {
                 m_editValidationLabel->setText("");
                 m_editValidationLabel->setVisible(false);
             }
             
-            // Riprova tra un po'
             QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
             return;
         }
@@ -1862,31 +1840,26 @@ void MainWindow::enableEditForm(bool enabled)
             m_editScrollArea->setEnabled(enabled);
         }
         
-        // In modalità read-only, forza SEMPRE tutti i controlli a disabilitati
         if (m_editReadOnly) {
             if (m_editTipoCombo) m_editTipoCombo->setEnabled(false);
             if (m_editAnnullaButton) m_editAnnullaButton->setVisible(false);
             if (m_editHelpButton) m_editHelpButton->setVisible(false);
             if (m_editSalvaButton) {
                 m_editSalvaButton->setText("Chiudi");
-                m_editSalvaButton->setEnabled(true); // Sempre abilitato per chiudere
+                m_editSalvaButton->setEnabled(true);
             }
             
-            // Nascondi i controlli di gestione
             hideManagementControls();
             
-            // NASCONDI SEMPRE la validazione in read-only
             if (m_editValidationLabel) {
                 m_editValidationLabel->setText("");
                 m_editValidationLabel->setVisible(false);
             }
         } else {
-            // Modalità edit normale
             if (m_editTipoCombo) {
                 m_editTipoCombo->setEnabled(enabled);
             }
             
-            // Mostra i controlli di gestione se appropriati
             showManagementControls();
         }
     } catch (const std::exception& e) {
@@ -2155,7 +2128,7 @@ void MainWindow::aggiungiMedia()
     try {
         qDebug() << "Apertura pannello per nuovo media";
         m_editingMediaId.clear();
-        showEditPanel(true, false); // isNew = true, readOnly = false
+        showEditPanel(true, false);
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nell'apertura form: %1").arg(e.what()));
     }
@@ -2178,9 +2151,9 @@ void MainWindow::modificaMedia()
         }
         
         m_editingMediaId = m_selezionato_id;
-        showEditPanel(false, false); // isNew = false, readOnly = false
+        showEditPanel(false, false);
         
-        // Carica i dati DOPO aver mostrato il pannello
+        // Carica i dati dopo aver mostrato il pannello
         QTimer::singleShot(100, [this, media]() {
             loadEditMediaData(media);
         });
@@ -2263,9 +2236,9 @@ void MainWindow::visualizzaDettagli()
         }
         
         m_editingMediaId = m_selezionato_id;
-        showEditPanel(false, true); // isNew = false, readOnly = true
+        showEditPanel(false, true);
         
-        // Carica i dati DOPO aver mostrato il pannello
+        // Carica i dati dopo aver mostrato il pannello
         QTimer::singleShot(100, [this, media]() {
             loadEditMediaData(media);
         });
@@ -2366,7 +2339,6 @@ void MainWindow::onCardSelezionata(const QString& id)
 void MainWindow::onCardDoubleClic(const QString& id)
 {
     try {
-        // Verifica che il media esista
         if (!m_collezione->findMedia(id)) {
             mostraErrore("Media non trovato");
             return;
