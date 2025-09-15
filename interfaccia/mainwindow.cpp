@@ -687,19 +687,26 @@ void MainWindow::setupEditSpecificConnections()
         }
         
         if (m_editAggiungiAttoreBtn) {
-            qDebug() << "Connetto bottone aggiungi attore";
+            qDebug() << "Connetto bottone aggiungi attore con Qt::UniqueConnection";
             connect(m_editAggiungiAttoreBtn, &QPushButton::clicked, 
-                    this, &MainWindow::onEditAggiungiAttoreClicked);
+                    this, &MainWindow::onEditAggiungiAttoreClicked, Qt::UniqueConnection);
         }
         if (m_editRimuoviAttoreBtn) {
-            qDebug() << "Connetto bottone rimuovi attore";
+            qDebug() << "Connetto bottone rimuovi attore con Qt::UniqueConnection";
             connect(m_editRimuoviAttoreBtn, &QPushButton::clicked, 
-                    this, &MainWindow::onEditRimuoviAttoreClicked);
+                    this, &MainWindow::onEditRimuoviAttoreClicked, Qt::UniqueConnection);
         }
         if (m_editNuovoAttoreEdit) {
-            qDebug() << "Connetto enter su nuovo attore";
+            qDebug() << "Connetto enter su nuovo attore con Qt::UniqueConnection";
             connect(m_editNuovoAttoreEdit, &QLineEdit::returnPressed, 
-                    this, &MainWindow::onEditAggiungiAttoreClicked);
+                    this, &MainWindow::onEditAggiungiAttoreClicked, Qt::UniqueConnection);
+        }
+        
+        // Connessione per validazione
+        if (m_editAttoriList) {
+            connect(m_editAttoriList, &QListWidget::itemChanged, this, [this]() {
+                scheduleValidation();
+            });
         }
         
     } else if (tipo == "Articolo") {
@@ -748,19 +755,26 @@ void MainWindow::setupEditSpecificConnections()
         }
         
         if (m_editAggiungiAutoreBtn) {
-            qDebug() << "Connetto bottone aggiungi autore";
+            qDebug() << "Connetto bottone aggiungi autore con Qt::UniqueConnection";
             connect(m_editAggiungiAutoreBtn, &QPushButton::clicked, 
-                    this, &MainWindow::onEditAggiungiAutoreClicked);
+                    this, &MainWindow::onEditAggiungiAutoreClicked, Qt::UniqueConnection);
         }
         if (m_editRimuoviAutoreBtn) {
-            qDebug() << "Connetto bottone rimuovi autore";
+            qDebug() << "Connetto bottone rimuovi autore con Qt::UniqueConnection";
             connect(m_editRimuoviAutoreBtn, &QPushButton::clicked, 
-                    this, &MainWindow::onEditRimuoviAutoreClicked);
+                    this, &MainWindow::onEditRimuoviAutoreClicked, Qt::UniqueConnection);
         }
         if (m_editNuovoAutoreEdit) {
-            qDebug() << "Connetto enter su nuovo autore";
+            qDebug() << "Connetto enter su nuovo autore con Qt::UniqueConnection";
             connect(m_editNuovoAutoreEdit, &QLineEdit::returnPressed, 
-                    this, &MainWindow::onEditAggiungiAutoreClicked);
+                    this, &MainWindow::onEditAggiungiAutoreClicked, Qt::UniqueConnection);
+        }
+        
+        // Connessione per validazione
+        if (m_editAutoriList) {
+            connect(m_editAutoriList, &QListWidget::itemChanged, this, [this]() {
+                scheduleValidation();
+            });
         }
     }
     
@@ -987,7 +1001,6 @@ void MainWindow::setupEditPanel()
 void MainWindow::showEditPanel(bool isNew, bool readOnly)
 {
     try {
-        // Verifica che il pannello sia stato creato correttamente
         if (!m_editPanel || !m_mediaScrollArea || !m_editContentContainer) {
             mostraErrore("Pannello di editing non inizializzato correttamente");
             return;
@@ -996,14 +1009,12 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         // Reset completo dello stato del pannello quando cambia modalità
         bool wasVisible = m_editPanelVisible;
         if (wasVisible && ((m_editIsNew != isNew) || (m_editReadOnly != readOnly))) {
-            // Se il pannello era visibile ma cambia modalità, reset completo
             resetEditPanelState();
         }
         
         m_editIsNew = isNew;
         m_editReadOnly = readOnly;
         
-        // Disabilità la validazione durante l'inizializzazione
         m_editValidationEnabled = false;
         
         // Nascondi l'area media e mostra il pannello edit
@@ -1019,14 +1030,15 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         
         // Reset stato validazione
         if (m_editValidationLabel) {
-            m_editValidationLabel->setText("");
-            m_editValidationLabel->setVisible(false);
+            m_editValidationLabel->setText("Preparazione interfaccia...");
+            m_editValidationLabel->setStyleSheet("color: #757575;");
+            m_editValidationLabel->setVisible(true);
         }
         
         // Aggiorna il testo dei pulsanti
         if (m_editSalvaButton) {
             m_editSalvaButton->setText(readOnly ? "Chiudi" : (isNew ? "Crea" : "Salva"));
-            m_editSalvaButton->setEnabled(true);
+            m_editSalvaButton->setEnabled(readOnly);
         }
         
         if (m_editAnnullaButton) {
@@ -1039,17 +1051,15 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
             }
         }
         
-        // Se è nuovo, resetta il form
         if (isNew) {
             clearEditSpecificForm();
             if (m_editTipoCombo) {
-                // Blocco temporaneo dei segnali per evitare validazioni premature
                 m_editTipoCombo->blockSignals(true);
                 m_editTipoCombo->setCurrentIndex(0);
                 m_editTipoCombo->blockSignals(false);
             }
             
-            // Reset campi base senza triggering della validazione
+            // Reset campi base
             if (m_editTitoloEdit) {
                 m_editTitoloEdit->blockSignals(true);
                 m_editTitoloEdit->clear();
@@ -1066,16 +1076,21 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
                 m_editDescrizioneEdit->blockSignals(false);
             }
             
-            // Trigger cambio tipo per creare il form specifico
+            // Trigger cambio tipo
             QTimer::singleShot(10, this, [this, readOnly]() {
                 onEditTipoChanged();
                 
-                QTimer::singleShot(100, this, [this, readOnly]() {
+                QTimer::singleShot(800, this, [this, readOnly]() {
                     if (!readOnly) {
                         m_editValidationEnabled = true;
                         enableEditForm(true);
                         
-                        QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                        // Prima validazione
+                        QTimer::singleShot(200, this, [this]() {
+                            if (m_editValidationEnabled && !m_editTypeChanging) {
+                                onEditValidationChanged();
+                            }
+                        });
                     } else {
                         m_editValidationEnabled = false;
                         enableEditForm(false);
@@ -1085,19 +1100,26 @@ void MainWindow::showEditPanel(bool isNew, bool readOnly)
         } else {
             if (!readOnly) {
                 // Modalità modifica
-                QTimer::singleShot(200, this, [this]() {
+                QTimer::singleShot(300, this, [this]() {
                     m_editValidationEnabled = true;
+                    QTimer::singleShot(100, this, [this]() {
+                        if (m_editValidationEnabled && !m_editTypeChanging) {
+                            onEditValidationChanged();
+                        }
+                    });
                 });
             } else {
                 // Modalità read-only
                 m_editValidationEnabled = false;
+                if (m_editValidationLabel) {
+                    m_editValidationLabel->setVisible(false);
+                }
             }
         }
-        
-        // Focus sul primo campo se non è read-only
+
         if (!readOnly && m_editTitoloEdit) {
-            QTimer::singleShot(150, [this]() {
-                if (m_editTitoloEdit) {
+            QTimer::singleShot(1000, [this]() {
+                if (m_editTitoloEdit && m_editPanel && m_editPanel->isVisible()) {
                     m_editTitoloEdit->setFocus();
                 }
             });
@@ -1820,13 +1842,14 @@ void MainWindow::onEditAnnullaClicked()
 void MainWindow::onEditValidationChanged()
 {
     try {
-        // Controlli di sicurezza più stringenti
         if (!m_editValidationEnabled || 
             m_editReadOnly || 
             m_editTypeChanging ||
             !m_editSalvaButton || 
             !m_editValidationLabel ||
-            !m_editTipoCombo) {
+            !m_editTipoCombo ||
+            !m_editPanel ||
+            !m_editPanel->isVisible()) {
             qDebug() << "Skip validazione - condizioni non soddisfatte";
             return;
         }
@@ -1836,9 +1859,17 @@ void MainWindow::onEditValidationChanged()
             qDebug() << "Widget non pronti per validazione";
             if (m_editSalvaButton) m_editSalvaButton->setEnabled(false);
             if (m_editValidationLabel) {
-                m_editValidationLabel->setText("Inizializzazione in corso...");
+                m_editValidationLabel->setText("Caricamento interfaccia...");
                 m_editValidationLabel->setStyleSheet("color: #757575;");
                 m_editValidationLabel->setVisible(true);
+            }
+            
+            if (m_editIsNew) {
+                QTimer::singleShot(500, this, [this]() {
+                    if (m_editValidationEnabled && !m_editTypeChanging && !m_editReadOnly) {
+                        onEditValidationChanged();
+                    }
+                });
             }
             return;
         }
@@ -1853,8 +1884,7 @@ void MainWindow::onEditValidationChanged()
         if (!errors.isEmpty()) {
             qDebug() << "Errori trovati:" << errors.join("; ");
         }
-        
-        // Aggiorna interfaccia
+
         m_editSalvaButton->setEnabled(valid);
         m_editValidationLabel->setVisible(true);
         
@@ -1864,7 +1894,8 @@ void MainWindow::onEditValidationChanged()
         } else {
             QString errorText = QString("⚠ Errori (%1):").arg(errors.size());
             if (!errors.isEmpty()) {
-                errorText += "\n• " + errors.mid(0, 3).join("\n• ");
+                QStringList mainErrors = errors.mid(0, 3);
+                errorText += "\n• " + mainErrors.join("\n• ");
                 if (errors.size() > 3) {
                     errorText += QString("\n• ... e altri %1 errori").arg(errors.size() - 3);
                 }
@@ -1877,7 +1908,7 @@ void MainWindow::onEditValidationChanged()
         qWarning() << "Errore nella validazione:" << e.what();
         if (m_editSalvaButton) m_editSalvaButton->setEnabled(false);
         if (m_editValidationLabel) {
-            m_editValidationLabel->setText("Errore nella validazione");
+            m_editValidationLabel->setText("Errore nella validazione: " + QString(e.what()));
             m_editValidationLabel->setStyleSheet("color: #F44336;");
         }
     }
@@ -1885,8 +1916,17 @@ void MainWindow::onEditValidationChanged()
 
 void MainWindow::scheduleValidation()
 {
-    if (!m_editValidationEnabled || m_editTypeChanging || m_editReadOnly) {
+    if (!m_editValidationEnabled || 
+        m_editTypeChanging || 
+        m_editReadOnly ||
+        !m_editPanel ||
+        !m_editPanel->isVisible()) {
         qDebug() << "Skip schedule validation - condizioni non soddisfatte";
+        return;
+    }
+    
+    if (!m_editTitoloEdit || !m_editAnnoSpin || !m_editTipoCombo) {
+        qDebug() << "Widget base non pronti per validazione";
         return;
     }
     
@@ -1894,22 +1934,27 @@ void MainWindow::scheduleValidation()
         qDebug() << "Creo validation timer";
         m_validationTimer = new QTimer(this);
         m_validationTimer->setSingleShot(true);
-        m_validationTimer->setInterval(400); // Delay fisso di 400ms
+        m_validationTimer->setInterval(300); 
         connect(m_validationTimer, &QTimer::timeout, this, [this]() {
             qDebug() << "Timer validazione scaduto";
             m_validationPending = false;
-            if (m_editValidationEnabled && !m_editTypeChanging && !m_editReadOnly) {
+            if (m_editValidationEnabled && 
+                !m_editTypeChanging && 
+                !m_editReadOnly &&
+                m_editPanel && 
+                m_editPanel->isVisible()) {
                 onEditValidationChanged();
             }
         });
     }
     
     if (!m_validationPending) {
-        qDebug() << "Schedule validazione tra 400ms";
+        qDebug() << "Schedule validazione tra 300ms";
         m_validationPending = true;
         m_validationTimer->start();
     } else {
-        qDebug() << "Validazione già schedulata, skip";
+        qDebug() << "Restart timer validazione";
+        m_validationTimer->start();
     }
 }
 
@@ -1920,6 +1965,7 @@ void MainWindow::onEditAggiungiAutoreClicked()
         
         if (!m_editNuovoAutoreEdit || !m_editAutoriList) {
             qWarning() << "Widget autori non inizializzati";
+            QMessageBox::warning(this, "Errore", "Interfaccia non pronta. Riprova tra qualche secondo.");
             return;
         }
         
@@ -1929,7 +1975,7 @@ void MainWindow::onEditAggiungiAutoreClicked()
             m_editNuovoAutoreEdit->setFocus();
             return;
         }
-        
+
         for (int i = 0; i < m_editAutoriList->count(); ++i) {
             if (m_editAutoriList->item(i)->text().trimmed() == autore) {
                 QMessageBox::information(this, "Info", 
@@ -1939,7 +1985,7 @@ void MainWindow::onEditAggiungiAutoreClicked()
                 return;
             }
         }
-        
+
         m_editAutoriList->addItem(autore);
         m_editNuovoAutoreEdit->clear();
         m_editNuovoAutoreEdit->setFocus();
@@ -1947,12 +1993,17 @@ void MainWindow::onEditAggiungiAutoreClicked()
         qDebug() << "Autore aggiunto:" << autore << "- Totale:" << m_editAutoriList->count();
         
         // Trigger validazione immediata
-        scheduleValidation();
+        QTimer::singleShot(100, this, [this]() {
+            if (m_editValidationEnabled && !m_editTypeChanging) {
+                scheduleValidation();
+            }
+        });
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nell'aggiunta autore: %1").arg(e.what()));
     }
 }
+
 
 void MainWindow::onEditRimuoviAutoreClicked()
 {
@@ -2017,6 +2068,7 @@ void MainWindow::onEditAggiungiAttoreClicked()
         
         if (!m_editNuovoAttoreEdit || !m_editAttoriList) {
             qWarning() << "Widget attori non inizializzati";
+            QMessageBox::warning(this, "Errore", "Interfaccia non pronta. Riprova tra qualche secondo.");
             return;
         }
         
@@ -2044,7 +2096,11 @@ void MainWindow::onEditAggiungiAttoreClicked()
         qDebug() << "Attore aggiunto:" << attore << "- Totale:" << m_editAttoriList->count();
         
         // Trigger validazione immediata
-        scheduleValidation();
+        QTimer::singleShot(100, this, [this]() {
+            if (m_editValidationEnabled && !m_editTypeChanging) {
+                scheduleValidation();
+            }
+        });
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nell'aggiunta attore: %1").arg(e.what()));
@@ -2236,11 +2292,6 @@ bool MainWindow::areEditCurrentTypeWidgetsReady() const
                     m_editGenereLibroCombo != nullptr &&
                     m_editIsbnEdit != nullptr;
         qDebug() << "Libro ready:" << ready;
-        if (!ready) {
-            qDebug() << "Missing widgets - LibroGroup:" << (m_editLibroGroup != nullptr)
-                     << "AutoreEdit:" << (m_editAutoreEdit != nullptr)
-                     << "PagineSpin:" << (m_editPagineSpin != nullptr);
-        }
         return ready;
         
     } else if (tipo == "Film") {
@@ -2255,12 +2306,6 @@ bool MainWindow::areEditCurrentTypeWidgetsReady() const
                     m_editAggiungiAttoreBtn != nullptr &&
                     m_editRimuoviAttoreBtn != nullptr;
         qDebug() << "Film ready:" << ready;
-        if (!ready) {
-            qDebug() << "Missing film widgets - FilmGroup:" << (m_editFilmGroup != nullptr)
-                     << "RegistaEdit:" << (m_editRegistaEdit != nullptr)
-                     << "AttoriList:" << (m_editAttoriList != nullptr)
-                     << "AggiungiBtn:" << (m_editAggiungiAttoreBtn != nullptr);
-        }
         return ready;
         
     } else if (tipo == "Articolo") {
@@ -2276,12 +2321,6 @@ bool MainWindow::areEditCurrentTypeWidgetsReady() const
                     m_editAggiungiAutoreBtn != nullptr &&
                     m_editRimuoviAutoreBtn != nullptr;
         qDebug() << "Articolo ready:" << ready;
-        if (!ready) {
-            qDebug() << "Missing articolo widgets - ArticoloGroup:" << (m_editArticoloGroup != nullptr)
-                     << "AutoriList:" << (m_editAutoriList != nullptr)
-                     << "RivisteEdit:" << (m_editRivisteEdit != nullptr)
-                     << "AggiungiBtn:" << (m_editAggiungiAutoreBtn != nullptr);
-        }
         return ready;
     }
     
