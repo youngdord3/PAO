@@ -624,29 +624,60 @@ void MainWindow::setupEditConnections()
 void MainWindow::setupEditSpecificConnections()
 {
     QString tipo = m_editTipoCombo ? m_editTipoCombo->currentText() : "";
+    qDebug() << "Setup connessioni per tipo:" << tipo;
     
     if (tipo == "Libro") {
         if (m_editAutoreEdit) {
             connect(m_editAutoreEdit, &QLineEdit::textChanged, this, [this]() {
-                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                }
+            });
+        }
+        if (m_editEditoreEdit) {
+            connect(m_editEditoreEdit, &QLineEdit::textChanged, this, [this]() {
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                }
             });
         }
         if (m_editPagineSpin) {
             connect(m_editPagineSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
                     this, [this]() {
-                        QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                        }
+                    });
+        }
+        if (m_editIsbnEdit) {
+            connect(m_editIsbnEdit, &QLineEdit::textChanged, this, [this]() {
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                }
+            });
+        }
+        if (m_editGenereLibroCombo) {
+            connect(m_editGenereLibroCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                    this, [this]() {
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                        }
                     });
         }
     } else if (tipo == "Film") {
         if (m_editRegistaEdit) {
             connect(m_editRegistaEdit, &QLineEdit::textChanged, this, [this]() {
-                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                }
             });
         }
         if (m_editDurataSpin) {
             connect(m_editDurataSpin, QOverload<int>::of(&QSpinBox::valueChanged), 
                     this, [this]() {
-                        QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                        }
                     });
         }
         if (m_editAggiungiAttoreBtn) {
@@ -657,16 +688,32 @@ void MainWindow::setupEditSpecificConnections()
             connect(m_editRimuoviAttoreBtn, &QPushButton::clicked, 
                     this, &MainWindow::onEditRimuoviAttoreClicked);
         }
+        if (m_editNuovoAttoreEdit) {
+            connect(m_editNuovoAttoreEdit, &QLineEdit::returnPressed, 
+                    this, &MainWindow::onEditAggiungiAttoreClicked);
+        }
+        if (m_editGenereFilmCombo) {
+            connect(m_editGenereFilmCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                    this, [this]() {
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                        }
+                    });
+        }
     } else if (tipo == "Articolo") {
         if (m_editRivisteEdit) {
             connect(m_editRivisteEdit, &QLineEdit::textChanged, this, [this]() {
-                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                }
             });
         }
         if (m_editDataPubblicazioneEdit) {
             connect(m_editDataPubblicazioneEdit, &QDateEdit::dateChanged, 
                     this, [this]() {
-                        QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                        }
                     });
         }
         if (m_editAggiungiAutoreBtn) {
@@ -677,7 +724,21 @@ void MainWindow::setupEditSpecificConnections()
             connect(m_editRimuoviAutoreBtn, &QPushButton::clicked, 
                     this, &MainWindow::onEditRimuoviAutoreClicked);
         }
+        if (m_editNuovoAutoreEdit) {
+            connect(m_editNuovoAutoreEdit, &QLineEdit::returnPressed, 
+                    this, &MainWindow::onEditAggiungiAutoreClicked);
+        }
+        if (m_editCategoriaCombo) {
+            connect(m_editCategoriaCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                    this, [this]() {
+                        if (m_editValidationEnabled) {
+                            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+                        }
+                    });
+        }
     }
+    
+    qDebug() << "Connessioni setup completate per tipo:" << tipo;
 }
 
 void MainWindow::setupEditTypeSpecificForm()
@@ -698,8 +759,7 @@ void MainWindow::setupEditTypeSpecificForm()
             setupEditArticoloForm();
         }
         
-        // Setup connessioni dopo aver creato i widget
-        QTimer::singleShot(10, this, &MainWindow::setupEditSpecificConnections);
+        setupEditSpecificConnections();
         
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nel setup form specifico: %1").arg(e.what()));
@@ -1630,14 +1690,25 @@ void MainWindow::onEditTipoChanged()
             bool wasValidationEnabled = m_editValidationEnabled;
             m_editValidationEnabled = false;
             
+            // Reset stato validazione
+            if (m_editValidationLabel) {
+                m_editValidationLabel->setText("");
+                m_editValidationLabel->setVisible(false);
+            }
+            
+            if (m_editSalvaButton) {
+                m_editSalvaButton->setEnabled(false);
+            }
+            
             setupEditTypeSpecificForm();
             updateEditFormVisibility();
             
-            // Riabilita la validazione
-            QTimer::singleShot(300, this, [this, wasValidationEnabled]() {
+            // Riabilita la validazione dopo un delay
+            QTimer::singleShot(500, this, [this, wasValidationEnabled]() {
                 m_editValidationEnabled = wasValidationEnabled;
                 if (m_editValidationEnabled) {
-                    onEditValidationChanged();
+                    // Trigger validazione con delay
+                    QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
                 }
             });
         }
@@ -1700,18 +1771,28 @@ void MainWindow::onEditValidationChanged()
             return;
         }
         
+        // Verifica più robusta che i widget siano pronti
         if (!areEditCurrentTypeWidgetsReady()) {
+            qDebug() << "Widget non ancora pronti per la validazione, retry in 200ms";
             if (m_editSalvaButton) m_editSalvaButton->setEnabled(false);
             if (m_editValidationLabel) {
-                m_editValidationLabel->setText("");
-                m_editValidationLabel->setVisible(false);
+                m_editValidationLabel->setText("Inizializzazione in corso...");
+                m_editValidationLabel->setStyleSheet("color: #757575; font-weight: normal;");
+                m_editValidationLabel->setVisible(true);
             }
             
-            QTimer::singleShot(100, this, &MainWindow::onEditValidationChanged);
+            // Retry con intervallo più lungo
+            QTimer::singleShot(200, this, &MainWindow::onEditValidationChanged);
             return;
         }
         
+        qDebug() << "Eseguo validazione per tipo:" << m_editTipoCorrente;
+        
         bool valid = validateEditInput();
+        QStringList errors = getEditValidationErrors();
+        
+        qDebug() << "Risultato validazione - Valido:" << valid << "Errori:" << errors.size();
+        
         if (m_editSalvaButton) {
             m_editSalvaButton->setEnabled(valid);
         }
@@ -1724,10 +1805,13 @@ void MainWindow::onEditValidationChanged()
                 m_editValidationLabel->setProperty("valid", true);
                 m_editValidationLabel->setStyleSheet("color: #4CAF50; font-weight: bold;");
             } else {
-                QStringList errors = getEditValidationErrors();
-                m_editValidationLabel->setText("⚠ Errori: " + QString::number(errors.size()));
+                m_editValidationLabel->setText(QString("⚠ Errori: %1").arg(errors.size()));
                 m_editValidationLabel->setProperty("valid", false);
                 m_editValidationLabel->setStyleSheet("color: #F44336; font-weight: bold;");
+                
+                if (!errors.isEmpty()) {
+                    qDebug() << "Primi errori:" << errors.mid(0, qMin(3, errors.size()));
+                }
             }
             
             m_editValidationLabel->update();
@@ -1756,7 +1840,10 @@ void MainWindow::onEditAggiungiAutoreClicked()
             m_editNuovoAutoreEdit->clear();
             m_editNuovoAutoreEdit->setFocus();
             
-            QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+            // Trigger validazione
+            if (m_editValidationEnabled) {
+                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+            }
         }
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nell'aggiunta autore: %1").arg(e.what()));
@@ -1773,7 +1860,10 @@ void MainWindow::onEditRimuoviAutoreClicked()
             QListWidgetItem* item = m_editAutoriList->takeItem(row);
             if (item) {
                 delete item;
-                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                // Trigger validazione
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                }
             }
         } else {
             QMessageBox::information(this, "Info", "Seleziona un autore da rimuovere");
@@ -1782,6 +1872,7 @@ void MainWindow::onEditRimuoviAutoreClicked()
         mostraErrore(QString("Errore nella rimozione autore: %1").arg(e.what()));
     }
 }
+
 
 void MainWindow::onEditAggiungiAttoreClicked()
 {
@@ -1801,7 +1892,10 @@ void MainWindow::onEditAggiungiAttoreClicked()
             m_editNuovoAttoreEdit->clear();
             m_editNuovoAttoreEdit->setFocus();
             
-            QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+            // Trigger validazione
+            if (m_editValidationEnabled) {
+                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+            }
         }
     } catch (const std::exception& e) {
         mostraErrore(QString("Errore nell'aggiunta attore: %1").arg(e.what()));
@@ -1818,7 +1912,10 @@ void MainWindow::onEditRimuoviAttoreClicked()
             QListWidgetItem* item = m_editAttoriList->takeItem(row);
             if (item) {
                 delete item;
-                QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                // Trigger validazione
+                if (m_editValidationEnabled) {
+                    QTimer::singleShot(50, this, &MainWindow::onEditValidationChanged);
+                }
             }
         } else {
             QMessageBox::information(this, "Info", "Seleziona un attore da rimuovere");
@@ -1964,26 +2061,47 @@ QStringList MainWindow::getEditValidationErrors()
 
 bool MainWindow::areEditCurrentTypeWidgetsReady() const
 {
-    if (!m_editTipoCombo) return false;
-    
-    QString tipo = m_editTipoCombo->currentText();
-    
-    if (tipo == "Libro") {
-        return m_editLibroGroup != nullptr && 
-               m_editAutoreEdit != nullptr && 
-               m_editPagineSpin != nullptr;
-    } else if (tipo == "Film") {
-        return m_editFilmGroup != nullptr && 
-               m_editRegistaEdit != nullptr && 
-               m_editAttoriList != nullptr && 
-               m_editDurataSpin != nullptr;
-    } else if (tipo == "Articolo") {
-        return m_editArticoloGroup != nullptr && 
-               m_editAutoriList != nullptr && 
-               m_editRivisteEdit != nullptr && 
-               m_editDataPubblicazioneEdit != nullptr;
+    if (!m_editTipoCombo) {
+        qDebug() << "TipoCombo non pronto";
+        return false;
     }
     
+    QString tipo = m_editTipoCombo->currentText();
+    qDebug() << "Controllo widget per tipo:" << tipo;
+    
+    if (tipo == "Libro") {
+        bool ready = m_editLibroGroup != nullptr && 
+                    m_editAutoreEdit != nullptr && 
+                    m_editPagineSpin != nullptr &&
+                    m_editEditoreEdit != nullptr &&
+                    m_editGenereLibroCombo != nullptr &&
+                    m_editIsbnEdit != nullptr;
+        qDebug() << "Libro widgets ready:" << ready;
+        return ready;
+    } else if (tipo == "Film") {
+        bool ready = m_editFilmGroup != nullptr && 
+                    m_editRegistaEdit != nullptr && 
+                    m_editAttoriList != nullptr && 
+                    m_editDurataSpin != nullptr &&
+                    m_editGenereFilmCombo != nullptr &&
+                    m_editClassificazioneCombo != nullptr &&
+                    m_editCasaProduzioneEdit != nullptr;
+        qDebug() << "Film widgets ready:" << ready;
+        return ready;
+    } else if (tipo == "Articolo") {
+        bool ready = m_editArticoloGroup != nullptr && 
+                    m_editAutoriList != nullptr && 
+                    m_editRivisteEdit != nullptr && 
+                    m_editDataPubblicazioneEdit != nullptr &&
+                    m_editVolumeEdit != nullptr &&
+                    m_editNumeroEdit != nullptr &&
+                    m_editCategoriaCombo != nullptr &&
+                    m_editTipoRivistaCombo != nullptr;
+        qDebug() << "Articolo widgets ready:" << ready;
+        return ready;
+    }
+    
+    qDebug() << "Tipo non riconosciuto:" << tipo;
     return false;
 }
 
