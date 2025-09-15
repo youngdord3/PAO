@@ -77,7 +77,7 @@ private slots:
     void onCardSelezionata(const QString& id);
     void onCardDoubleClic(const QString& id);
 
-    // Nuovi slots per il pannello integrato
+    // Slots per il pannello integrato
     void showEditPanel(bool isNew = false, bool readOnly = false);
     void hideEditPanel();
     void onEditTipoChanged();
@@ -88,6 +88,9 @@ private slots:
     void onEditRimuoviAutoreClicked();
     void onEditAggiungiAttoreClicked();
     void onEditRimuoviAttoreClicked();
+    
+    // Nuovo slot per gestione validazione
+    void scheduleValidation();
 
 private:
     // Setup interfaccia
@@ -118,7 +121,7 @@ private:
     void setupEditFilmForm();
     void setupEditArticoloForm();
     void clearEditSpecificForm();
-    void setupEditTypeSpecificForm();
+    void setupEditTypeSpecificForm();  // ← IMPORTANTE: questa dichiarazione
     void setupEditConnections();
     void setupEditSpecificConnections();
     void disconnectEditGroupWidgets(QGroupBox* group);
@@ -207,6 +210,7 @@ private:
     bool m_editReadOnly;
     bool m_editIsNew;
     QString m_editTipoCorrente;
+    bool m_editTypeChanging;
     
     // Widgets del form di modifica
     QVBoxLayout* m_editFormLayout;
@@ -257,6 +261,10 @@ private:
     QPushButton* m_editHelpButton;
     QLabel* m_editValidationLabel;
     bool m_editValidationEnabled;
+    
+    // ← ORDINE CORRETTO: questi devono essere ULTIMI
+    QTimer* m_validationTimer;     // Timer per validazione
+    bool m_validationPending;      // Flag per evitare timer multipli
     
     // Dimensioni e layout
     static const int CARD_WIDTH = 280;
