@@ -84,4 +84,4 @@ private:
     std::vector<std::unique_ptr<Media>>::iterator findMediaIterator(const QString& id);
 };
 
-#endif // COLLEZIONE_H
+#endif

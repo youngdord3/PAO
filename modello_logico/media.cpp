@@ -71,7 +71,6 @@ bool Media::matchesFilter(const QString& searchText) const
 
 QString Media::generateId()
 {
-    // Fallback per UUID se chiamato direttamente
     return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
@@ -85,7 +84,6 @@ QString Media::generateSimpleId(const QString& type)
         return QString("articolo-%1").arg(s_articoloCounter++, 3, 10, QChar('0'));
     }
     
-    // Fallback
     return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
@@ -105,21 +103,21 @@ void Media::updateCountersFromExistingIds(const std::vector<QString>& existingId
     
     for (const QString& id : existingIds) {
         if (id.startsWith("libro-")) {
-            QString numStr = id.mid(6); // Rimuove "libro-"
+            QString numStr = id.mid(6);
             bool ok;
             int num = numStr.toInt(&ok);
             if (ok && num > maxLibro) {
                 maxLibro = num;
             }
         } else if (id.startsWith("film-")) {
-            QString numStr = id.mid(5); // Rimuove "film-"
+            QString numStr = id.mid(5);
             bool ok;
             int num = numStr.toInt(&ok);
             if (ok && num > maxFilm) {
                 maxFilm = num;
             }
         } else if (id.startsWith("articolo-")) {
-            QString numStr = id.mid(9); // Rimuove "articolo-"
+            QString numStr = id.mid(9);
             bool ok;
             int num = numStr.toInt(&ok);
             if (ok && num > maxArticolo) {

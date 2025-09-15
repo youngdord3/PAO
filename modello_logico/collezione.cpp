@@ -190,7 +190,7 @@ bool Collezione::isValidCollection() const
         }
         
         if (ids.find(media->getId()) != ids.end()) {
-            return false; // ID duplicato
+            return false;
         }
         
         ids.insert(media->getId());
@@ -239,7 +239,6 @@ void Collezione::updateIdCountersFromCollection()
     }
     
     // Aggiorna i contatori statici nella classe Media
-    // Se la collezione è vuota, resetterà automaticamente i contatori a 1
     Media::updateCountersFromExistingIds(existingIds);
 }
 

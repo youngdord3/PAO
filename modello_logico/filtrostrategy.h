@@ -8,8 +8,6 @@ class Media;
 
 /**
  * @brief Pattern Strategy per i filtri di ricerca
- * 
- * Permette di implementare diversi algoritmi di filtro
  */
 class FiltroStrategy
 {
@@ -20,9 +18,7 @@ public:
     virtual std::unique_ptr<FiltroStrategy> clone() const = 0;
 };
 
-/**
- * @brief Filtro per tipo di media
- */
+/* Filtro per tipo di media*/
 class FiltroTipo : public FiltroStrategy
 {
 public:
@@ -35,9 +31,7 @@ private:
     QString m_tipo;
 };
 
-/**
- * @brief Filtro per anno di pubblicazione
- */
+/*Filtro per anno di pubblicazione*/
 class FiltroAnno : public FiltroStrategy
 {
 public:
@@ -51,9 +45,7 @@ private:
     int m_annoMax;
 };
 
-/**
- * @brief Filtro per criterio specifico (autore, regista, ecc.)
- */
+/*Filtro per criterio specifico (autore, regista, ecc.)*/
 class FiltroCriterio : public FiltroStrategy
 {
 public:
@@ -67,9 +59,7 @@ private:
     QString m_valore;
 };
 
-/**
- * @brief Filtro composto che combina più filtri
- */
+/* Filtro composto che combina più filtri*/
 class FiltroComposto : public FiltroStrategy
 {
 public:
@@ -87,9 +77,7 @@ private:
     std::vector<std::unique_ptr<FiltroStrategy>> m_filtri;
 };
 
-/**
- * @brief Filtro che nega un altro filtro (NOT)
- */
+/* Filtro che nega un altro filtro (NOT)*/
 class FiltroNegato : public FiltroStrategy
 {
 public:
@@ -102,9 +90,7 @@ private:
     std::unique_ptr<FiltroStrategy> m_filtro;
 };
 
-/**
- * @brief Factory per creare filtri comuni
- */
+/* Factory per creare filtri comuni*/
 class FiltroFactory
 {
 public:
@@ -116,4 +102,4 @@ public:
     
 };
 
-#endif // FILTROSTRATEGY_H
+#endif

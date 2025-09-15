@@ -13,7 +13,6 @@ Articolo::Articolo(const QString& titolo, int anno, const QString& descrizione,
       m_volume(volume), m_numero(numero), m_pagine(pagine), m_categoria(categoria),
       m_tipo_rivista(tipo_rivista), m_data_pubblicazione(data_pubblicazione), m_doi(doi)
 {
-    // Genera ID semplice per nuovo articolo
     if (m_id.isEmpty()) {
         m_id = generateSimpleId("articolo");
     }
@@ -127,7 +126,6 @@ void Articolo::setDoi(const QString& doi)
 
 std::unique_ptr<Media> Articolo::clone() const
 {
-    // Crea una nuova istanza con tutti i dati correnti
     auto cloned = std::make_unique<Articolo>(m_titolo, m_anno, m_descrizione, m_autori, 
                                             m_rivista, m_volume, m_numero, m_pagine, 
                                             m_categoria, m_tipo_rivista, m_data_pubblicazione, m_doi);

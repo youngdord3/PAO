@@ -75,4 +75,4 @@ private:
     bool isValidIsbn(const QString& isbn) const;
 };
 
-#endif // LIBRO_H
+#endif

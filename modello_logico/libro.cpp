@@ -9,7 +9,6 @@ Libro::Libro(const QString& titolo, int anno, const QString& descrizione,
     : Media(titolo, anno, descrizione), m_autore(autore), m_editore(editore),
       m_pagine(pagine), m_isbn(isbn), m_genere(genere)
 {
-    // Genera ID semplice per nuovo libro
     if (m_id.isEmpty()) {
         m_id = generateSimpleId("libro");
     }
@@ -78,7 +77,6 @@ void Libro::setGenere(Genere genere)
 
 std::unique_ptr<Media> Libro::clone() const
 {
-    // Crea una nuova istanza con tutti i dati correnti
     auto cloned = std::make_unique<Libro>(m_titolo, m_anno, m_descrizione, m_autore, 
                                          m_editore, m_pagine, m_isbn, m_genere);
     
@@ -196,7 +194,7 @@ QString Libro::getSearchableText() const
 
 bool Libro::isValidIsbn(const QString& isbn) const
 {
-    if (isbn.isEmpty()) return true; // ISBN opzionale
+    if (isbn.isEmpty()) return true;
     
     QRegularExpression isbn10("^\\d{9}[\\dX]$");
     QRegularExpression isbn13("^\\d{13}$");

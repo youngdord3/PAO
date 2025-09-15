@@ -71,4 +71,4 @@ private:
     static QString generateId(); // Manteniamo per compatibilità
 };
 
-#endif // MEDIA_H
+#endif

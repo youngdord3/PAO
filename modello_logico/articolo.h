@@ -108,4 +108,4 @@ private:
     int calculatePageCount() const;
 };
 
-#endif // ARTICOLO_H
+#endif
