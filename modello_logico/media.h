@@ -43,6 +43,7 @@ public:
     
     // Template Method per la validazione
     bool isValid() const;
+    bool isCompleteAndValid() const;
     
     // Metodi per la ricerca e filtri
     bool matchesFilter(const QString& searchText) const;
@@ -53,7 +54,7 @@ public:
     static void resetCounters();
 
 protected:
-    // Template method steps - da implementare nelle classi derivate
+    // Template method steps
     virtual bool validateSpecificFields() const = 0;
     virtual QString getSearchableText() const = 0;
     

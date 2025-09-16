@@ -16,8 +16,9 @@ Collezione::~Collezione() = default;
 
 void Collezione::addMedia(std::unique_ptr<Media> media)
 {
-    if (!media || !media->isValid()) {
-        qWarning() << "Tentativo di aggiungere media non valido";
+    // Usa validazione completa solo al momento del salvataggio
+    if (!media || !media->isCompleteAndValid()) {
+        qWarning() << "Tentativo di aggiungere media non valido o incompleto";
         return;
     }
     
@@ -45,7 +46,8 @@ bool Collezione::removeMedia(const QString& id)
 
 bool Collezione::updateMedia(const QString& id, std::unique_ptr<Media> updatedMedia)
 {
-    if (!updatedMedia || !updatedMedia->isValid()) {
+    // Usa validazione completa per l'aggiornamento
+    if (!updatedMedia || !updatedMedia->isCompleteAndValid()) {
         return false;
     }
     
@@ -180,7 +182,7 @@ bool Collezione::isValidCollection() const
     std::set<QString> ids;
     
     for (const auto& media : m_media) {
-        if (!media || !media->isValid()) {
+        if (!media || !media->isCompleteAndValid()) {
             return false;
         }
         
@@ -207,7 +209,7 @@ QStringList Collezione::getValidationErrors() const
             continue;
         }
         
-        if (!media->isValid()) {
+        if (!media->isCompleteAndValid()) {
             errors << QString("Media #%1 (%2): Dati non validi").arg(i).arg(media->getTitolo());
         }
         

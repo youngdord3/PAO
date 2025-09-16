@@ -1802,7 +1802,7 @@ void MainWindow::onEditSalvaClicked()
         
         if (validateEditInput()) {
             auto media = createEditMedia();
-            if (media && media->isValid()) {
+            if (media && media->isCompleteAndValid()) {
                 if (m_editIsNew) {
                     // Nuovo media
                     m_collezione->addMedia(std::move(media));
