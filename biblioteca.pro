@@ -15,7 +15,7 @@ INCLUDEPATH += modello_logico \
                interfaccia \
                json
 
-# File sorgente
+# File sorgente - SUDDIVISI
 SOURCES += main.cpp \
            modello_logico/media.cpp \
            modello_logico/libro.cpp \
@@ -24,6 +24,10 @@ SOURCES += main.cpp \
            modello_logico/collezione.cpp \
            modello_logico/filtrostrategy.cpp \
            interfaccia/mainwindow.cpp \
+           interfaccia/mainwindow_ui.cpp \
+           interfaccia/mainwindow_editpanel.cpp \
+           interfaccia/mainwindow_editlogic.cpp \
+           interfaccia/mainwindow_validation.cpp \
            interfaccia/mediacard.cpp \
            interfaccia/mediafactory.cpp \
            json/jsonmanager.cpp

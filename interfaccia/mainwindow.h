@@ -92,8 +92,8 @@ private slots:
     // Nuovo slot per gestione validazione
     void scheduleValidation();
 
-private:
-    // Setup interfaccia
+public:
+    // Metodi per il setup dell'interfaccia (chiamati da altri file)
     void setupUI();
     void setupToolBar();
     void setupStatusBar();
@@ -102,26 +102,13 @@ private:
     void setupMediaArea();
     void setupEditPanel();
     
-    // Gestione layout
-    void updateLayout();
-    void refreshMediaCards();
-    void clearMediaCards();
-
-    // Metodi helper per gestire i controlli di gestione
-    void hideManagementControls();
-    void showManagementControls();
-    
-    // Filtri e ricerca
-    void applicaRicercaCorrente();
-    std::unique_ptr<FiltroStrategy> creaFiltroCorrente();
-    
-    // Setup pannello edit
+    // Metodi per il pannello edit (chiamati da editpanel.cpp)
     void setupEditBaseForm();
     void setupEditLibroForm();
     void setupEditFilmForm();
     void setupEditArticoloForm();
     void clearEditSpecificForm();
-    void setupEditTypeSpecificForm();  // ← IMPORTANTE: questa dichiarazione
+    void setupEditTypeSpecificForm();
     void setupEditConnections();
     void setupEditSpecificConnections();
     void disconnectEditGroupWidgets(QGroupBox* group);
@@ -140,6 +127,20 @@ private:
     void enableEditForm(bool enabled);
     bool areEditCurrentTypeWidgetsReady() const;
     
+    // Metodi helper per gestire i controlli di gestione
+    void hideManagementControls();
+    void showManagementControls();
+
+private:
+    // Gestione layout
+    void updateLayout();
+    void refreshMediaCards();
+    void clearMediaCards();
+    
+    // Filtri e ricerca
+    void applicaRicercaCorrente();
+    std::unique_ptr<FiltroStrategy> creaFiltroCorrente();
+    
     // Utility
     void aggiornaStatistiche();
     void aggiornaStatusBar();
@@ -152,7 +153,8 @@ private:
     void mostraErrore(const QString& errore);
     void mostraInfo(const QString& info);
     
-    // Membri privati
+public:
+    // Membri privati - resi pubblici per accesso da altri file della classe
     std::unique_ptr<Collezione> m_collezione;
     QString m_fileCorrente;
     bool m_modificato;
@@ -262,9 +264,9 @@ private:
     QLabel* m_editValidationLabel;
     bool m_editValidationEnabled;
     
-    // ← ORDINE CORRETTO: questi devono essere ULTIMI
-    QTimer* m_validationTimer;     // Timer per validazione
-    bool m_validationPending;      // Flag per evitare timer multipli
+    // Timer per validazione
+    QTimer* m_validationTimer;
+    bool m_validationPending;
     
     // Dimensioni e layout
     static const int CARD_WIDTH = 280;

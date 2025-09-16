@@ -63,7 +63,7 @@
             "genere": 2,
             "id": "film-001",
             "regista": "Francis Ford Coppola",
-            "titolo": "Il Padrino",
+            "titolo": "Il Padrino asd",
             "type": "film"
         },
         {
@@ -134,7 +134,7 @@
             "pagine": "456-472",
             "rivista": "Nature Medicine",
             "tipo_rivista": 0,
-            "titolo": "Machine Learning in Healthcare: A Comprehensive Review",
+            "titolo": "Machine Learning in Healthcare: A Comprehensive Review 1",
             "type": "articolo",
             "volume": "29"
         },
@@ -198,7 +198,7 @@
         }
     ],
     "metadata": {
-        "data_creazione": "2025-09-14T17:37:45",
+        "data_creazione": "2025-09-16T21:35:21",
         "generato_da": "Biblioteca Manager",
         "numero_media": 12,
         "versione": "1.0"
