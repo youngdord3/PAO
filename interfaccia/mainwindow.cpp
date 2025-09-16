@@ -1776,7 +1776,7 @@ void MainWindow::onEditTipoChanged()
         QString nuovoTipo = m_editTipoCombo->currentText();
         qDebug() << "Cambio tipo da" << m_editTipoCorrente << "a" << nuovoTipo;
         
-        if (nuovoTipo != m_editTipoCorrente) {
+        if (nuovoTipo != m_editTipoCorrente || m_editIsNew) {
             // Previeni loop
             m_editTypeChanging = true;
             
