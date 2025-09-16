@@ -1806,6 +1806,7 @@ void MainWindow::onEditTipoChanged()
                 
                 if (!m_editReadOnly) {
                     m_editValidationEnabled = true;
+                    setupEditSpecificConnections();
                     
                     // Trigger validazione iniziale dopo delay
                     QTimer::singleShot(200, this, [this]() {
@@ -2259,51 +2260,75 @@ QStringList MainWindow::getEditValidationErrors()
     QStringList errors;
     
     try {
-        // Validazione base
-        if (!m_editTitoloEdit || m_editTitoloEdit->text().trimmed().isEmpty()) {
-            errors << "Il titolo è obbligatorio";
-        }
-        
-        if (!m_editAnnoSpin || m_editAnnoSpin->value() <= 0) {
-            errors << "L'anno deve essere positivo";
-        }
-        
-        // Validazione specifica per tipo
-        if (!m_editTipoCombo) {
-            errors << "Tipo non selezionato";
+        // Verifica che i widget base esistano prima di controllarli
+        if (!m_editTitoloEdit || !m_editAnnoSpin || !m_editTipoCombo) {
+            errors << "Interfaccia non completamente inizializzata";
             return errors;
         }
         
+        // Validazione base
+        if (m_editTitoloEdit->text().trimmed().isEmpty()) {
+            errors << "Il titolo è obbligatorio";
+        }
+        
+        if (m_editAnnoSpin->value() <= 0) {
+            errors << "L'anno deve essere positivo";
+        }
+        
+        // Validazione specifica per tipo - solo se i widget esistono
         QString tipo = m_editTipoCombo->currentText();
         
         if (tipo == "Libro") {
-            if (!m_editAutoreEdit || m_editAutoreEdit->text().trimmed().isEmpty()) {
+            // Controlla che tutti i widget libro esistano prima di validarli
+            if (!m_editLibroGroup || !m_editAutoreEdit || !m_editPagineSpin) {
+                errors << "Form libro non completamente caricato";
+                return errors;
+            }
+            
+            if (m_editAutoreEdit->text().trimmed().isEmpty()) {
                 errors << "L'autore è obbligatorio per i libri";
             }
-            if (!m_editPagineSpin || m_editPagineSpin->value() <= 0) {
+            if (m_editPagineSpin->value() <= 0) {
                 errors << "Il numero di pagine deve essere positivo";
             }
+            
         } else if (tipo == "Film") {
-            if (!m_editRegistaEdit || m_editRegistaEdit->text().trimmed().isEmpty()) {
+            // Controlla che tutti i widget film esistano prima di validarli
+            if (!m_editFilmGroup || !m_editRegistaEdit || !m_editAttoriList || !m_editDurataSpin) {
+                errors << "Form film non completamente caricato";
+                return errors;
+            }
+            
+            if (m_editRegistaEdit->text().trimmed().isEmpty()) {
                 errors << "Il regista è obbligatorio per i film";
             }
-            if (!m_editAttoriList || m_editAttoriList->count() == 0) {
+            if (m_editAttoriList->count() == 0) {
                 errors << "Almeno un attore è richiesto";
             }
-            if (!m_editDurataSpin || m_editDurataSpin->value() <= 0) {
+            if (m_editDurataSpin->value() <= 0) {
                 errors << "La durata deve essere positiva";
             }
+            
         } else if (tipo == "Articolo") {
-            if (!m_editAutoriList || m_editAutoriList->count() == 0) {
+            // Controlla che tutti i widget articolo esistano prima di validarli
+            if (!m_editArticoloGroup || !m_editAutoriList || !m_editRivisteEdit || !m_editDataPubblicazioneEdit) {
+                errors << "Form articolo non completamente caricato";
+                return errors;
+            }
+            
+            if (m_editAutoriList->count() == 0) {
                 errors << "Almeno un autore è richiesto";
             }
-            if (!m_editRivisteEdit || m_editRivisteEdit->text().trimmed().isEmpty()) {
+            if (m_editRivisteEdit->text().trimmed().isEmpty()) {
                 errors << "Il nome della rivista è obbligatorio";
             }
-            if (!m_editDataPubblicazioneEdit || !m_editDataPubblicazioneEdit->date().isValid()) {
+            if (!m_editDataPubblicazioneEdit->date().isValid()) {
                 errors << "La data di pubblicazione non è valida";
             }
+        } else {
+            errors << "Tipo di media non riconosciuto: " + tipo;
         }
+        
     } catch (const std::exception& e) {
         errors << QString("Errore nella validazione: %1").arg(e.what());
     }
