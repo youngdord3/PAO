@@ -744,4 +744,4 @@ void MainWindow::mostraInfo(const QString& info)
     QTimer::singleShot(3000, [this]() {
         m_statusLabel->setText("Pronto");
     });
-}
+}   

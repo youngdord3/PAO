@@ -12,12 +12,7 @@
 void MainWindow::showEditPanel(bool isNew, bool readOnly)
 {
     try {
-        if (!m_editPanel || !m_mediaScrollArea || !m_editContentContainer) {
-            mostraErrore("Pannello di editing non inizializzato correttamente");
-            return;
-        }
-        
-        // Reset completo dello stato del pannello quando cambia modalità
+        // Reset completo necessario quando si cambia modalità  
         bool wasVisible = m_editPanelVisible;
         if (wasVisible && ((m_editIsNew != isNew) || (m_editReadOnly != readOnly))) {
             resetEditPanelState();
